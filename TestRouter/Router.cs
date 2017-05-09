@@ -22,8 +22,10 @@ namespace TestRouter
                 //creo el cliente para conecctarme al asterisk
                 actionClient = new AriClient(new StasisEndpoint("develop01.cloudapp.net", 8088, "asterisk", "pelo2dos"), appName);
                 //subscribo a los eventos necesarios
+                actionClient.OnChannelCreatedEvent += ActionClient_OnChannelCreatedEvent;
                 actionClient.OnStasisStartEvent += ActionClient_OnStasisStartEvent;
                 actionClient.OnStasisEndEvent += ActionClient_OnStasisEndEvent;
+                actionClient.OnUnhandledEvent += ActionClient_OnUnhandledEvent;
                 //Conecto el cliente al asterisk
                 actionClient.Connect(true,5);
                 //creo un bridge, aca el nombre del bridge habria que ver si no va con el nomnre del agente o el id del que llama
@@ -57,6 +59,16 @@ namespace TestRouter
                 Console.ReadKey();
             }
 
+        }
+
+        private void ActionClient_OnChannelCreatedEvent(IAriClient sender, ChannelCreatedEvent e)
+        {
+            Console.WriteLine("Nuevo canal: " + e.Channel.Id + " : " + e.Channel.State);
+        }
+
+        private void ActionClient_OnUnhandledEvent(object sender, Event eventMessage)
+        {
+            Console.WriteLine(eventMessage.ToString());
         }
 
         public void ConnectTo(String dst)
