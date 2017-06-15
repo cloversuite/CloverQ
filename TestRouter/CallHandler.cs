@@ -18,6 +18,52 @@ namespace TestRouter
         Channel caller;
         Channel agent;
 
+        public string Id
+        {
+            get
+            {
+                return id;
+            }
+        }
+        public Bridge Bridge
+        {
+            get
+            {
+                return bridge;
+            }
+
+            set
+            {
+                bridge = value;
+            }
+        }
+        public Channel Caller
+        {
+            get
+            {
+                return caller;
+            }
+
+            set
+            {
+                caller = value;
+            }
+        }
+        public Channel Agent
+        {
+            get
+            {
+                return agent;
+            }
+
+            set
+            {
+                agent = value;
+            }
+        }
+
+        
+
         //Constructor
         public CallHandler(string appName, AriClient pbx, Bridge bridge, Channel caller) 
         {
@@ -25,6 +71,7 @@ namespace TestRouter
             this.appName = appName;
             this.pbx = pbx;
             this.bridge = bridge;
+            bridge.Channels.Add(caller.Id);
             this.caller = caller;
             this.agent = null;
 
@@ -35,6 +82,7 @@ namespace TestRouter
             try
             {
                 agent = pbx.Channels.Originate(dst, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
+                bridge.Channels.Add(agent.Id);
             }
             catch (Exception ex)
             {
@@ -58,6 +106,16 @@ namespace TestRouter
             {
                 throw new Exception("Error al agregar el caller: " + caller.Id + " al bridge: " + bridge.Id, ex);
             }
+        }
+
+        public void ChannelHangup(string channelId) {
+            bridge.Channels.Remove(channelId);
+            if (channelId == caller.Id)
+                Console.WriteLine("El llamante colgó - canal: " + caller.Id + "CallHandler: " + this.id);
+            else if (channelId == agent.Id)
+                Console.WriteLine("El agent colgó - canal: " + caller.Id + "CallHandler: " + this.id);
+            else
+                Console.WriteLine("El canal " + caller.Id + " no está en la llamada: " + this.id);
         }
 
     }

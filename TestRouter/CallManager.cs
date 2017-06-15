@@ -12,8 +12,7 @@ namespace TestRouter
     {
         AriClient pbx;
         List<BridgeItem> bridgeCache = new List<BridgeItem>();
-        Dictionary<string, CallHandler> bridges = new Dictionary<string, CallHandler>();
-        Dictionary<string, CallHandler> channels = new Dictionary<string, CallHandler>();
+        CallHandlerCache callHandlerCache = new CallHandlerCache();
         private const string appName = "bridge_test";
 
         public CallManager()
@@ -57,7 +56,7 @@ namespace TestRouter
 
         private void Pbx_OnChannelDestroyedEvent(IAriClient sender, ChannelDestroyedEvent e)
         {
-            throw new NotImplementedException();
+            callHandlerCache.RemoveChannel(e.Channel.Id);
         }
 
         private void Pbx_OnChannelStateChangeEvent(IAriClient sender, ChannelStateChangeEvent e)
@@ -75,8 +74,7 @@ namespace TestRouter
         {
             Bridge bridge = GetFreeBridge();
             CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
-            bridges.Add(bridge.Id, callHandler); //esto es para encontrar el callhandler por id de bridge
-            channels.Add(e.Channel.Id, callHandler); //esto es para encontrar el callhandler por id de channel
+            callHandlerCache.AddCallHandler(callHandler);
             //va aca??
             callHandler.AnswerCaller(true);
             //supongo que aca debo avisar a akka que cree el manejador para esta llamada

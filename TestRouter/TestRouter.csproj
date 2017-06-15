@@ -61,9 +61,16 @@
   <ItemGroup>
     <Compile Include="BridgeItem.cs" />
     <Compile Include="CallHandler.cs" />
+    <Compile Include="CallHandlerCache.cs" />
     <Compile Include="CallManager.cs" />
-    <Compile Include="Proxy\ComProxy.cs" />
-    <Compile Include="Proxy\ProxyEventArgs.cs" />
+    <Compile Include="MessaageCallerOnHold.cs" />
+    <Compile Include="Message.cs" />
+    <Compile Include="MessageAnswerCall.cs" />
+    <Compile Include="MessageCallerHangup.cs" />
+    <Compile Include="MessageCallTo.cs" />
+    <Compile Include="MessageHangUpAgent.cs" />
+    <Compile Include="MessageNewCall.cs" />
+    <Compile Include="MessageProxy.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Router.cs" />

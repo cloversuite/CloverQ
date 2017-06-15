@@ -102,7 +102,7 @@ namespace TestRouter
             * Channel ch = ActionClient.Channels.Originate("SIP/101", "102", "from-internal-custom", 1,
             * "test_label", "hello-world", "originated", "test_caller_id", 60, null, e.Channel.Id, "", "");
             */
-            Channel ch = actionClient.Channels.Originate("PJSIP/1000",null,null,null,null, appName, "", "1111", 20, null, null, null, null);
+            Channel ch = actionClient.Channels.Originate("SIP/192.168.56.111:4040/1000",null,null,null,null, appName, "", "1111", 20, null, null, null, null);
             chs.Add(ch.Id,ch);
             Console.WriteLine("Llamando al canal: " + ch.Id);
         }
