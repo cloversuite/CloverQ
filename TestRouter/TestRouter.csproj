@@ -59,7 +59,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BridgeItem.cs" />
     <Compile Include="CallHandler.cs" />
+    <Compile Include="CallManager.cs" />
     <Compile Include="Proxy\ComProxy.cs" />
     <Compile Include="Proxy\ProxyEventArgs.cs" />
     <Compile Include="Program.cs" />
