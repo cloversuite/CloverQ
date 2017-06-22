@@ -11,7 +11,7 @@ namespace TestRouter
     public class CallManager
     {
         AriClient pbx;
-        List<BridgeItem> bridgeCache = new List<BridgeItem>();
+        BridgesList bridgesList = new BridgesList();
         CallHandlerCache callHandlerCache = new CallHandlerCache();
         private const string appName = "bridge_test";
 
@@ -72,7 +72,13 @@ namespace TestRouter
 
         private void Pbx_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
         {
-            Bridge bridge = GetFreeBridge();
+            
+            Bridge bridge = bridgesList.GetFreeBridge();
+            if (bridge == null) //si no hay un bridge libre creo uno y lo agrego a la lista
+            {
+                Bridge b = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
+                b = bridgesList.AddNewBridge(b).Bridge;
+            }
             CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
             callHandlerCache.AddCallHandler(callHandler);
             //va aca??
@@ -80,23 +86,5 @@ namespace TestRouter
             //supongo que aca debo avisar a akka que cree el manejador para esta llamada
         }
 
-        private Bridge GetFreeBridge() {
-            Bridge b = null;
-            foreach (BridgeItem bi in bridgeCache) {
-                if (bi.Free)
-                    b = bi.Bridge;
-            }
-            if (b == null)
-                b = NewBridgeItem().Bridge;
-
-            return b;
-        }
-
-        private BridgeItem NewBridgeItem() {
-            Bridge b = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
-            BridgeItem bi = new BridgeItem(b);
-            bi.Free = true;
-            return bi;
-        }
     }
 }

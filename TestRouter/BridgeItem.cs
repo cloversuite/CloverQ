@@ -15,11 +15,13 @@ namespace TestRouter
         public BridgeItem(Bridge bridge)
         {
             this.bridge = bridge;
+            //si el bridge que le paso posee canales, seteo Free=false
+            this.Free = bridge.Channels.Count == 0 ? true : false;
         }
 
 
         /// <summary>
-        /// Get de underlaying bridge
+        /// Get de underlying bridge
         /// </summary>
         public Bridge Bridge
         {
