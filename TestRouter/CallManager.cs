@@ -5,20 +5,40 @@ using System.Text;
 using System.Threading.Tasks;
 using AsterNET.ARI.Models;
 using AsterNET.ARI;
+using AkkaActorSystem;
+using ProtocolMessages;
 
 namespace TestRouter
 {
     public class CallManager
     {
         AriClient pbx;
+        QActorSystem qActorSystem = new QActorSystem();
+        ActorPbxProxy actorPbxProxy = null;
         BridgesList bridgesList = new BridgesList();
         CallHandlerCache callHandlerCache = new CallHandlerCache();
         private const string appName = "bridge_test";
 
         public CallManager()
         {
-          
+            //Creo el sistema de actores y el actor proxy para la pbx
+            actorPbxProxy = qActorSystem.GetActorPbxProxy();
+            actorPbxProxy.Receive += ActorPbxProxy_Receive;
+            actorPbxProxy.AnswerCall += ActorPbxProxy_AnswerCall;
         }
+
+        #region Handle Actor Sistem Events
+        private void ActorPbxProxy_AnswerCall(object sender, MessageAnswerCall message)
+        {
+            pbx.Channels.Answer(callHandlerCache.GetByCallHandlerlId(message.CallHandlerId).Caller.Id);
+        }
+        private void ActorPbxProxy_Receive(object sender, ProtocolMessages.Message message)
+        {
+            //Aca entran todos los eventos del sistema de actores
+        }
+
+        #endregion
+
         /// <summary>
         /// Connecto to Asterisk ARI and WebSocket events
         /// </summary>
@@ -82,6 +102,7 @@ namespace TestRouter
             }
             CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
             callHandlerCache.AddCallHandler(callHandler);
+            actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id });
 
             //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
         }

@@ -8,7 +8,7 @@ namespace ProtocolMessages
 {
     //el call manager envía este mensaje al actor para indicar que el CALLER cambio el estado de hold
     //true el caller hold, false el caller unhold
-    class MessaageCallerOnHold
+    public class MessaageCallerOnHold : Message
     {
         public bool OnHold { get; set; }
     }

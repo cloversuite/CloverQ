@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ProtocolMessages
 {
     //el call manager indica al actor que el CALLER terminò la llamada
-    class MessageCallerHangup
+    public class MessageCallerHangup : Message
     {
         public string HangUpCode { get; set; }
         //ej: normal clearing.

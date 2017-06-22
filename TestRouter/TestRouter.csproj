@@ -33,10 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Akka, Version=1.2.0.33, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Akka.1.2.0\lib\net45\Akka.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="AsterNET.ARI, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\AsterNET.ARI.1.1.0\lib\AsterNET.ARI.dll</HintPath>
       <Private>True</Private>
@@ -67,19 +63,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PbxActorSystemProxy.cs" />
     <Compile Include="BridgeItem.cs" />
     <Compile Include="BridgesList.cs" />
     <Compile Include="CallHandler.cs" />
     <Compile Include="CallHandlerCache.cs" />
     <Compile Include="CallManager.cs" />
-    <Compile Include="MessaageCallerOnHold.cs" />
-    <Compile Include="Message.cs" />
-    <Compile Include="MessageAnswerCall.cs" />
-    <Compile Include="MessageCallerHangup.cs" />
-    <Compile Include="MessageCallTo.cs" />
-    <Compile Include="MessageHangUpAgent.cs" />
-    <Compile Include="MessageNewCall.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Router.cs" />
@@ -87,6 +75,16 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AkkaActorSystem\AkkaActorSystem.csproj">
+      <Project>{f181b1c8-079b-478f-bbdb-02eb38fc207a}</Project>
+      <Name>AkkaActorSystem</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProtocolMessages\ProtocolMessages.csproj">
+      <Project>{0f2c24a8-90ba-418a-8d8d-6fc42aa0605d}</Project>
+      <Name>ProtocolMessages</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

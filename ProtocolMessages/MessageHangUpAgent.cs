@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    class MessageHangUpAgent
+    public class MessageHangUpAgent : Message
     {
         //el call manager indica al actor que el AGENTE terminó la llamada
         public string HangUpCode { get; set; }

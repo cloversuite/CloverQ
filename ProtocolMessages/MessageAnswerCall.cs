@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ProtocolMessages
 {
     //lo anvia el actor para que el call manager atienda la llamada
-    class MessageAnswerCall
+    public class MessageAnswerCall : Message
     {
         //deberia ser un enumerado, pero va como string pensando en la serialización, ej MOH
         public string MediaType { get; set; }

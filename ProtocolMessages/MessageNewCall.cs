@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ProtocolMessages
 {
     //lo envia el call manager al actor que lo va a manejar
-    class MessageNewCall
+    public class MessageNewCall : Message
     {
     }
 }

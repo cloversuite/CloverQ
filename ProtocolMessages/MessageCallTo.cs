@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    class MessageCallTo
+    public class MessageCallTo : Message
     {
         public string destination { get; set; }
     }
