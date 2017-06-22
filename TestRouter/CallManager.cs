@@ -49,6 +49,7 @@ namespace TestRouter
             
         }
 
+        #region Handle ARI Events
         private void Pbx_OnChannelHoldEvent(IAriClient sender, ChannelHoldEvent e)
         {
             throw new NotImplementedException();
@@ -81,10 +82,10 @@ namespace TestRouter
             }
             CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
             callHandlerCache.AddCallHandler(callHandler);
-            //va aca??
-            callHandler.AnswerCaller(true);
-            //supongo que aca debo avisar a akka que cree el manejador para esta llamada
+
+            //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
         }
 
+        #endregion
     }
 }

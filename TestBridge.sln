@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestBridge", "TestBridge\TestBridge.csproj", "{3247A0CE-F717-429F-B860-718766D56601}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestRouter", "TestRouter\TestRouter.csproj", "{AF0C9F12-86F5-4A1E-8FD3-4502B69C7F94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtocolMessages", "ProtocolMessages\ProtocolMessages.csproj", "{0F2C24A8-90BA-418A-8D8D-6FC42AA0605D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AkkaActorSystem", "AkkaActorSystem\AkkaActorSystem.csproj", "{F181B1C8-079B-478F-BBDB-02EB38FC207A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{AF0C9F12-86F5-4A1E-8FD3-4502B69C7F94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF0C9F12-86F5-4A1E-8FD3-4502B69C7F94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF0C9F12-86F5-4A1E-8FD3-4502B69C7F94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F2C24A8-90BA-418A-8D8D-6FC42AA0605D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F2C24A8-90BA-418A-8D8D-6FC42AA0605D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F2C24A8-90BA-418A-8D8D-6FC42AA0605D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F2C24A8-90BA-418A-8D8D-6FC42AA0605D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F181B1C8-079B-478F-BBDB-02EB38FC207A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F181B1C8-079B-478F-BBDB-02EB38FC207A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F181B1C8-079B-478F-BBDB-02EB38FC207A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F181B1C8-079B-478F-BBDB-02EB38FC207A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

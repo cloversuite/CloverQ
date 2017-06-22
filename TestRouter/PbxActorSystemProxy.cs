@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace TestRouter
 {
-    //encapsula el mailbox de akka
-    public class MessageProxy
+    public class PbxActorSystemProxy
     {
-        
     }
 }
