@@ -25,16 +25,48 @@ namespace TestRouter
             actorPbxProxy = qActorSystem.GetActorPbxProxy();
             actorPbxProxy.Receive += ActorPbxProxy_Receive;
             actorPbxProxy.AnswerCall += ActorPbxProxy_AnswerCall;
+            actorPbxProxy.CallTo += ActorPbxProxy_CallTo;
+            //Comienzo a recibir eventos
+            actorPbxProxy.Connect();
         }
+
+        
 
         #region Handle Actor Sistem Events
         private void ActorPbxProxy_AnswerCall(object sender, MessageAnswerCall message)
         {
-            pbx.Channels.Answer(callHandlerCache.GetByCallHandlerlId(message.CallHandlerId).Caller.Id);
+            string channelId = callHandlerCache.GetByCallHandlerlId(message.CallHandlerId).Caller.Id;
+            try
+            {
+                pbx.Channels.Answer(channelId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("No se pudo atender el canal: " + channelId + " Error: " + ex.Message);
+            }
+            Console.WriteLine("El canal: " + channelId + " fué atendido correctamente ");
         }
         private void ActorPbxProxy_Receive(object sender, ProtocolMessages.Message message)
         {
             //Aca entran todos los eventos del sistema de actores
+        }
+        private void ActorPbxProxy_CallTo(object sender, MessageCallTo message)
+        {
+            CallHandler callHandler = callHandlerCache.GetByCallHandlerlId(message.CallHandlerId);
+            try
+            {
+                //Origino la llamada al agente. Seguramente hay que hacerlo async
+                Channel ch = pbx.Channels.Originate(message.destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
+                //guardo el canal en el callhandler
+                callHandlerCache.AddChannelToCallHandler(message.CallHandlerId, ch.Id);
+                //Aca no puedo agregarlo al bridge porque aun no entra en el stasis, lo agrego en el stasisStart en el else
+
+            }
+            catch (Exception ex) {
+                Console.WriteLine("No se pudo conectar con el agente: " + message.destination +" Error: " + ex.Message);
+            }
+            Console.WriteLine("La llamada al agente: " + message.destination + " se concretó correctamente");
+
         }
 
         #endregion
@@ -49,10 +81,15 @@ namespace TestRouter
         public void Connect(string server, int port, string usu, string pass) {
             //CREO EL CLIENTE
             pbx = new AriClient(new StasisEndpoint(server, port, usu, pass), appName);
+            List<Bridge> brs = pbx.Bridges.List();
+            foreach (Bridge b in brs)
+            {
+                bridgesList.AddNewBridge(b);
+            }
             //SUBSCRIBO A EVENTOS
             pbx.OnStasisStartEvent += Pbx_OnStasisStartEvent; //Se dispara cuando un canal ejecuta la app stasis en el dialplan. el canal queda ahi a la espera de ser manejado
             pbx.OnStasisEndEvent += Pbx_OnStasisEndEvent; //el canal abandonó la app stasis (no quiere decir que cortó)
-            // pbx.OnChannelHangupRequestEvent //Se solicito terminar el canal (posee la causa ej: normal clearing)
+            pbx.OnChannelHangupRequestEvent += Pbx_OnChannelHangupRequestEvent; //Se solicito terminar el canal (posee la causa ej: normal clearing)
             pbx.OnChannelStateChangeEvent += Pbx_OnChannelStateChangeEvent; //cambió el estado del canal ej: down->up->ringing. No se si lo voy a usar
             pbx.OnChannelDestroyedEvent += Pbx_OnChannelDestroyedEvent; //el canal fué terminado, sehizo efectivo el hangup
             pbx.OnChannelHoldEvent += Pbx_OnChannelHoldEvent; //el canal se puso onhold
@@ -69,6 +106,26 @@ namespace TestRouter
                 throw new Exception("Error al conectar con asterisk", ex);
             }
             
+        }
+
+
+
+        public void Disconnect() {
+
+            foreach (Bridge b in bridgesList.Bridges) {
+                try
+                {
+                    pbx.Bridges.Destroy(b.Id);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error al remover un bridge: " + ex.Message);
+                }
+                
+            }
+            actorPbxProxy.Diconnect();
+            qActorSystem.Stop();
+            pbx.Disconnect();
         }
 
         #region Handle ARI Events
@@ -89,6 +146,11 @@ namespace TestRouter
             Console.WriteLine("Channel OnHold: " + e.Channel.Id);
         }
 
+        private void Pbx_OnChannelHangupRequestEvent(IAriClient sender, ChannelHangupRequestEvent e)
+        {
+            Console.WriteLine("Channel hangup request para el canal: " + e.Channel.Id);
+        }
+
         private void Pbx_OnChannelDestroyedEvent(IAriClient sender, ChannelDestroyedEvent e)
         {
             callHandlerCache.RemoveChannel(e.Channel.Id);
@@ -104,29 +166,63 @@ namespace TestRouter
         private void Pbx_OnStasisEndEvent(IAriClient sender, StasisEndEvent e)
         {
             Console.WriteLine("El canal: " + e.Channel.Id + " salió de la app: " + e.Application);
+            callHandlerCache.GetByChannelId(e.Channel.Id);
+            //uno de los dos cortó o por algun motivo se fue de stasis, transfer?? la cosa es que no estan mas en la app asi que los remuevo
+            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
+            if(callHandler != null) //esto es en caso de que existan llamadas en stasis antes de arrancar la app, debería cargar la info de lo preexistente en la pbx
+                callHandlerCache.RemoveCallHandler(callHandler.Id);
+
         }
 
         private void Pbx_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
         {
-            Console.WriteLine("El canal: " + e.Channel.Id + " entró a la app: " + e.Application);
-            Bridge bridge = bridgesList.GetFreeBridge();
-            if (bridge == null) //si no hay un bridge libre creo uno y lo agrego a la lista
+            //Verifico: si el canal es de una llamada que ya existe no creo nada. Esto es para el caso en que hago un originate al agente, ya tengo un callhandler creado por el caller que llamó inicialmente
+            if (callHandlerCache.GetByChannelId(e.Channel.Id) == null)
             {
-                bridge = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
-                bridgesList.AddNewBridge(bridge);
-                Console.WriteLine("Se crea un Bridge: " + bridge.Id);
-            }
-            else
+                Console.WriteLine("El canal: " + e.Channel.Id + " entró a la app: " + e.Application);
+                Bridge bridge = bridgesList.GetFreeBridge();
+                if (bridge == null) //si no hay un bridge libre creo uno y lo agrego a la lista
+                {
+                    bridge = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
+                    bridgesList.AddNewBridge(bridge);
+                    Console.WriteLine("Se crea un Bridge: " + bridge.Id);
+                }
+                else
+                {
+                    Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
+                }
+                
+
+                CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
+                callHandlerCache.AddCallHandler(callHandler);
+                Console.WriteLine("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
+
+                //Agrego el canal al bridge
+                try
+                {
+                    //agrego el canal al bridge, controlar que pasa si falla el originate
+                    pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                }
+
+                //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
+                actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id });
+            }else
             {
-                Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
+                CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
+                try
+                {
+                    //agrego el canal al bridge, controlar que pasa si falla el originate
+                    pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id  + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                }
             }
-            CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
-            callHandlerCache.AddCallHandler(callHandler);
-            Console.WriteLine("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
-
-            //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
-            actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id });
-
             
         }
 

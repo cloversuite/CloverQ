@@ -32,34 +32,58 @@ namespace AkkaActorSystem
         }
         public void Connect()
         {
-            threadReceiver.Start();
+            //Comienzo a recibir mensajitos
+            Receiver();
         }
         public void Diconnect()
         {
-            threadReceiver.Interrupt();
+            if (threadReceiver != null)
+            {
+                try
+                {
+                    threadReceiver.Interrupt();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error al detener el thread receiver del ActorPbxProxy: " + ex.Message);
+                }
+                
+            }
         }
 
         private void Receiver()
         {
             threadReceiver = new Thread(() =>
             {
-                while (true)
+                try
                 {
-                    object msg = inbox.Receive(Timeout.InfiniteTimeSpan);
+                    while (true)
+                    {
+                        object msg = inbox.Receive(TimeSpan.FromDays(1));
 
-                    //todos los mensajes
-                    if (Receive != null && msg is Message)
-                    {
-                        this.Receive(this, (Message)msg);
+                        //todos los mensajes
+
+                        if (AnswerCall != null && msg is MessageAnswerCall)
+                        {
+                            Console.WriteLine("El ActorPbx recibió AnswerCall");
+                            this.AnswerCall(this, (MessageAnswerCall)msg);
+                        }
+                        if (AnswerCall != null && msg is MessageCallTo)
+                        {
+                            Console.WriteLine("El ActorPbx recibió un CallTo");
+                            this.CallTo(this, (MessageCallTo)msg);
+                        }
+                        //All Messages
+                        if (Receive != null && msg is Message)
+                        {
+                            Console.WriteLine("El ActorPbx recibió un mensaje");
+                            this.Receive(this, (Message)msg);
+                        }
+                        Thread.Sleep(100);
                     }
-                    if (AnswerCall!= null && msg is MessageAnswerCall)
-                    {
-                        this.AnswerCall(this, (MessageAnswerCall)msg);
-                    }
-                    if (AnswerCall != null && msg is MessageCallTo)
-                    {
-                        this.CallTo(this, (MessageCallTo)msg);
-                    }
+                }
+                catch (Exception ex) {
+                    Console.WriteLine("El thread receiver del ActorPbxProxy se detuvo: " + ex.Message);
                 }
             });
             threadReceiver.Start();
@@ -74,6 +98,7 @@ namespace AkkaActorSystem
         public void Send(Message message)
         {
             inbox.Send(actorMessageRouter, message);
+            Console.WriteLine("El ActorPbx envió un mensaje al ActorMsgRouter");
         }
     }
 }

@@ -12,6 +12,7 @@ namespace AkkaActorSystem
     public class QActorSystem
     {
         private ActorPbxProxy actorPbxProxy;
+        ActorSystem systemq;
         private IActorRef actorMsgRouter;
 
         /// <summary>
@@ -32,11 +33,27 @@ namespace AkkaActorSystem
                     inbox-size=100000
               }");
 
-            ActorSystem systemq = ActorSystem.Create("clover-q", config);
+            systemq = ActorSystem.Create("clover-q", config);
             Inbox inbox = Inbox.Create(systemq);
             actorMsgRouter = systemq.ActorOf(Props.Create(() => new ActorMsgRouter()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "Proxy");
 
             actorPbxProxy = new ActorPbxProxy(inbox, actorMsgRouter);
+
+        }
+
+        public void Stop()
+        {
+            if (systemq != null) {
+                try
+                {
+                    systemq.Terminate();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error al detener el sistema de actores: " + ex.Message);
+                }
+                Console.WriteLine("El sistema de actores se detuvo.");
+            }    
 
         }
 

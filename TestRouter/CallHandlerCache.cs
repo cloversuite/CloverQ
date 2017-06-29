@@ -32,9 +32,28 @@ namespace TestRouter
             if (c.Agent != null)
                 channels.Remove(c.Agent.Id);
         }
-        public CallHandler GetByChannelId(string id) { return channels[id]; }
-        public CallHandler GetByBridgeId(string id) { return bridges[id]; }
-        public CallHandler GetByCallHandlerlId(string id) { return calls[id]; }
+        public CallHandler GetByChannelId(string id) {
+            if (channels.ContainsKey(id))
+                return channels[id];
+            else
+                return null;
+        }
+        public CallHandler GetByBridgeId(string id)
+        {
+            if (bridges.ContainsKey(id))
+                return bridges[id];
+            else
+                return null;
+        }
+   
+        public CallHandler GetByCallHandlerlId(string id)
+        {
+            if (calls.ContainsKey(id))
+                return calls[id];
+            else
+                return null;
+        }
+   
 
         public void AddChannelToCallHandler(string callHandlerId, string channelId) {
             CallHandler c = this.GetByCallHandlerlId(callHandlerId);

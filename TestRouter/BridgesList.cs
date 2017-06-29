@@ -30,9 +30,21 @@ namespace TestRouter
         {
             BridgeItem bi = new BridgeItem(bridge);
             bi.Free = true;
+            bridgeCache.Add(bi);
             return bi;
         }
 
+        public List<Bridge> Bridges
+        {
+            get
+            {
+                List<Bridge> bridges = new List<Bridge>();
+                foreach (BridgeItem b in this.bridgeCache) {
+                    bridges.Add(b.Bridge);
+                }
+                return bridges;
+            }
+        }
 
     }
 }

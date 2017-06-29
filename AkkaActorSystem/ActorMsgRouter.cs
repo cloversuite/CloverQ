@@ -22,17 +22,18 @@ namespace AkkaActorSystem
             //Receive<String>(s => s.Equals("Start"), (s) => { proxyClient.Connect(); }); //ejemplito
             Receive<MessageNewCall>(cf =>
             {
-                //IActorRef a = callHandlers[cf.Id];
-                //Context.Stop(a);
-                //callHandlers.Remove(cf.Id);
-
+                Sender.Tell(new MessageAnswerCall(){ CallHandlerId = cf.CallHandlerId });
+                Sender.Tell(new MessageCallTo { CallHandlerId = cf.CallHandlerId, destination = "SIP/192.168.56.1:6060/2000" });
             });
-            Receive<MessageAnswerCall>((ci) =>
-            {
-                //IActorRef callHandler = Context.ActorOf(Props.Create(() => new CallHandler()), "Handler:" + ci.Id);
-                //callHandler.Tell(new CallInfo(ci.Id));
-                //callHandlers.Add(ci.Id, callHandler);
-            });
+            //Receive<MessageHangUpAgent>((ci) =>
+            //{
+            //    //Sender.Tell( nada);
+            //});
+        }
+        protected override void Unhandled(object message)
+        {
+            base.Unhandled(message);
+            Console.WriteLine("Router mensaje no manejado");
         }
     }
 }
