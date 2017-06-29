@@ -12,8 +12,14 @@ namespace TestRouter
     {
         static void Main(string[] args)
         {
-            Router r = new Router();
-            r.Start();
+            //Router r = new Router();
+            //r.Start();
+
+            CallManager callManager = new CallManager();
+            callManager.Connect("192.168.56.101", 8088, "asterisk", "pelo2dos");
+
+            Console.ReadLine();
+
         }
     }
 }

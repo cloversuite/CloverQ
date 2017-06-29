@@ -27,6 +27,7 @@ namespace AkkaActorSystem
 
         public ActorPbxProxy(Inbox inbox, IActorRef actorMessageRouter)
         {
+            this.actorMessageRouter = actorMessageRouter;
             this.inbox = inbox;
         }
         public void Connect()

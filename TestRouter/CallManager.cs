@@ -56,6 +56,8 @@ namespace TestRouter
             pbx.OnChannelStateChangeEvent += Pbx_OnChannelStateChangeEvent; //cambió el estado del canal ej: down->up->ringing. No se si lo voy a usar
             pbx.OnChannelDestroyedEvent += Pbx_OnChannelDestroyedEvent; //el canal fué terminado, sehizo efectivo el hangup
             pbx.OnChannelHoldEvent += Pbx_OnChannelHoldEvent; //el canal se puso onhold
+            pbx.OnBridgeAttendedTransferEvent += Pbx_OnBridgeAttendedTransferEvent;
+            pbx.OnBridgeBlindTransferEvent += Pbx_OnBridgeBlindTransferEvent;
 
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
@@ -70,14 +72,27 @@ namespace TestRouter
         }
 
         #region Handle ARI Events
+        private void Pbx_OnBridgeBlindTransferEvent(IAriClient sender, BridgeBlindTransferEvent e)
+        {
+            Console.WriteLine("Blind Transfer");
+            Console.WriteLine(e);
+        }
+
+        private void Pbx_OnBridgeAttendedTransferEvent(IAriClient sender, BridgeAttendedTransferEvent e)
+        {
+            Console.WriteLine("Blind Transfer");
+            Console.WriteLine(e);
+        }
+
         private void Pbx_OnChannelHoldEvent(IAriClient sender, ChannelHoldEvent e)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Channel OnHold: " + e.Channel.Id);
         }
 
         private void Pbx_OnChannelDestroyedEvent(IAriClient sender, ChannelDestroyedEvent e)
         {
             callHandlerCache.RemoveChannel(e.Channel.Id);
+            Console.WriteLine("Channel Destroy: " + e.Channel.Id + " remuevo channel del callhandler" );
         }
 
         private void Pbx_OnChannelStateChangeEvent(IAriClient sender, ChannelStateChangeEvent e)
@@ -88,23 +103,31 @@ namespace TestRouter
 
         private void Pbx_OnStasisEndEvent(IAriClient sender, StasisEndEvent e)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("El canal: " + e.Channel.Id + " salió de la app: " + e.Application);
         }
 
         private void Pbx_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
         {
-            
+            Console.WriteLine("El canal: " + e.Channel.Id + " entró a la app: " + e.Application);
             Bridge bridge = bridgesList.GetFreeBridge();
             if (bridge == null) //si no hay un bridge libre creo uno y lo agrego a la lista
             {
-                Bridge b = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
-                b = bridgesList.AddNewBridge(b).Bridge;
+                bridge = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
+                bridgesList.AddNewBridge(bridge);
+                Console.WriteLine("Se crea un Bridge: " + bridge.Id);
+            }
+            else
+            {
+                Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
             }
             CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
             callHandlerCache.AddCallHandler(callHandler);
-            actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id });
+            Console.WriteLine("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
 
             //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
+            actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id });
+
+            
         }
 
         #endregion

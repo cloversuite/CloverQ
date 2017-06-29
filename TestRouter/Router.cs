@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using AsterNET.ARI.Models;
 using AsterNET.ARI;
 
@@ -33,14 +33,14 @@ namespace TestRouter
                 actionClient.OnDialEvent += ActionClient_OnDialEvent;
                 actionClient.OnBridgeCreatedEvent += ActionClient_OnBridgeCreatedEvent;
                 actionClient.OnChannelCreatedEvent += ActionClient_OnChannelCreatedEvent1;
-                actionClient.OnUnhandledEvent += ActionClient_OnUnhandledEvent;
+                //actionClient.OnUnhandledEvent += ActionClient_OnUnhandledEvent;
                 //Conecto el cliente al asterisk
                 actionClient.Connect(true,5);
                 //creo un bridge, aca el nombre del bridge habria que ver si no va con el nomnre del agente o el id del que llama //Guid.NewGuid().ToString()
                 routerBridge = actionClient.Bridges.Create("mixing", "beaf1045-4680-40ed-9fbe-b2312baa0824" , appName);
                 //me subscribo a los eventos del bridge
-                actionClient.Applications.Subscribe(appName, "bridge:" + routerBridge.Id);
-                actionClient.Applications.Subscribe(appName, "endpoint:PJSIP/1000" );
+                actionClient.Applications.Unsubscribe(appName, "bridge:" + routerBridge.Id);
+                actionClient.Applications.Unsubscribe(appName, "endpoint:PJSIP/1000" );
                 var done = false;
                 while (!done)
                 {
@@ -90,10 +90,10 @@ namespace TestRouter
             Console.WriteLine("Nuevo canal: " + e.Channel.Id + " : " + e.Channel.State);
         }
 
-        private void ActionClient_OnUnhandledEvent(object sender, Event eventMessage)
-        {
-            Console.WriteLine(eventMessage.ToString());
-        }
+        //private void ActionClient_OnUnhandledEvent(object sender, Event eventMessage)
+        //{
+        //    Console.WriteLine(eventMessage.ToString());
+        //}
 
         public void ConnectTo(String dst)
         {
@@ -102,9 +102,11 @@ namespace TestRouter
             * Channel ch = ActionClient.Channels.Originate("SIP/101", "102", "from-internal-custom", 1,
             * "test_label", "hello-world", "originated", "test_caller_id", 60, null, e.Channel.Id, "", "");
             */
-            Channel ch = actionClient.Channels.Originate("SIP/192.168.56.111:4040/1000",null,null,null,null, appName, "", "1111", 20, null, null, null, null);
+            Channel ch = actionClient.Channels.Originate("SIP/192.168.1.103:6060/2000",null,null,null,null, appName, "", "1111", 20, null, null, null, null);
             chs.Add(ch.Id,ch);
             Console.WriteLine("Llamando al canal: " + ch.Id);
+            Thread.Sleep(3000);
+            actionClient.Bridges.AddChannel(routerBridge.Id, ch.Id, null);
         }
 
         private void ActionClient_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
