@@ -13,21 +13,21 @@ namespace TestRouter
     public class CallManager
     {
         AriClient pbx;
-        QActorSystem qActorSystem = new QActorSystem();
+        
         ActorPbxProxy actorPbxProxy = null;
         BridgesList bridgesList = new BridgesList();
         CallHandlerCache callHandlerCache = new CallHandlerCache();
         private const string appName = "bridge_test";
 
-        public CallManager()
+        public CallManager(ActorPbxProxy actorPbxProxy)
         {
             //Creo el sistema de actores y el actor proxy para la pbx
-            actorPbxProxy = qActorSystem.GetActorPbxProxy();
+            this.actorPbxProxy = actorPbxProxy;
             actorPbxProxy.Receive += ActorPbxProxy_Receive;
             actorPbxProxy.AnswerCall += ActorPbxProxy_AnswerCall;
             actorPbxProxy.CallTo += ActorPbxProxy_CallTo;
             //Comienzo a recibir eventos
-            actorPbxProxy.Connect();
+            actorPbxProxy.Start();
         }
 
         
@@ -81,11 +81,7 @@ namespace TestRouter
         public void Connect(string server, int port, string usu, string pass) {
             //CREO EL CLIENTE
             pbx = new AriClient(new StasisEndpoint(server, port, usu, pass), appName);
-            List<Bridge> brs = pbx.Bridges.List();
-            foreach (Bridge b in brs)
-            {
-                bridgesList.AddNewBridge(b);
-            }
+
             //SUBSCRIBO A EVENTOS
             pbx.OnStasisStartEvent += Pbx_OnStasisStartEvent; //Se dispara cuando un canal ejecuta la app stasis en el dialplan. el canal queda ahi a la espera de ser manejado
             pbx.OnStasisEndEvent += Pbx_OnStasisEndEvent; //el canal abandonó la app stasis (no quiere decir que cortó)
@@ -100,6 +96,14 @@ namespace TestRouter
             try
             {
                 pbx.Connect(true, 5);
+                if (pbx.Connected)
+                {
+                    List<Bridge> brs = pbx.Bridges.List();
+                    foreach (Bridge b in brs)
+                    {
+                        bridgesList.AddNewBridge(b);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -107,8 +111,6 @@ namespace TestRouter
             }
             
         }
-
-
 
         public void Disconnect() {
 
@@ -123,8 +125,8 @@ namespace TestRouter
                 }
                 
             }
-            actorPbxProxy.Diconnect();
-            qActorSystem.Stop();
+            actorPbxProxy.Stop();
+            
             pbx.Disconnect();
         }
 

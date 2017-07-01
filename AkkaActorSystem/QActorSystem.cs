@@ -12,8 +12,11 @@ namespace AkkaActorSystem
     public class QActorSystem
     {
         private ActorPbxProxy actorPbxProxy;
+        private ActorStateProxy actorStateProxy;
+
         ActorSystem systemq;
         private IActorRef actorMsgRouter;
+        private IActorRef actorMemberManager;
 
         /// <summary>
         /// Esta clase inicia el sistema de actores, crea un router de mensajes y una instancia del proxy para la pbx
@@ -34,10 +37,14 @@ namespace AkkaActorSystem
               }");
 
             systemq = ActorSystem.Create("clover-q", config);
-            Inbox inbox = Inbox.Create(systemq);
-            actorMsgRouter = systemq.ActorOf(Props.Create(() => new ActorMsgRouter()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "Proxy");
+            Inbox inboxPbxProxy = Inbox.Create(systemq);
+            Inbox inboxStateProxy = Inbox.Create(systemq);
 
-            actorPbxProxy = new ActorPbxProxy(inbox, actorMsgRouter);
+            actorMsgRouter = systemq.ActorOf(Props.Create(() => new ActorMsgRouter()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MsgRouter");
+            actorMemberManager = systemq.ActorOf(Props.Create(() => new ActorMsgRouter()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MemberManager");
+
+            actorPbxProxy = new ActorPbxProxy(inboxPbxProxy, actorMsgRouter);
+            actorStateProxy = new ActorStateProxy(inboxStateProxy, actorMemberManager);
 
         }
 
@@ -60,6 +67,11 @@ namespace AkkaActorSystem
         public ActorPbxProxy GetActorPbxProxy()
         {
             return this.actorPbxProxy;
+        }
+
+        public ActorStateProxy GetActorStateProxy()
+        {
+            return this.actorStateProxy;
         }
     }
 }

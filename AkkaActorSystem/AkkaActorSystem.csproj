@@ -52,8 +52,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActorMemberManager.cs" />
     <Compile Include="ActorMsgRouter.cs" />
     <Compile Include="ActorPbxProxy.cs" />
+    <Compile Include="ActorStateProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QActorSystem.cs" />
   </ItemGroup>

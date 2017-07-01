@@ -14,28 +14,28 @@ namespace AkkaActorSystem
     /// </summary>
     public class ActorPbxProxy
     {
+        #region Eventos
         public delegate void DelegateMessage(object sender, Message message);
         public delegate void DelelegateMessageAnswerCall(object sender, MessageAnswerCall message);
         public delegate void DelelegateMessageCallTo(object sender, MessageCallTo message);
         public event DelegateMessage Receive;
         public event DelelegateMessageAnswerCall AnswerCall;
         public event DelelegateMessageCallTo CallTo;
+        #endregion
 
+        #region Atributos
         Thread threadReceiver = null;
         IActorRef actorMessageRouter;
         Inbox inbox;
+        #endregion
 
         public ActorPbxProxy(Inbox inbox, IActorRef actorMessageRouter)
         {
             this.actorMessageRouter = actorMessageRouter;
             this.inbox = inbox;
         }
-        public void Connect()
-        {
-            //Comienzo a recibir mensajitos
-            Receiver();
-        }
-        public void Diconnect()
+
+        public void Stop()
         {
             if (threadReceiver != null)
             {
@@ -89,10 +89,10 @@ namespace AkkaActorSystem
             threadReceiver.Start();
         }
 
-        private void Start()
+        public void Start()
         {
-            Receiver();
-            //Crear algo que monitoree esto?
+            //Comienzo a recibir mensajitos
+            Receiver(); 
         }
 
         public void Send(Message message)

@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtocolMessages", "Protoco
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AkkaActorSystem", "AkkaActorSystem\AkkaActorSystem.csproj", "{F181B1C8-079B-478F-BBDB-02EB38FC207A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateProvider", "StateProvider\StateProvider.csproj", "{01044E47-6729-4FC2-82B2-923448699CC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueSystem", "QueueSystem\QueueSystem.csproj", "{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{F181B1C8-079B-478F-BBDB-02EB38FC207A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F181B1C8-079B-478F-BBDB-02EB38FC207A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F181B1C8-079B-478F-BBDB-02EB38FC207A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01044E47-6729-4FC2-82B2-923448699CC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01044E47-6729-4FC2-82B2-923448699CC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01044E47-6729-4FC2-82B2-923448699CC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01044E47-6729-4FC2-82B2-923448699CC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

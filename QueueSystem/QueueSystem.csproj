@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0F2C24A8-90BA-418A-8D8D-6FC42AA0605D}</ProjectGuid>
+    <ProjectGuid>{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ProtocolMessages</RootNamespace>
-    <AssemblyName>ProtocolMessages</AssemblyName>
+    <RootNamespace>QueueSystem</RootNamespace>
+    <AssemblyName>QueueSystem</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,16 +40,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MessaageCallerOnHold.cs" />
-    <Compile Include="Message.cs" />
-    <Compile Include="MessageAnswerCall.cs" />
-    <Compile Include="MessageCallerHangup.cs" />
-    <Compile Include="MessageCallTo.cs" />
-    <Compile Include="MessageContactChanged.cs" />
-    <Compile Include="MessageHangUpAgent.cs" />
-    <Compile Include="MessageNewCall.cs" />
-    <Compile Include="MessageStateChanged.cs" />
+    <Compile Include="Call.cs" />
+    <Compile Include="CallDispatcher.cs" />
+    <Compile Include="CallList.cs" />
+    <Compile Include="CallOrderStrategyDefault.cs" />
+    <Compile Include="ICallOrderStrategy.cs" />
+    <Compile Include="IMemberStrategy.cs" />
+    <Compile Include="Iprovider.cs" />
+    <Compile Include="IQueueStrategy.cs" />
+    <Compile Include="Member.cs" />
+    <Compile Include="MemberCache.cs" />
+    <Compile Include="MemberList.cs" />
+    <Compile Include="MemberStrategyRRM.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Queue.cs" />
+    <Compile Include="QueueCache.cs" />
+    <Compile Include="QueueMemberRel.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

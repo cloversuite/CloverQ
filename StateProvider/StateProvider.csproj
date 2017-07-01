@@ -4,17 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AF0C9F12-86F5-4A1E-8FD3-4502B69C7F94}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{01044E47-6729-4FC2-82B2-923448699CC6}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TestRouter</RootNamespace>
-    <AssemblyName>TestRouter</AssemblyName>
+    <RootNamespace>StateProvider</RootNamespace>
+    <AssemblyName>StateProvider</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -46,10 +43,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.3.1\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -63,17 +56,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BridgeItem.cs" />
-    <Compile Include="BridgesList.cs" />
-    <Compile Include="CallHandler.cs" />
-    <Compile Include="CallHandlerCache.cs" />
-    <Compile Include="CallManager.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="DeviceStateManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Router.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -84,10 +71,6 @@
     <ProjectReference Include="..\ProtocolMessages\ProtocolMessages.csproj">
       <Project>{0f2c24a8-90ba-418a-8d8d-6fc42aa0605d}</Project>
       <Name>ProtocolMessages</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\StateProvider\StateProvider.csproj">
-      <Project>{01044e47-6729-4fc2-82b2-923448699cc6}</Project>
-      <Name>StateProvider</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
