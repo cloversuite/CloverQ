@@ -15,7 +15,5 @@ namespace QueueSystem
         public string Id { get; set; }
         public string MoH { get; set; }
 
-        List<Member> members = new List<Member>();
-
     }
 }

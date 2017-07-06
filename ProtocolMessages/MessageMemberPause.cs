@@ -4,14 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QueueSystem
+namespace ProtocolMessages
 {
-    /// <summary>
-    /// Clase que representa un miembro
-    /// </summary>
-    class Member
+    public class MessageMemberPause : Message
     {
         public string MemberId { get; set; }
+        public int PauseReason { get; set; }
     }
-
 }

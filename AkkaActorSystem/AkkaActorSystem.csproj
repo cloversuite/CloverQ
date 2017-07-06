@@ -52,7 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActorMemberManager.cs" />
+    <Compile Include="ActorCallDistributor.cs" />
     <Compile Include="ActorMsgRouter.cs" />
     <Compile Include="ActorPbxProxy.cs" />
     <Compile Include="ActorStateProxy.cs" />

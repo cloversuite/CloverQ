@@ -48,7 +48,7 @@ namespace QueueSystem
 
         public void RemoveCall(Call call) {
             //TODO: Revisar esto, lo escribo así mas que nada para expresar lo que se debe hacer
-            Call callToRemove = calls.Find(c => c.callId == call.callId);
+            Call callToRemove = calls.Find(c => c.CallHandlerId == call.CallHandlerId);
             calls.Remove(callToRemove);
         }
 
