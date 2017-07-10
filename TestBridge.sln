@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateProvider", "StateProvi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueSystem", "QueueSystem\QueueSystem.csproj", "{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "DataAccess\DataAccess.csproj", "{EA0D8C48-0EF4-47D8-9465-820D37700618}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95E0424D-3384-4B3E-A7F5-AA1F0D87CB30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA0D8C48-0EF4-47D8-9465-820D37700618}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA0D8C48-0EF4-47D8-9465-820D37700618}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA0D8C48-0EF4-47D8-9465-820D37700618}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA0D8C48-0EF4-47D8-9465-820D37700618}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
