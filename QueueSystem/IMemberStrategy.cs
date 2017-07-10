@@ -12,7 +12,7 @@ namespace QueueSystem
         /// Estrategia para determinar el pròximo miembro diponible 
         /// </summary>
         /// <returns></returns>
-        Member GetNext();
-        List<Member> Members { get; set; }
+        QueueMember GetNext();
+        List<QueueMember> Members { get; set; }
     }
 }

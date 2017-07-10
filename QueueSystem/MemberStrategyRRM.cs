@@ -12,23 +12,23 @@ namespace QueueSystem
     /// </summary>
     class MemberStrategyRRM : IMemberStrategy
     {
-        List<Member> members;
+        List<QueueMember> members;
 
-        public MemberStrategyRRM(List<Member> members) {
+        public MemberStrategyRRM(List<QueueMember> members) {
             this.members = members;
         }
 
         public MemberStrategyRRM() {
         }
 
-        public List<Member> Members {
+        public List<QueueMember> Members {
             set { members = value; }
             get { return members; }
         }
 
-        public Member GetNext()
+        public QueueMember GetNext()
         {
-            Member next = null;
+            QueueMember next = null;
 
             if (members != null && members.Count > 0)
             {

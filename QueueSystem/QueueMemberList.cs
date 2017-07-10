@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 namespace QueueSystem
 {
     /// <summary>
-    /// Representa una lista de miembros, posee una estrategia para seleccionar el próximo libre
+    /// Representa la lista de miembros de una cola, posee una estrategia para seleccionar el próximo libre
+    /// Es una lista de QueueMember no de Member
     /// </summary>
-    class MemberList
+    class QueueMemberList
     {
         /// <summary>
         /// Estrategia que contiene el algoritmo para selecciónar el próximo miembro disponible
@@ -19,13 +20,13 @@ namespace QueueSystem
         /// <summary>
         /// Mantiene una lista de los miembros que pertenecen a un CallDispatcher
         /// </summary>
-        List<Member> members = new List<Member>();
+        List<QueueMember> members = new List<QueueMember>();
 
         /// <summary>
         /// Cosntructor por defecto que crea una lista vacia y una estrategia rr memory por defecto
         /// </summary>
-        public MemberList() {
-            members = new List<Member>();
+        public QueueMemberList() {
+            members = new List<QueueMember>();
             strategy = new MemberStrategyRRM(members);
         }
 
@@ -33,7 +34,7 @@ namespace QueueSystem
         /// Cosntructor que recibe una lista de miembros
         /// </summary>
         /// <param name="members"></param>
-        public MemberList(List<Member> members, IMemberStrategy strategy) {
+        public QueueMemberList(List<QueueMember> members, IMemberStrategy strategy) {
             this.members = members;
             this.strategy = strategy;
             this.strategy.Members = this.members;
@@ -51,13 +52,13 @@ namespace QueueSystem
         /// <summary>
         /// Propiedad que permite asignar u obtener la lista subyacente de miembros
         /// </summary>
-        List<Member> Members { get { return members; } set { members = value; } }
+        List<QueueMember> Members { get { return members; } set { members = value; } }
 
         /// <summary>
         /// Meétodo para actualizar el estado del device de un member
         /// </summary>
         /// <param name="member">member con su state actualizado</param>
-        public void UpdateState(Member member) {
+        public void UpdateState(QueueMember member) {
             // TODO: analizar si conviene recibir un member o el ID y su nuevo estado 
             throw new NotImplementedException();
         }
@@ -66,32 +67,32 @@ namespace QueueSystem
         /// Agrega un miembro a la lista
         /// </summary>
         /// <param name="member"></param>
-        public void AddMember(Member member) { throw new NotImplementedException(); }
+        public void AddMember(QueueMember member) { throw new NotImplementedException(); }
         
         /// <summary>
         /// Remueve un miembro de la lista
         /// </summary>
         /// <param name="member"></param>
-        public void RemoveMember(Member member) { throw new NotImplementedException(); }
+        public void RemoveMember(QueueMember member) { throw new NotImplementedException(); }
         
         /// <summary>
         /// Pone un miembro en "No disponible" o pausado
         /// </summary>
         /// <param name="member">Miembro de la lista a pausar</param>
         /// /// <param name="member">Motivo por el que se pausó el miembro de la lista</param>
-        public void PauseMember(Member member, string reazon) { throw new NotImplementedException(); }
+        public void PauseMember(QueueMember member, string reazon) { throw new NotImplementedException(); }
         
         /// <summary>
         /// Pone un miembro de la lista como disponible
         /// </summary>
         /// <param name="member"></param>
-        public void UnpauseMember(Member member) { throw new NotImplementedException(); }
+        public void UnpauseMember(QueueMember member) { throw new NotImplementedException(); }
 
         /// <summary>
         /// Devuelve el próximo miembro dsiponible según la estrategia indicada
         /// </summary>
         /// <returns></returns>
-        public Member NextAvailable() {
+        public QueueMember NextAvailable() {
             return strategy.GetNext();
         }
     }

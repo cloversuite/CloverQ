@@ -10,7 +10,7 @@ namespace QueueSystem
     class CallDispatcher
     {
         CallList calls = new CallList();
-        MemberList members = new MemberList();
+        QueueMemberList members = new QueueMemberList();
         
         public CallDispatcher() {
             
@@ -18,7 +18,7 @@ namespace QueueSystem
 
         public void DispatchNext() {
             Call c = calls.NextToDispatch();
-            Member m = members.NextAvailable();
+            QueueMember m = members.NextAvailable();
             //Aca mandar mensaje akka al callhandler con el contacto del miembro para que intente conectarlo
             //debería recibir un mensaje trying y luego failed o success para poder saber en que anda la llamada 
             //que mandamos a hacer desde acá

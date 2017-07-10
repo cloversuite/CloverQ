@@ -8,7 +8,6 @@ namespace ProtocolMessages
 {
     public class MessageRouteCall : Message
     {
-        //Id de la llamada a enrutar
-        public string CallHandlerId { get; set; }
+
     }
 }

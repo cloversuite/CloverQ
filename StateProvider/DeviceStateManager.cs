@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using AsterNET.ARI;
 using AkkaActorSystem;
-using ProtocolMessages;
 
 namespace StateProvider
 {
