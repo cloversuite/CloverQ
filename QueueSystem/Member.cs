@@ -9,7 +9,7 @@ namespace QueueSystem
     /// <summary>
     /// Clase que representa un miembro
     /// </summary>
-    class Member
+    public class Member
     {
         public string MemberId { get; set; }
     }
