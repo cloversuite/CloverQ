@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Models;
 
-namespace QueueSystem
+
+
+namespace ProtocolMessages
 {
-    public interface ICallOrderStrategy
+    public class DAMembers
     {
-        Call GetNext();
+        public List<DTOMember> Members { get; set; }
     }
 }

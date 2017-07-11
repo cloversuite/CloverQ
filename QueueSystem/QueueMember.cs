@@ -23,8 +23,15 @@ namespace QueueSystem
             Priority = 0;
         }
 
+        public string Id
+        {
+            get { return this.member.Id; }
+        }
+
         public Member Member { get { return member; }  }
 
         public int Priority { get; set; }
+        public bool IsPaused { get; set; }
+
     }
 }

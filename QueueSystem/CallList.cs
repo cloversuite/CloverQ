@@ -17,7 +17,7 @@ namespace QueueSystem
     /// el llamante oprimió una tecla y se encuentra habilitada la funcionalidad
     /// de abandoar la lista mediante este evento
     /// </summary>
-    class CallList
+    public class CallList
     {
         ICallOrderStrategy strategy = null;
 

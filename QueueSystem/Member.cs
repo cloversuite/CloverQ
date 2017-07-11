@@ -11,7 +11,17 @@ namespace QueueSystem
     /// </summary>
     public class Member
     {
-        public string MemberId { get; set; }
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string User { get; set; }
+        public string Password { get; set; }
+        public string Contact { get; set; }
+        public bool IsLogedIn { get; set; }
+        public bool IsPaused { get; set; }
+        public int PauseCode { get; set; }
+        public string PauseReason { get; set; }
+        public bool IsAvailable { get; set; }
+        public int DeviceState { get; set; }
     }
 
 }

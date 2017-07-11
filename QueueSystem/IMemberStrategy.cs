@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace QueueSystem
 {
-    interface IMemberStrategy
+    public interface IMemberStrategy
     {
         /// <summary>
         /// Estrategia para determinar el pròximo miembro diponible 

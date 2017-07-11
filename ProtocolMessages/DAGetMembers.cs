@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccess
+
+namespace ProtocolMessages
 {
-    //representa las propiedades de la cola, MoH, Wrapup time, etc..
-    public class DTOQueue
+    //Este mensaje lo usa el queuesystem para cargar los miembros
+    public class DAGetMembers
     {
     }
 }

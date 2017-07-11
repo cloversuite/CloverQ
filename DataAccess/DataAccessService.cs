@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Models;
 
 namespace DataAccess
 {
@@ -12,6 +13,14 @@ namespace DataAccess
     //De aca se cargan las queue sus queuemember y la lista de members para el queue system
     public class DataAccessService
     {
-        
+        #region Métodos públicos
+        public List<DTOQueue> GetQueues() {
+            return null;
+        }
+
+        public List<DTOMember> GetMembers() {
+            return null;
+        }
+        #endregion
     }
 }

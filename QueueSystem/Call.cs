@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace QueueSystem
 {
-    class Call
+    public class Call
     {
         public string CallHandlerId { get; set; }
-        public bool IsDispatching { get; set; } // será que esto indica que la mandé conectar???
+        public bool IsDispatching { get; set; } //  esto indica que ya mandé al callhandler un memeber para que contacte, y aún no concretó
+        public bool Connected { get; set; }
+        public QueueMember QueueMember { get; set; } //contiene el memeber que mandé a conectar
     }
 }

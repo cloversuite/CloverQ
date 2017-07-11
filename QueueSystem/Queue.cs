@@ -9,7 +9,7 @@ namespace QueueSystem
     /// <summary>
     /// Representa una cloa, posee una lista de QueueMember (QueueMemberList) y una lista de Call (CallList)
     /// </summary>
-    class Queue
+    public class Queue
     {
         QueueMemberList queueMeberList;
         CallList callList;
@@ -21,6 +21,7 @@ namespace QueueSystem
         public CallList Calls { get { return this.callList; } set {this.callList = value; } }
         public string Id { get; set; }
         public string MoH { get; set; }
+        public int Weight { get; set; }
 
         #region Métodos publicos
         public void AddCall(Call call) {
