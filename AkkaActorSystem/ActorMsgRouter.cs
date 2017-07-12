@@ -11,24 +11,27 @@ namespace AkkaActorSystem
 {
     /// <summary>
     /// Esta clase debe enrutar los mensajes provenientes de la pbx hacia los actores que los manejan;
-    /// en caso de no existir un actor que lo maneje, crea uno si es pertinente.
+    /// en caso de no existir un actor que lo maneje, crea uno si es pertinente. 
+    /// Este actor debería crear, si aún no lo creó, un actor que maneje cada cola basado en el queueid del MessageNewCall? (es una idea)
     /// </summary>
     public class ActorMsgRouter : ReceiveActor
     {
-        Dictionary<string, IActorRef> callHandlers = new Dictionary<string, IActorRef>();
+        //este diccionario debería llamarse queueHandlers y tener un actor por cola?...
+        //Dictionary<string, IActorRef> callHandlers = new Dictionary<string, IActorRef>();
 
-        public ActorMsgRouter()
+        IActorRef callDistributor;
+
+        public ActorMsgRouter(IActorRef callDistributor)
         {
+            this.callDistributor = callDistributor;
+
             //Receive<String>(s => s.Equals("Start"), (s) => { proxyClient.Connect(); }); //ejemplito
-            Receive<MessageNewCall>(cf =>
+            Receive<MessageNewCall>(nc =>
             {
-                Sender.Tell(new MessageAnswerCall(){ CallHandlerId = cf.CallHandlerId });
-                Sender.Tell(new MessageCallTo { CallHandlerId = cf.CallHandlerId, destination = "SIP/192.168.56.1:6060/2000" });
+                callDistributor.Tell(nc, Sender); //reenvio el mensaje al call distributor, y pongo como sender al sender original, entonces cuando el calldistributor responda al sender le reponde directo al pbxrpoxy
+
             });
-            //Receive<MessageHangUpAgent>((ci) =>
-            //{
-            //    //Sender.Tell( nada);
-            //});
+
         }
         protected override void Unhandled(object message)
         {

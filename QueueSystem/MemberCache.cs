@@ -9,7 +9,7 @@ namespace QueueSystem
     /// <summary>
     /// Esta clase contiene todos los miembros del sistema
     /// </summary>
-    class MemberCache
+    public class MemberCache
     {
         //Diccionario para acceder a un member por su id
         Dictionary<string, Member> memberID_idx = new Dictionary<string, Member>();

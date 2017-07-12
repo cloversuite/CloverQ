@@ -36,6 +36,14 @@ namespace QueueSystem
             }
         }
 
+        public Queue GetQueue(string queueId) {
+            foreach (Queue q in this.queuesWeight) {
+                if (q.Id == queueId)
+                    return q;
+            }
+            return null;
+        }
+
     }
 
 

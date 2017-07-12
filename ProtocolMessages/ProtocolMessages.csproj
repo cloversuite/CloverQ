@@ -48,6 +48,7 @@
     <Compile Include="Message.cs" />
     <Compile Include="MessageAnswerCall.cs" />
     <Compile Include="MessageCallerHangup.cs" />
+    <Compile Include="MessageCallQueued.cs" />
     <Compile Include="MessageCallTo.cs" />
     <Compile Include="MessageContactChanged.cs" />
     <Compile Include="MessageHangUpAgent.cs" />

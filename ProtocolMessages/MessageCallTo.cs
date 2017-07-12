@@ -8,6 +8,6 @@ namespace ProtocolMessages
 {
     public class MessageCallTo : Message
     {
-        public string destination { get; set; }
+        public string Destination { get; set; }
     }
 }

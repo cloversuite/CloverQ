@@ -56,16 +56,16 @@ namespace TestRouter
             try
             {
                 //Origino la llamada al agente. Seguramente hay que hacerlo async
-                Channel ch = pbx.Channels.Originate(message.destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
+                Channel ch = pbx.Channels.Originate(message.Destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
                 //guardo el canal en el callhandler
                 callHandlerCache.AddChannelToCallHandler(message.CallHandlerId, ch.Id);
                 //Aca no puedo agregarlo al bridge porque aun no entra en el stasis, lo agrego en el stasisStart en el else
 
             }
             catch (Exception ex) {
-                Console.WriteLine("No se pudo conectar con el agente: " + message.destination +" Error: " + ex.Message);
+                Console.WriteLine("No se pudo conectar con el agente: " + message.Destination +" Error: " + ex.Message);
             }
-            Console.WriteLine("La llamada al agente: " + message.destination + " se concretó correctamente");
+            Console.WriteLine("La llamada al agente: " + message.Destination + " se concretó correctamente");
 
         }
 

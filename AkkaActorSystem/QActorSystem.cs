@@ -16,7 +16,7 @@ namespace AkkaActorSystem
 
         ActorSystem systemq;
         private IActorRef actorMsgRouter;
-        private IActorRef actorMemberManager;
+        private IActorRef actorCallDistributor;
 
         /// <summary>
         /// Esta clase inicia el sistema de actores, crea un router de mensajes y una instancia del proxy para la pbx
@@ -40,11 +40,15 @@ namespace AkkaActorSystem
             Inbox inboxPbxProxy = Inbox.Create(systemq);
             Inbox inboxStateProxy = Inbox.Create(systemq);
 
-            actorMsgRouter = systemq.ActorOf(Props.Create(() => new ActorMsgRouter()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MsgRouter");
-            actorMemberManager = systemq.ActorOf(Props.Create(() => new ActorMsgRouter()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MemberManager");
+            //Creo el calldistributor, este actor es el que al recibir una llamada nueva intenta rutearla a un agente libre, 
+            //tambien recibe mensajes del actorStateProxy para mantener el estado de los dispositivos de los agentes
+            actorCallDistributor = systemq.ActorOf(Props.Create(() => new ActorCallDistributor()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "CallDistributor");
+
+            actorMsgRouter = systemq.ActorOf(Props.Create(() => new ActorMsgRouter(actorCallDistributor)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MsgRouter");
+            //actorMemberManager = systemq.ActorOf(Props.Create(() => new ActorMsgRouter()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MemberManager");
 
             actorPbxProxy = new ActorPbxProxy(inboxPbxProxy, actorMsgRouter);
-            actorStateProxy = new ActorStateProxy(inboxStateProxy, actorMemberManager);
+            actorStateProxy = new ActorStateProxy(inboxStateProxy, actorCallDistributor);
 
         }
 
@@ -73,5 +77,6 @@ namespace AkkaActorSystem
         {
             return this.actorStateProxy;
         }
+
     }
 }

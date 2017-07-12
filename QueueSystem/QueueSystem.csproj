@@ -57,6 +57,7 @@
     <Compile Include="QueueCache.cs" />
     <Compile Include="QueueMember.cs" />
     <Compile Include="QueueMemberRel.cs" />
+    <Compile Include="QueueSystemManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />

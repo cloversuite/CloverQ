@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    //lo envia el call manager al actor que lo va a manejar
-    public class MessageNewCall : Message
+    public class MessageCallQueued : Message
     {
-        public string QueueId { get; set; }
+
     }
 }

@@ -17,19 +17,17 @@ namespace QueueSystem
         public Queue(){
         }
 
-        public QueueMemberList Members { get { return this.queueMeberList; }  set { this.queueMeberList = value; } }
-        public CallList Calls { get { return this.callList; } set {this.callList = value; } }
+        public QueueMemberList members { get { return this.queueMeberList; }  set { this.queueMeberList = value; } }
+        public CallList calls { get { return this.callList; } set {this.callList = value; } }
         public string Id { get; set; }
         public string MoH { get; set; }
         public int Weight { get; set; }
 
         #region Métodos publicos
-        public void AddCall(Call call) {
+        //TODO: excepción si trato de hacer add de un id que ya existe
+        public QueueMember AddCall(Call call) {
             this.callList.AddCall(call);
-            //TODO: una vez que agrego la llamada a la lista debo ver si tengo un QueueMember de la lista que pueda atenderla
-            // si tengo uno libre envío un mensaje al callhandler con el contacto para que lo llame
-            // de lo contrario envío un mensaje al callhandler que le avisa que esta en cola y que espere. 
-            //En este caso el callhandler de pasar MoH o anuncio o lo que fuese
+            return members.NextAvailable(); //nulo si no hay agente diponible
         }
         //Cuando un agente se libera, llega un mensaje al QueueCache que posee las colas ordenadas por su peso, entonces el QueueCache
         // se fija a que colas pertenece el Member consultando al  QueueMemberRel y 
