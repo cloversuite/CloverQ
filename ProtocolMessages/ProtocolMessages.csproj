@@ -40,8 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DAGetMemberQueues.cs" />
     <Compile Include="DAGetMembers.cs" />
     <Compile Include="DAGetQueues.cs" />
+    <Compile Include="DAMemberQueues.cs" />
     <Compile Include="DAMembers.cs" />
     <Compile Include="DAQueue.cs" />
     <Compile Include="MessaageCallerOnHold.cs" />
@@ -52,10 +54,12 @@
     <Compile Include="MessageCallTo.cs" />
     <Compile Include="MessageContactChanged.cs" />
     <Compile Include="MessageHangUpAgent.cs" />
-    <Compile Include="MessageMemberAdd.cs" />
-    <Compile Include="MessageMemberPause.cs" />
-    <Compile Include="MessageMemberRemove.cs" />
-    <Compile Include="MessageMemberUnpause.cs" />
+    <Compile Include="MessageMemberLogin.cs" />
+    <Compile Include="MessageMemberLogoff.cs" />
+    <Compile Include="MessageQMemberAdd.cs" />
+    <Compile Include="MessageQMemberPause.cs" />
+    <Compile Include="MessageQMemberRemove.cs" />
+    <Compile Include="MessageQMemberUnpause.cs" />
     <Compile Include="MessageNewCall.cs" />
     <Compile Include="MessageQueueAdd.cs" />
     <Compile Include="MessageQueueRemove.cs" />

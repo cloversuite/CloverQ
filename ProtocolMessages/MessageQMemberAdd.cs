@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    public class MessageMemberAdd : Message
+    public class MessageQMemberAdd
     {
         //Member ID
         public string MemberId { get; set; }
+
         //Lista de IDs de las colas a la que quiere loguearse
         public List<string> QueuesId { get; set; }
     }

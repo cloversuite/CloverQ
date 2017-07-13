@@ -23,16 +23,23 @@ namespace AkkaActorSystem
         public ActorCallDistributor()
         {
 
-            queueSystem = new QueueSystemManager(); 
+            queueSystem = new QueueSystemManager();
 
+            Receive<MessageMemberLogin>(mlin =>
+            {
+                //Mensaje que proviene del ActorMemberLoginService, aca creo un nuevo member, cuando me llegan los QMemberAdd creo los
+                //QueueMember en base a este objeto. El member quue creo aca tambien recibe mensajes del stateprovider
+                queueSystem.MemberCache.Add(new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password });
+            });
             // Ejemplo de filtro de mensaje: Receive<String>(s => s.Equals("Start"), (s) => { proxyClient.Connect(); }); //ejemplito
             //Es estado del del sipositivo de
             Receive<MessageStateChanged>(cf =>
-                {
+            {
                 //    Sender.Tell(new MessageAnswerCall() { CallHandlerId = cf.CallHandlerId });
-                  //  Sender.Tell(new MessageCallTo { CallHandlerId = cf.CallHandlerId, destination = "SIP/192.168.56.1:6060/2000" });
-                });
-            Receive<MessageNewCall>(nc => {
+                //  Sender.Tell(new MessageCallTo { CallHandlerId = cf.CallHandlerId, destination = "SIP/192.168.56.1:6060/2000" });
+            });
+            Receive<MessageNewCall>(nc =>
+            {
                 Queue queue = queueSystem.QueueCache.GetQueue(nc.QueueId);
                 Call call = new Call() { CallHandlerId = nc.CallHandlerId };
                 QueueMember queueMember = queue.AddCall(call); //agrega la llamada y si hay un qm para atenderla lo devuelve
@@ -41,18 +48,18 @@ namespace AkkaActorSystem
                 {
                     Sender.Tell(new MessageCallQueued() { CallHandlerId = nc.CallHandlerId });
                 }
-                else {
+                else
+                {
                     call.IsDispatching = true;
                     Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = queueMember.Member.Contact });
                 }
-                
             });
 
         }
         protected override void Unhandled(object message)
         {
             base.Unhandled(message);
-            Console.WriteLine("MemberManager mensaje no manejado");
+            Console.WriteLine("CallDistributor mensaje no manejado", message.ToString());
         }
     }
 }

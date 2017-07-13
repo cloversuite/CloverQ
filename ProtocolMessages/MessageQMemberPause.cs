@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    public class MessageMemberRemove : Message
+    public class MessageQMemberPause
     {
-        //Member ID
         public string MemberId { get; set; }
-        //colas de donde lo tengo que remover, si null lo saco de todas
-        public List<string> QueuesId { get; set; }
+        public int PauseReason { get; set; }
     }
 }

@@ -14,18 +14,19 @@ namespace AkkaActorSystem
     {
         #region Atributos
         //Thread threadReceiver = null;
-        IActorRef actorMessageRouter;
+        IActorRef actorCallDitributor;
         Inbox inbox;
         #endregion
 
-        public ActorStateProxy(Inbox inbox, IActorRef actorMessageRouter)
+        public ActorStateProxy(Inbox inbox, IActorRef actorCallDitributor)
         {
-            this.actorMessageRouter = actorMessageRouter;
+            this.actorCallDitributor = actorCallDitributor;
             this.inbox = inbox;
         }
 
         public void Diconnect()
         {
+            //Esto es solo si el proxy va a poder mandar mensajes a la pbx
             //if (threadReceiver != null)
             //{
             //    try
@@ -42,6 +43,7 @@ namespace AkkaActorSystem
 
         private void Receiver()
         {
+            //Esto es solo si el proxy va a poder mandar mensajes a la pbx
             //threadReceiver = new Thread(() =>
             //{
             //    try
@@ -81,13 +83,14 @@ namespace AkkaActorSystem
 
         public void Start()
         {
+            //Esto es solo si el proxy va a poder mandar mensajes a la pbx
             //Comienzo a recibir mensajitos
             //Receiver(); //Comentado ya que el state provaider por el momento no recibe nada
         }
 
         public void Send(Message message)
         {
-            inbox.Send(actorMessageRouter, message);
+            inbox.Send(actorCallDitributor, message);
             Console.WriteLine("El ActorPbx envió un mensaje al ActorMsgRouter");
         }
 

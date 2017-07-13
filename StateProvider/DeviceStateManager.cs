@@ -15,6 +15,10 @@ namespace StateProvider
         AriClient pbx;
         string appName = "myStateManager";
 
+        //Esta clase escucha eventos mediante asternet.ari websocket y los pasa al actor system
+        //Los mensajes de cambio de estado y de contacto deberían llegarle al callditributor para 
+        //saber si el dispositivo de un miembro esta listo para recibir llamadas
+        //El dispositivo y uri de contacto lo deberia recibir en el login service al loguearse un miembro
         public DeviceStateManager(ActorStateProxy actorStateProxy)
         {
             this.actorStateProxy = actorStateProxy;

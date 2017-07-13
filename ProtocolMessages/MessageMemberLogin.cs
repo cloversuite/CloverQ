@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    public class MessageMemberPause : Message
+    public class MessageMemberLogin : Message
     {
         public string MemberId { get; set; }
-        public int PauseReason { get; set; }
+        public string Name { get; set; }
+        public string Password { get; set; }
+        public string Contact { get; set; }
     }
 }

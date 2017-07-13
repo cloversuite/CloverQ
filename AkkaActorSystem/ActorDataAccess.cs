@@ -31,6 +31,18 @@ namespace AkkaActorSystem
 
             });
 
+            Receive<DAGetMemberQueues>(mq =>
+            {
+                Sender.Tell(new DAMemberQueues() { MemberId = mq.MemberId, MemberQueues = das.GetMemberQueues(mq.MemberId) });
+
+            });
+
+        }
+
+        protected override void Unhandled(object message)
+        {
+            base.Unhandled(message);
+            Console.WriteLine("ActorDataAccess mensaje no manejado");
         }
     }
 }

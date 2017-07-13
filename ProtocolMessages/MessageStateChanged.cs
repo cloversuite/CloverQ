@@ -18,6 +18,6 @@ namespace ProtocolMessages
         /// <summary>
         /// Ubicación del dispositivo Ej: sip:1000@293.268.56.123:5060
         /// </summary>
-        public string Contact { get; set; }
+        public string Contact { get; set; } //tal vez debería tener un mensaje para si mimsmo, algo como MessageRegistrationChanged?
     }
 }

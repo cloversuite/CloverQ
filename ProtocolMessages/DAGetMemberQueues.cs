@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    public class MessageMemberUnpause : Message
+    public class DAGetMemberQueues
     {
         public string MemberId { get; set; }
     }

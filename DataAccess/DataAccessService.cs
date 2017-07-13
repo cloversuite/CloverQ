@@ -21,6 +21,9 @@ namespace DataAccess
         public List<DTOMember> GetMembers() {
             return null;
         }
+        public List<string> GetMemberQueues(string memberId) {
+            return null;
+        }
         #endregion
     }
 }

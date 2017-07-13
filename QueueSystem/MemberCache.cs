@@ -12,7 +12,7 @@ namespace QueueSystem
     public class MemberCache
     {
         //Diccionario para acceder a un member por su id
-        Dictionary<string, Member> memberID_idx = new Dictionary<string, Member>();
+        Dictionary<string, Member> members = new Dictionary<string, Member>();
 
         //Diccionario para acceder a una lista de agentes por su número de cola, cada lista es una vista de la lista de miembros
         Dictionary<string, List<Member>> queueMembers = new Dictionary<string, List<Member>>();
@@ -22,13 +22,36 @@ namespace QueueSystem
 
         #region Métodos
 
-        public void MemberLogin(Member m) { }
+        public void Add(Member member) {
+            if (!members.ContainsKey(member.Id)) {
+                members.Add(member.Id, member);
+            }
+        }
+
+        public void Remove(string memberId) {
+            if (members.ContainsKey(memberId))
+            {
+                members.Remove(memberId);
+            }
+        }
+
+
+        //La info de contacto la puedo obtener si se logea con una llamada desde el tel
+        //Habria que ver para poder hacer login desde una aplicacion, como le paso el tel que le pertences?
+        public void MemberLogin(Member member) {
+            //TODO: Validar credenciales, debería actualizar la info de contacto aca??
+            if (members.ContainsKey(member.Id)) {
+                Member m = members[member.Id];
+                m.IsLogedIn = true;
+                m.Contact = member.Contact;
+            }
+        }
         public void MemberLogoff(Member m) { }
-        //public void MemberPause(Member m) { }
-        //public void MemberUnpause(Member m) { }
-        //public void MemberAdd(Member m, Queue q) { }
-        //public void MemberRemove(Member m, Queue q) { }
-        //public void MemberGetFree(Queue q) { }
+        //public void Pause(Member m) { }
+        //public void Unpause(Member m) { }
+        //public void Add(Member m, Queue q) { }
+        //public void Remove(Member m, Queue q) { }
+        //public void GetFree(Queue q) { }
 
         #endregion
 
