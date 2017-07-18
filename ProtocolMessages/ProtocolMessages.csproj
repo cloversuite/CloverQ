@@ -56,6 +56,7 @@
     <Compile Include="MessageHangUpAgent.cs" />
     <Compile Include="MessageMemberLogin.cs" />
     <Compile Include="MessageMemberLogoff.cs" />
+    <Compile Include="MessageMemberLoginResponse.cs" />
     <Compile Include="MessageQMemberAdd.cs" />
     <Compile Include="MessageQMemberPause.cs" />
     <Compile Include="MessageQMemberRemove.cs" />

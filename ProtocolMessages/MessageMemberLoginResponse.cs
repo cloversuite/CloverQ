@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    public class MessageMemberLogoff : Message
+    public class MessageMemberLoginResponse : Message
     {
-        public string MemberId { get; set; }
+        public bool LoguedIn { get; set; }
+        public string Reason { get; set; }
     }
 }

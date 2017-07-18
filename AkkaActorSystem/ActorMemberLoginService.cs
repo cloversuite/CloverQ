@@ -26,16 +26,30 @@ namespace AkkaActorSystem
                 //solicito de forma asíncron las colas a las que pertenece el meimbro
                 //Que pasa si el miembro no posee registro de a que colas pertenece?, debería tener una prop en el mensaje que indique eso
                 //para no ir a buscar al dataacces??
-                actorDataAccess.Tell(new DAGetMemberQueues() { MemberId = mlin.MemberId });
+
+                //deshabilito esto para harcodear una prueba para el agente 3333 pass 1234
+                //actorDataAccess.Tell(new DAGetMemberQueues() { MemberId = mlin.MemberId });
+
+                //harcodeadro para prueba, retirar y descomentar la linea de arriba
+                if (mlin.MemberId == "3333" && mlin.Password == "1234")
+                {
+                    Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = true, Reason = "Member authenticated and logedin." });
+                }
+                else
+                {
+                    Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = false, Reason = "MemberId or Pass wrong." });
+                }
 
             });
 
-            Receive<MessageMemberLogoff>(mlof => {
+            Receive<MessageMemberLogoff>(mlof =>
+            {
                 //le paso el queuesid list en null para desloguearlo de todas las colas
                 callDistributor.Tell(new MessageQMemberRemove() { MemberId = mlof.MemberId, QueuesId = null });
             });
 
-            Receive<DAMemberQueues>(mqs => {
+            Receive<DAMemberQueues>(mqs =>
+            {
                 //Cuando el actor access service me responde le indico al call distrbutor que agregue el miembro a las colas
                 callDistributor.Tell(new MessageQMemberAdd() { MemberId = mqs.MemberId, QueuesId = mqs.MemberQueues });
             });

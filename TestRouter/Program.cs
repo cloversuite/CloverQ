@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using StateProvider;
 using AkkaActorSystem;
+using LoginProvider;
 
 namespace TestRouter
 {
@@ -17,20 +18,25 @@ namespace TestRouter
 
 
             CallManager callManager = new CallManager(qActorSystem.GetActorPbxProxy());
-            callManager.Connect("192.168.56.101", 8088, "asterisk", "pelo2dos");
+            callManager.Connect("192.168.56.102", 8088, "asterisk", "pelo2dos");
             Console.WriteLine("CallManager iniciado...");
 
-            
+
 
             DeviceStateManager dsm = new DeviceStateManager(qActorSystem.GetActorStateProxy());
-            dsm.Connect("192.168.56.101", 8088, "asterisk", "pelo2dos");
+            dsm.Connect("192.168.56.102", 8088, "asterisk", "pelo2dos");
             Console.WriteLine("StateManager iniciado...");
-            
+
+            PbxLoginProvider plp = new PbxLoginProvider(qActorSystem.GetActorLoginProxy());
+            plp.Connect("192.168.56.102", 8088, "asterisk", "pelo2dos");
+            Console.WriteLine("PbxLoginProvider iniciado...");
+
             Console.WriteLine("Presione una tecla para terminar la aplicación...");
             Console.ReadLine();
 
             callManager.Disconnect();
             dsm.Disconnect();
+            plp.Disconnect();
             qActorSystem.Stop();
 
         }

@@ -2,6 +2,8 @@
 using System.Threading;
 using AsterNET.ARI;
 using AkkaActorSystem;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace StateProvider
 {
@@ -56,9 +58,10 @@ namespace StateProvider
 
         }
 
+
         private void Pbx_OnUnhandledEvent(object sender, AsterNET.ARI.Models.Event eventMessage)
         {
-            Console.WriteLine("No manejé: " + eventMessage.Type);
+            Console.WriteLine("STP: No manejé: " + eventMessage.Type);
         }
 
         private void Pbx_OnDeviceStateChangedEvent(IAriClient sender, AsterNET.ARI.Models.DeviceStateChangedEvent e)

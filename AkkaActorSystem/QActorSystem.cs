@@ -13,6 +13,7 @@ namespace AkkaActorSystem
     {
         private ActorPbxProxy actorPbxProxy;
         private ActorStateProxy actorStateProxy;
+        private ActorLoginProxy actorLoginProxy;
 
         ActorSystem systemq;
         private IActorRef actorMsgRouter;
@@ -41,10 +42,11 @@ namespace AkkaActorSystem
             systemq = ActorSystem.Create("clover-q", config);
             Inbox inboxPbxProxy = Inbox.Create(systemq);
             Inbox inboxStateProxy = Inbox.Create(systemq);
-            
+            Inbox inboxLoginProxy = Inbox.Create(systemq);
+
             //Este actor se encarga de acceder al sistema de persistencia (DB)
             actorDataAccess = systemq.ActorOf(Props.Create(() => new ActorDataAccess()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "ActorDataAccess");
-            
+
             //Creo el calldistributor, este actor es el que al recibir una llamada nueva intenta rutearla a un agente libre, 
             //tambien recibe mensajes del actorStateProxy para mantener el estado de los dispositivos de los agentes
             actorCallDistributor = systemq.ActorOf(Props.Create(() => new ActorCallDistributor()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "CallDistributor");
@@ -54,12 +56,14 @@ namespace AkkaActorSystem
 
             actorPbxProxy = new ActorPbxProxy(inboxPbxProxy, actorMsgRouter);
             actorStateProxy = new ActorStateProxy(inboxStateProxy, actorCallDistributor);
+            actorLoginProxy = new ActorLoginProxy(inboxLoginProxy, actorMemberLoginService);
 
         }
 
         public void Stop()
         {
-            if (systemq != null) {
+            if (systemq != null)
+            {
                 try
                 {
                     systemq.Terminate();
@@ -69,7 +73,7 @@ namespace AkkaActorSystem
                     Console.WriteLine("Error al detener el sistema de actores: " + ex.Message);
                 }
                 Console.WriteLine("El sistema de actores se detuvo.");
-            }    
+            }
 
         }
 
@@ -83,5 +87,9 @@ namespace AkkaActorSystem
             return this.actorStateProxy;
         }
 
+        public ActorLoginProxy GetActorLoginProxy()
+        {
+            return this.actorLoginProxy;
+        }
     }
 }
