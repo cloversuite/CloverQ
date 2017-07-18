@@ -13,7 +13,7 @@ namespace TestRouter
     public class CallManager
     {
         AriClient pbx;
-        
+
         ActorPbxProxy actorPbxProxy = null;
         BridgesList bridgesList = new BridgesList();
         CallHandlerCache callHandlerCache = new CallHandlerCache();
@@ -30,7 +30,7 @@ namespace TestRouter
             actorPbxProxy.Start();
         }
 
-        
+
 
         #region Handle Actor Sistem Events
         private void ActorPbxProxy_AnswerCall(object sender, MessageAnswerCall message)
@@ -60,10 +60,13 @@ namespace TestRouter
                 //guardo el canal en el callhandler
                 callHandlerCache.AddChannelToCallHandler(message.CallHandlerId, ch.Id);
                 //Aca no puedo agregarlo al bridge porque aun no entra en el stasis, lo agrego en el stasisStart en el else
+                //actualizo el canal del agente
+                callHandler.Agent = ch;
 
             }
-            catch (Exception ex) {
-                Console.WriteLine("No se pudo conectar con el agente: " + message.Destination +" Error: " + ex.Message);
+            catch (Exception ex)
+            {
+                Console.WriteLine("No se pudo conectar con el agente: " + message.Destination + " Error: " + ex.Message);
             }
             Console.WriteLine("La llamada al agente: " + message.Destination + " se concretó correctamente");
 
@@ -78,7 +81,8 @@ namespace TestRouter
         /// <param name="port">Port ej: 8088</param>
         /// <param name="usu">ARI user</param>
         /// <param name="pass">ARI password</param>
-        public void Connect(string server, int port, string usu, string pass) {
+        public void Connect(string server, int port, string usu, string pass)
+        {
             //CREO EL CLIENTE
             pbx = new AriClient(new StasisEndpoint(server, port, usu, pass), appName);
 
@@ -109,12 +113,14 @@ namespace TestRouter
             {
                 throw new Exception("Error al conectar con asterisk", ex);
             }
-            
+
         }
 
-        public void Disconnect() {
+        public void Disconnect()
+        {
 
-            foreach (Bridge b in bridgesList.Bridges) {
+            foreach (Bridge b in bridgesList.Bridges)
+            {
                 try
                 {
                     pbx.Bridges.Destroy(b.Id);
@@ -123,10 +129,10 @@ namespace TestRouter
                 {
                     Console.WriteLine("Error al remover un bridge: " + ex.Message);
                 }
-                
+
             }
             actorPbxProxy.Stop();
-            
+
             pbx.Disconnect();
         }
 
@@ -155,13 +161,26 @@ namespace TestRouter
 
         private void Pbx_OnChannelDestroyedEvent(IAriClient sender, ChannelDestroyedEvent e)
         {
+            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
+            if (callHandler.Caller.Id == e.Channel.Id)
+            {
+                actorPbxProxy.Send(new MessageCallerHangup() { CallHandlerId = callHandler.Id, HangUpCode = e.Cause.ToString(), HangUpReason = e.Cause_txt });
+            }
+            else if (callHandler.Caller.Id == e.Channel.Id)
+            {
+                actorPbxProxy.Send(new MessageHangUpAgent { CallHandlerId = callHandler.Id, HangUpCode = e.Cause.ToString(), HangUpReason = e.Cause_txt });
+            }
+            else {
+                //algo salió mal, si estoy acá es porque el cache tiene un callhandler asociado al canal que cortó, pero el callhandler internamente no lo tienen ni como caller ni como agent a ese canal.
+                Console.WriteLine("Pbx_OnChannelDestroyedEvent: no se pudo identificar mediante el id de canal si colgó el agente o el caller");
+            }
             callHandlerCache.RemoveChannel(e.Channel.Id);
-            Console.WriteLine("Channel Destroy: " + e.Channel.Id + " remuevo channel del callhandler" );
+            Console.WriteLine("Channel Destroy: " + e.Channel.Id + " remuevo channel del callhandler");
         }
 
         private void Pbx_OnChannelStateChangeEvent(IAriClient sender, ChannelStateChangeEvent e)
         {
-            //por ahora no hago nada, solo logueo
+            //por ahora no hago nada, solo logueo.
             Console.WriteLine("El canal: " + e.Channel.Id + " cambio su estado a: " + e.Channel.State.ToString());
         }
 
@@ -170,8 +189,9 @@ namespace TestRouter
             Console.WriteLine("El canal: " + e.Channel.Id + " salió de la app: " + e.Application);
             callHandlerCache.GetByChannelId(e.Channel.Id);
             //uno de los dos cortó o por algun motivo se fue de stasis, transfer?? la cosa es que no estan mas en la app asi que los remuevo
+            //aca debería ver el abandono, si sale de la app sin que lo atiendan abandonó?
             CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
-            if(callHandler != null) //esto es en caso de que existan llamadas en stasis antes de arrancar la app, debería cargar la info de lo preexistente en la pbx
+            if (callHandler != null) //esto es en caso de que existan llamadas en stasis antes de arrancar la app, debería cargar la info de lo preexistente en la pbx
                 callHandlerCache.RemoveCallHandler(callHandler.Id);
 
         }
@@ -193,7 +213,7 @@ namespace TestRouter
                 {
                     Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
                 }
-                
+
 
                 CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
                 callHandlerCache.AddCallHandler(callHandler);
@@ -212,7 +232,8 @@ namespace TestRouter
 
                 //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
                 actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id });
-            }else
+            }
+            else
             {
                 CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
                 try
@@ -222,10 +243,10 @@ namespace TestRouter
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id  + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                    Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
                 }
             }
-            
+
         }
 
         #endregion
