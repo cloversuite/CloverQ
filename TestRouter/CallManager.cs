@@ -35,16 +35,20 @@ namespace TestRouter
         #region Handle Actor Sistem Events
         private void ActorPbxProxy_AnswerCall(object sender, MessageAnswerCall message)
         {
-            string channelId = callHandlerCache.GetByCallHandlerlId(message.CallHandlerId).Caller.Id;
+            CallHandler callHandler = callHandlerCache.GetByCallHandlerlId(message.CallHandlerId);
             try
             {
-                pbx.Channels.Answer(channelId);
+                if (message.MediaType == "MoH")
+                {
+                    callHandler.AnswerCaller(message.MediaType, message.Media);
+                    Console.WriteLine("El canal: " + callHandler.Caller.Id + " fué atendido correctamente ");
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("No se pudo atender el canal: " + channelId + " Error: " + ex.Message);
+                Console.WriteLine("No se pudo atender el canal: " + callHandler.Caller.Id + " Error: " + ex.Message);
             }
-            Console.WriteLine("El canal: " + channelId + " fué atendido correctamente ");
+
         }
         private void ActorPbxProxy_Receive(object sender, ProtocolMessages.Message message)
         {
@@ -83,9 +87,10 @@ namespace TestRouter
         /// <param name="pass">ARI password</param>
         public void Connect(string server, int port, string usu, string pass)
         {
+
             //CREO EL CLIENTE
             pbx = new AriClient(new StasisEndpoint(server, port, usu, pass), appName);
-
+            pbx.EventDispatchingStrategy = EventDispatchingStrategy.DedicatedThread;
             //SUBSCRIBO A EVENTOS
             pbx.OnStasisStartEvent += Pbx_OnStasisStartEvent; //Se dispara cuando un canal ejecuta la app stasis en el dialplan. el canal queda ahi a la espera de ser manejado
             pbx.OnStasisEndEvent += Pbx_OnStasisEndEvent; //el canal abandonó la app stasis (no quiere decir que cortó)
@@ -170,7 +175,8 @@ namespace TestRouter
             {
                 actorPbxProxy.Send(new MessageHangUpAgent { CallHandlerId = callHandler.Id, HangUpCode = e.Cause.ToString(), HangUpReason = e.Cause_txt });
             }
-            else {
+            else
+            {
                 //algo salió mal, si estoy acá es porque el cache tiene un callhandler asociado al canal que cortó, pero el callhandler internamente no lo tienen ni como caller ni como agent a ese canal.
                 Console.WriteLine("Pbx_OnChannelDestroyedEvent: no se pudo identificar mediante el id de canal si colgó el agente o el caller");
             }

@@ -42,9 +42,11 @@ namespace AkkaActorSystem
             {
                 Queue queue = queueSystem.QueueCache.GetQueue(nc.QueueId);
                 Call call = new Call() { CallHandlerId = nc.CallHandlerId };
-                QueueMember queueMember = queue.AddCall(call); //agrega la llamada y si hay un qm para atenderla lo devuelve
-                Sender.Tell(new MessageAnswerCall() { CallHandlerId = nc.CallHandlerId, MediaType = "MoH", Media = "Default" });
-                if (queueMember != null)
+                QueueMember queueMember = null;
+                if (queue != null)
+                    queueMember = queue.AddCall(call); //agrega la llamada y si hay un qm para atenderla lo devuelve
+                Sender.Tell(new MessageAnswerCall() { CallHandlerId = nc.CallHandlerId, MediaType = "MoH", Media = "default" });
+                if (queueMember == null)
                 {
                     Sender.Tell(new MessageCallQueued() { CallHandlerId = nc.CallHandlerId });
                 }

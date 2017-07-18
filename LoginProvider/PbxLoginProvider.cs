@@ -13,7 +13,7 @@ namespace LoginProvider
     {
         ActorLoginProxy actorLoginProxy = null;
         AriClient pbx;
-        string appName = "myPbxloginProvider";
+        string appName = "myPbxLoginProvider";
 
         public PbxLoginProvider(ActorLoginProxy actorLoginProxy)
         {
@@ -41,9 +41,11 @@ namespace LoginProvider
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
             {
+                pbx.EventDispatchingStrategy = EventDispatchingStrategy.DedicatedThread;
                 pbx.Connect(true, 5);
                 Thread.Sleep(1000);
-                //pbx.Events.EventWebsocket(appName);
+                pbx.Applications.Subscribe(appName, "endpoint:SIP");
+                pbx.Applications.Subscribe(appName, "deviceState:");
 
             }
             catch (Exception ex)
@@ -64,14 +66,16 @@ namespace LoginProvider
                 string password = (string)((JObject)e.Userevent)["password"];
                 MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password });
                 Console.WriteLine("Member " + memberId + "login response, " + mlr.Reason);
+                //En el dialplan espero un segundo para dar tienpo al setvar, esto es para prueba, en prod el login services es un IVR hecho con ari, agi o async agi
                 sender.Channels.SetChannelVar(e.Channel.Id, "logedin", mlr.LoguedIn.ToString());
+                sender.Channels.ContinueInDialplan(e.Channel.Id);
             }
 
         }
 
         private void Pbx_OnUnhandledEvent(object sender, AsterNET.ARI.Models.Event eventMessage)
         {
-            Console.WriteLine("No manejé: " + eventMessage.Type);
+            Console.WriteLine("PLP: No manejé: " + eventMessage.Type);
         }
 
         public void Disconnect()

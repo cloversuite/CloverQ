@@ -95,7 +95,7 @@ namespace AkkaActorSystem
         }
         public async Task<MessageMemberLoginResponse> LogIn(MessageMemberLogin message)
         {
-            return await inbox.Receiver.Ask<MessageMemberLoginResponse>(message);
+            return await actorMemberLoginService.Ask<MessageMemberLoginResponse>(message);
         }
 
     }

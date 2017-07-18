@@ -46,6 +46,7 @@ namespace StateProvider
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
             {
+                pbx.EventDispatchingStrategy = EventDispatchingStrategy.DedicatedThread;
                 pbx.Connect(true, 5);
                 Thread.Sleep(1000);
                 pbx.Applications.Subscribe(appName, "endpoint:SIP");

@@ -91,15 +91,16 @@ namespace TestRouter
             return agent;
         }
 
-        public void AnswerCaller(bool playMOH) {
+        public void AnswerCaller(string mediaType, string media) {
             try
             {
                 //atiendo el caller
                 pbx.Channels.Answer(caller.Id);
-                //inicio musica en espera si playMOH es true
-                if (playMOH) pbx.Bridges.StartMoh(bridge.Id, "default");
                 //agrego el canal al bridge
                 pbx.Bridges.AddChannel(bridge.Id, caller.Id, null);
+                //inicio musica en espera si playMOH es true
+                if (!String.IsNullOrEmpty(mediaType)) pbx.Bridges.StartMoh(bridge.Id, media);
+
             }
             catch (Exception ex)
             {
