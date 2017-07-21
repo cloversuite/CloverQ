@@ -11,13 +11,17 @@ namespace TestRouter
 {
     public class CallHandler
     {
+        enum CallState { NEW, ANSWERED, CONNECTIING, CONNECT_FAILDED, CONNECTED, AGENT_ANSWERED, TRANSFERRED, TERMINATED };
+
         string id;
         string appName;
         AriClient pbx;
         Bridge bridge;
         Channel caller;
-
         Channel agent;
+        Channel transferTarget;
+
+        CallState callState;
 
         public string Id
         {
@@ -68,6 +72,7 @@ namespace TestRouter
         //Constructor
         public CallHandler(string appName, AriClient pbx, Bridge bridge, Channel caller)
         {
+            callState = CallState.NEW;
             this.id = Guid.NewGuid().ToString();
             this.appName = appName;
             this.pbx = pbx;
@@ -84,6 +89,7 @@ namespace TestRouter
             try
             {
                 agent = pbx.Channels.Originate(dst, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
+                callState = CallState.CONNECTIING;
                 bridge.Channels.Add(agent.Id);
             }
             catch (Exception ex)
@@ -106,6 +112,7 @@ namespace TestRouter
                 pbx.Bridges.StopMoh(this.Bridge.Id);
                 //agrego el canal al bridge, controlar que pasa si falla el originate
                 pbx.Bridges.AddChannel(this.Bridge.Id, channelId, null);
+                callState = CallState.CONNECTED;
             }
             catch (Exception ex)
             {
@@ -124,6 +131,7 @@ namespace TestRouter
                 pbx.Bridges.AddChannel(bridge.Id, caller.Id, null);
                 //inicio musica en espera si playMOH es true
                 if (!String.IsNullOrEmpty(mediaType)) pbx.Bridges.StartMoh(bridge.Id, media);
+                callState = CallState.ANSWERED;
 
             }
             catch (Exception ex)
@@ -146,6 +154,7 @@ namespace TestRouter
                 if (newState == "Up") //Esto indica que el canal es de un agente y atendió la llamada
                 {
                     msg = new MessageCallToSuccess() { CallHandlerId = this.id };
+                    callState = CallState.AGENT_ANSWERED;
                 }
             }
             else
@@ -167,10 +176,12 @@ namespace TestRouter
             if (channelId == caller.Id)
             {
                 msg = new MessageCallerHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
+                callState = CallState.TERMINATED;
             }
             else if (channelId == agent.Id)
             {
                 msg = new MessageCallToFailed() { CallHandlerId = this.id, Code = cause, Reason = causeText };
+                callState = CallState.CONNECT_FAILDED;
             }
             else
                 Console.WriteLine("Callhandler: El canal " + caller.Id + " no está en la llamada: " + this.id);
@@ -190,11 +201,21 @@ namespace TestRouter
             {
                 msg = new MessageCallerHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
                 TerminateAgent();
+                callState = CallState.TERMINATED;
             }
             else if (channelId == agent.Id)
             {
-                msg = new MessageAgentHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
-                TerminateCaller();
+                
+                //prevengo que si la llamada fue transferida le corte al que llamó
+                if (callState != CallState.TRANSFERRED)
+                {
+                    msg = new MessageAgentHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
+                    TerminateCaller();
+                    callState = CallState.TERMINATED;
+                }else
+                {
+                    msg = new MessageCallTransfer() { CallHandlerId = this.id, TargetId = transferTarget.Id, TargetName = transferTarget.Name };
+                }
             }
             else
                 Console.WriteLine("Callhandler: El canal " + caller.Id + " no está en la llamada: " + this.id);
@@ -219,6 +240,37 @@ namespace TestRouter
             }
 
         }
+        //TODO: esto es una versión muy simplificada, el evento de transferencia atendida requiere mayo estudio
+        public void AttendedTransferEvent(Channel ch1, Channel ch2) {
+            if(ch1.Id == caller.Id)
+                TransferTo(ch2);
 
+            if (ch2.Id == caller.Id)
+                TransferTo(ch1);
+
+        }
+
+        public void UnattendedTransferEvent(Channel ch1, Channel ch2) {
+            TransferTo(ch1);
+        }
+
+        private void TransferTo(Channel target) {
+            this.transferTarget = target;
+            callState = CallState.TRANSFERRED;
+        }
+
+        public void ChannelReplace(Channel replaceChannel, Channel newChannel) {
+            if (replaceChannel.Id == caller.Id)
+            {
+                caller = newChannel;
+            }
+            else if (replaceChannel.Id == agent.Id)
+            {
+                agent = newChannel;
+            }
+            else
+                Console.WriteLine("Callhandler: ChannelReplace: El canal " + caller.Id + " no está en la llamada: " + this.id);
+
+        }
     }
 }

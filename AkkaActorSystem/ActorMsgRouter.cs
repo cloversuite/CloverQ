@@ -54,7 +54,12 @@ namespace AkkaActorSystem
             {
                 callDistributor.Tell(ahup, Sender);
             });
+            Receive<MessageCallTransfer>(ahup =>
+            {
+                callDistributor.Tell(ahup, Sender);
+            });
 
+            
 
         }
         protected override void Unhandled(object message)

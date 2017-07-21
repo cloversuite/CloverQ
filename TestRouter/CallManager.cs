@@ -144,14 +144,30 @@ namespace TestRouter
         #region Handle ARI Events
         private void Pbx_OnBridgeBlindTransferEvent(IAriClient sender, BridgeBlindTransferEvent e)
         {
-            Console.WriteLine("Blind Transfer");
-            Console.WriteLine(e);
+            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Transferee.Id);
+            if (callHandler == null)
+            {
+                callHandler = callHandlerCache.GetByChannelId(e.Replace_channel.Id);
+            }
+            if (callHandler != null)
+            {
+                callHandler.AttendedTransferEvent(e.Transferee, e.Replace_channel);
+            }
         }
 
         private void Pbx_OnBridgeAttendedTransferEvent(IAriClient sender, BridgeAttendedTransferEvent e)
         {
-            Console.WriteLine("Attended Transfer");
-            Console.WriteLine(e);
+            //Este evento trae muchisima info, requiere de mayor estudio/prueba
+            //ver como queda el canal del caller, seguro hay un rename por ahi
+            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Transferee.Id);
+            if (callHandler == null)
+            {
+                callHandler = callHandlerCache.GetByChannelId(e.Transfer_target.Id);
+            }
+            if (callHandler != null)
+            {
+                callHandler.AttendedTransferEvent(e.Transferee, e.Transfer_target);
+            }
         }
 
         private void Pbx_OnChannelHoldEvent(IAriClient sender, ChannelHoldEvent e)
@@ -240,56 +256,69 @@ namespace TestRouter
 
         private void Pbx_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
         {
-
-            //TODO: si e.Replace_channel != null (rename) es un nuevo canal que reemplaza a otro, hasta ahora solo me pasa con las transferencias atendidas, debo buscar el callhandler que tiene el e.Replace_channel y reemplazarlo por el nuevo channel
-            //Verifico: si el canal es de una llamada que ya existe no creo nada. Esto es para el caso en que hago un originate al agente, ya tengo un callhandler creado por el caller que llamó inicialmente
-            if (callHandlerCache.GetByChannelId(e.Channel.Id) == null)
+            if (e.Replace_channel != null) //esto me indica si no es null que hubo un rename, por ejemplo por un transfer
             {
-                Console.WriteLine("El canal: " + e.Channel.Id + " entró a la app: " + e.Application);
-                Bridge bridge = bridgesList.GetFreeBridge();
-                if (bridge == null) //si no hay un bridge libre creo uno y lo agrego a la lista
+                CallHandler callHandler = callHandlerCache.GetByChannelId(e.Replace_channel.Id);
+                if (callHandler != null)
                 {
-                    bridge = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
-                    bridgesList.AddNewBridge(bridge);
-                    Console.WriteLine("Se crea un Bridge: " + bridge.Id);
-                }
-                else
-                {
-                    Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
+                    //Lo comento porque si remplazo el canal, el nuevo canal no esta en stasis y nunca detecto el hangup
+                    //para poder hacer esto debería recibir los eventos de todos los canales osea pbx.Applications.Subscribe(appName, "channel:"); 
+                    //callHandler.ChannelReplace(e.Replace_channel, e.Channel);
                 }
 
-
-                CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
-                callHandlerCache.AddCallHandler(callHandler);
-                Console.WriteLine("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
-
-                //Agrego el canal al bridge
-                try
-                {
-                    //agrego el canal al bridge, controlar que pasa si falla el originate
-                    pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
-                }
-
-                //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
-                actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id });
             }
-            else //si no es null entonces el canal lo agregé yo cuando hice el CallTo
+            else
             {
-                CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
-                try
+
+                //TODO: si e.Replace_channel != null (rename) es un nuevo canal que reemplaza a otro, hasta ahora solo me pasa con las transferencias atendidas, debo buscar el callhandler que tiene el e.Replace_channel y reemplazarlo por el nuevo channel
+                //Verifico: si el canal es de una llamada que ya existe no creo nada. Esto es para el caso en que hago un originate al agente, ya tengo un callhandler creado por el caller que llamó inicialmente
+                if (callHandlerCache.GetByChannelId(e.Channel.Id) == null)
                 {
-                    callHandler.CallToSuccess(e.Channel.Id); //Le digo al callhandler que el canal generado en el callto ya está en el dial plan, cuando el estado pasa a Up es que contestó el agente
+                    Console.WriteLine("El canal: " + e.Channel.Id + " entró a la app: " + e.Application);
+                    Bridge bridge = bridgesList.GetFreeBridge();
+                    if (bridge == null) //si no hay un bridge libre creo uno y lo agrego a la lista
+                    {
+                        bridge = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
+                        bridgesList.AddNewBridge(bridge);
+                        Console.WriteLine("Se crea un Bridge: " + bridge.Id);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
+                    }
+
+
+                    CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
+                    callHandlerCache.AddCallHandler(callHandler);
+                    Console.WriteLine("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
+
+                    //Agrego el canal al bridge
+                    try
+                    {
+                        //agrego el canal al bridge, controlar que pasa si falla el originate
+                        pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                    }
+
+                    //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
+                    actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id });
                 }
-                catch (Exception ex)
+                else //si no es null entonces el canal lo agregé yo cuando hice el CallTo
                 {
-                    Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                    CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
+                    try
+                    {
+                        callHandler.CallToSuccess(e.Channel.Id); //Le digo al callhandler que el canal generado en el callto ya está en el dial plan, cuando el estado pasa a Up es que contestó el agente
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                    }
                 }
             }
-
         }
 
         #endregion
