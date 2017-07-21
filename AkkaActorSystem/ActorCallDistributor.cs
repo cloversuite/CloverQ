@@ -49,6 +49,7 @@ namespace AkkaActorSystem
                 if (queueMember == null)
                 {
                     Sender.Tell(new MessageCallQueued() { CallHandlerId = nc.CallHandlerId });
+                    Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = "SIP/192.168.56.1:64278/2000" });
                 }
                 else
                 {
@@ -56,7 +57,26 @@ namespace AkkaActorSystem
                     Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = queueMember.Member.Contact });
                 }
             });
-
+            Receive<MessageCallToFailed>(ctf =>
+            {
+                //Busco otro member
+                Console.WriteLine("CALL DIST: callto failed with code: " + ctf.Code.ToString() + " Reason: " + ctf.Reason );
+            });
+            Receive<MessageCallToSuccess>(cts =>
+            {
+                //Busco otro member
+                Console.WriteLine("CALL DIST: callto success");
+            });
+            Receive<MessageCallerHangup>(chup =>
+            {
+                //si caller hangup termino toda la llamad?
+                Console.WriteLine("CALL DIST: Caller Hangup");
+            });
+            Receive<MessageAgentHangup>(ahup =>
+            {
+                //Si agent hangup hago que la llamada del caller siga en el dialplan?
+                Console.WriteLine("CALL DIST: Agent Hangup");
+            });
         }
         protected override void Unhandled(object message)
         {

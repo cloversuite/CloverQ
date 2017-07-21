@@ -25,18 +25,42 @@ namespace AkkaActorSystem
         {
             this.callDistributor = callDistributor;
 
-            //Receive<String>(s => s.Equals("Start"), (s) => { proxyClient.Connect(); }); //ejemplito
             Receive<MessageNewCall>(nc =>
             {
                 callDistributor.Tell(nc, Sender); //reenvio el mensaje al call distributor, y pongo como sender al sender original, entonces cuando el calldistributor responda al sender le reponde directo al pbxrpoxy
-
             });
+
+            Receive<MessageMemberLogin>(mlin =>
+            {
+                callDistributor.Tell(mlin, Sender);
+            });
+            Receive<MessageStateChanged>(cf =>
+            {
+                callDistributor.Tell(cf, Sender);
+            });
+            Receive<MessageCallToFailed>(ctf =>
+            {
+                callDistributor.Tell(ctf, Sender);
+            });
+            Receive<MessageCallToSuccess>(cts =>
+            {
+                callDistributor.Tell(cts, Sender);
+            });
+            Receive<MessageCallerHangup>(chup =>
+            {
+                callDistributor.Tell(chup, Sender);
+            });
+            Receive<MessageAgentHangup>(ahup =>
+            {
+                callDistributor.Tell(ahup, Sender);
+            });
+
 
         }
         protected override void Unhandled(object message)
         {
             base.Unhandled(message);
-            Console.WriteLine("Router mensaje no manejado");
+            Console.WriteLine("Router mensaje no manejado: " + message.ToString());
         }
     }
 }

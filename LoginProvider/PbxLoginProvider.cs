@@ -64,8 +64,9 @@ namespace LoginProvider
             {
                 string memberId = (string)((JObject)e.Userevent)["agent"];
                 string password = (string)((JObject)e.Userevent)["password"];
-                MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password });
-                Console.WriteLine("Member " + memberId + "login response, " + mlr.Reason);
+                string contact = (string)((JObject)e.Userevent)["contact"];
+                MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = contact });
+                Console.WriteLine("Member " + memberId + "login from:"+ contact +" response, " + mlr.Reason);
                 //En el dialplan espero un segundo para dar tienpo al setvar, esto es para prueba, en prod el login services es un IVR hecho con ari, agi o async agi
                 sender.Channels.SetChannelVar(e.Channel.Id, "logedin", mlr.LoguedIn.ToString());
                 sender.Channels.ContinueInDialplan(e.Channel.Id);
@@ -75,7 +76,7 @@ namespace LoginProvider
 
         private void Pbx_OnUnhandledEvent(object sender, AsterNET.ARI.Models.Event eventMessage)
         {
-            Console.WriteLine("PLP: No manejé: " + eventMessage.Type);
+           // Console.WriteLine("PLP: No manejé: " + eventMessage.Type);
         }
 
         public void Disconnect()

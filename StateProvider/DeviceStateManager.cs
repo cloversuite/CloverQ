@@ -62,7 +62,7 @@ namespace StateProvider
 
         private void Pbx_OnUnhandledEvent(object sender, AsterNET.ARI.Models.Event eventMessage)
         {
-            Console.WriteLine("STP: No manejé: " + eventMessage.Type);
+           // Console.WriteLine("STP: No manejé: " + eventMessage.Type);
         }
 
         private void Pbx_OnDeviceStateChangedEvent(IAriClient sender, AsterNET.ARI.Models.DeviceStateChangedEvent e)

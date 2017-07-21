@@ -30,8 +30,6 @@ namespace TestRouter
             actorPbxProxy.Start();
         }
 
-
-
         #region Handle Actor Sistem Events
         private void ActorPbxProxy_AnswerCall(object sender, MessageAnswerCall message)
         {
@@ -57,10 +55,11 @@ namespace TestRouter
         private void ActorPbxProxy_CallTo(object sender, MessageCallTo message)
         {
             CallHandler callHandler = callHandlerCache.GetByCallHandlerlId(message.CallHandlerId);
+            Channel ch = null;
             try
             {
                 //Origino la llamada al agente. Seguramente hay que hacerlo async
-                Channel ch = pbx.Channels.Originate(message.Destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
+                ch = pbx.Channels.Originate(message.Destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
                 //guardo el canal en el callhandler
                 callHandlerCache.AddChannelToCallHandler(message.CallHandlerId, ch.Id);
                 //Aca no puedo agregarlo al bridge porque aun no entra en el stasis, lo agrego en el stasisStart en el else
@@ -72,7 +71,7 @@ namespace TestRouter
             {
                 Console.WriteLine("No se pudo conectar con el agente: " + message.Destination + " Error: " + ex.Message);
             }
-            Console.WriteLine("La llamada al agente: " + message.Destination + " se concretó correctamente");
+            Console.WriteLine("La llamada " + ch.Id + " al agente: " + message.Destination + " se inició correctamente");
 
         }
 
@@ -121,6 +120,7 @@ namespace TestRouter
 
         }
 
+
         public void Disconnect()
         {
 
@@ -150,7 +150,7 @@ namespace TestRouter
 
         private void Pbx_OnBridgeAttendedTransferEvent(IAriClient sender, BridgeAttendedTransferEvent e)
         {
-            Console.WriteLine("Blind Transfer");
+            Console.WriteLine("Attended Transfer");
             Console.WriteLine(e);
         }
 
@@ -161,24 +161,41 @@ namespace TestRouter
 
         private void Pbx_OnChannelHangupRequestEvent(IAriClient sender, ChannelHangupRequestEvent e)
         {
-            Console.WriteLine("Channel hangup request para el canal: " + e.Channel.Id);
+            ProtocolMessages.Message msg = null;
+            try
+            {
+                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelHangupEvent(e.Channel.Id, e.Cause, "");
+            }
+            catch { } //TODO: arreglar esto!!
+
+            if (msg != null)
+            {
+                actorPbxProxy.Send(msg);
+            }
+            else
+            {
+                Console.WriteLine("Channel HangUpReques: " + e.Channel.Id + " el callhandler devolvió msg = null");
+            }
+            callHandlerCache.RemoveChannel(e.Channel.Id);
+            Console.WriteLine("Channel HangUpReques: " + e.Channel.Id + " remuevo channel del callhandler");
         }
 
         private void Pbx_OnChannelDestroyedEvent(IAriClient sender, ChannelDestroyedEvent e)
         {
-            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
-            if (callHandler.Caller.Id == e.Channel.Id)
+            ProtocolMessages.Message msg = null;
+            try
             {
-                actorPbxProxy.Send(new MessageCallerHangup() { CallHandlerId = callHandler.Id, HangUpCode = e.Cause.ToString(), HangUpReason = e.Cause_txt });
+                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelDestroyEvent(e.Channel.Id, e.Cause, e.Cause_txt);
             }
-            else if (callHandler.Caller.Id == e.Channel.Id)
+            catch { } //TODO: arreglar esto!!
+
+            if (msg != null)
             {
-                actorPbxProxy.Send(new MessageHangUpAgent { CallHandlerId = callHandler.Id, HangUpCode = e.Cause.ToString(), HangUpReason = e.Cause_txt });
+                actorPbxProxy.Send(msg);
             }
             else
             {
-                //algo salió mal, si estoy acá es porque el cache tiene un callhandler asociado al canal que cortó, pero el callhandler internamente no lo tienen ni como caller ni como agent a ese canal.
-                Console.WriteLine("Pbx_OnChannelDestroyedEvent: no se pudo identificar mediante el id de canal si colgó el agente o el caller");
+                Console.WriteLine("Channel Destroy: " + e.Channel.Id + " el callhandler devolvió msg = null");
             }
             callHandlerCache.RemoveChannel(e.Channel.Id);
             Console.WriteLine("Channel Destroy: " + e.Channel.Id + " remuevo channel del callhandler");
@@ -186,14 +203,33 @@ namespace TestRouter
 
         private void Pbx_OnChannelStateChangeEvent(IAriClient sender, ChannelStateChangeEvent e)
         {
-            //por ahora no hago nada, solo logueo.
+            ProtocolMessages.Message msg = null;
+            //track channel state changes
+            try
+            {
+                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelStateChangedEvent(e.Channel.Id, e.Channel.State);
+                if (msg != null)
+                {
+                    actorPbxProxy.Send(msg);
+                }
+                else
+                {
+                    Console.WriteLine("Channel State Change: " + e.Channel.Id + " el callhandler devolvió msg = null");
+                }
+            }
+            catch { } //TODO: no dejar esto asi!!!
+
+
+            if (msg != null)
+                actorPbxProxy.Send(msg);
+
+            //log to console
             Console.WriteLine("El canal: " + e.Channel.Id + " cambio su estado a: " + e.Channel.State.ToString());
         }
 
         private void Pbx_OnStasisEndEvent(IAriClient sender, StasisEndEvent e)
         {
             Console.WriteLine("El canal: " + e.Channel.Id + " salió de la app: " + e.Application);
-            callHandlerCache.GetByChannelId(e.Channel.Id);
             //uno de los dos cortó o por algun motivo se fue de stasis, transfer?? la cosa es que no estan mas en la app asi que los remuevo
             //aca debería ver el abandono, si sale de la app sin que lo atiendan abandonó?
             CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
@@ -204,6 +240,8 @@ namespace TestRouter
 
         private void Pbx_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
         {
+
+            //TODO: si e.Replace_channel != null (rename) es un nuevo canal que reemplaza a otro, hasta ahora solo me pasa con las transferencias atendidas, debo buscar el callhandler que tiene el e.Replace_channel y reemplazarlo por el nuevo channel
             //Verifico: si el canal es de una llamada que ya existe no creo nada. Esto es para el caso en que hago un originate al agente, ya tengo un callhandler creado por el caller que llamó inicialmente
             if (callHandlerCache.GetByChannelId(e.Channel.Id) == null)
             {
@@ -239,13 +277,12 @@ namespace TestRouter
                 //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
                 actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id });
             }
-            else
+            else //si no es null entonces el canal lo agregé yo cuando hice el CallTo
             {
                 CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
                 try
                 {
-                    //agrego el canal al bridge, controlar que pasa si falla el originate
-                    pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
+                    callHandler.CallToSuccess(e.Channel.Id); //Le digo al callhandler que el canal generado en el callto ya está en el dial plan, cuando el estado pasa a Up es que contestó el agente
                 }
                 catch (Exception ex)
                 {

@@ -52,8 +52,10 @@
     <Compile Include="MessageCallerHangup.cs" />
     <Compile Include="MessageCallQueued.cs" />
     <Compile Include="MessageCallTo.cs" />
+    <Compile Include="MessageCallToFailed.cs" />
+    <Compile Include="MessageCallToSuccess.cs" />
     <Compile Include="MessageContactChanged.cs" />
-    <Compile Include="MessageHangUpAgent.cs" />
+    <Compile Include="MessageAgentHangup.cs" />
     <Compile Include="MessageMemberLogin.cs" />
     <Compile Include="MessageMemberLogoff.cs" />
     <Compile Include="MessageMemberLoginResponse.cs" />

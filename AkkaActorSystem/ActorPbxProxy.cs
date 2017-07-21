@@ -68,7 +68,7 @@ namespace AkkaActorSystem
                             Console.WriteLine("El ActorPbx recibió AnswerCall");
                             this.AnswerCall(this, (MessageAnswerCall)msg);
                         }
-                        if (AnswerCall != null && msg is MessageCallTo)
+                        if (CallTo != null && msg is MessageCallTo)
                         {
                             Console.WriteLine("El ActorPbx recibió un CallTo");
                             this.CallTo(this, (MessageCallTo)msg);
@@ -76,7 +76,7 @@ namespace AkkaActorSystem
                         //All Messages
                         if (Receive != null && msg is Message)
                         {
-                            Console.WriteLine("El ActorPbx recibió un mensaje");
+                            //Console.WriteLine("El ActorPbx recibió un mensaje");
                             this.Receive(this, (Message)msg);
                         }
                         Thread.Sleep(100);
@@ -98,7 +98,7 @@ namespace AkkaActorSystem
         public void Send(Message message)
         {
             inbox.Send(actorMessageRouter, message);
-            Console.WriteLine("El ActorPbx envió un mensaje al ActorMsgRouter");
+            //Console.WriteLine("El ActorPbx envió un mensaje al ActorMsgRouter");
         }
     }
 }
