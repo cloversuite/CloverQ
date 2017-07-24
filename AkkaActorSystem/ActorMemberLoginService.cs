@@ -34,6 +34,7 @@ namespace AkkaActorSystem
                 if (mlin.MemberId == "3333" && mlin.Password == "1234")
                 {
                     Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = true, Reason = "Member authenticated and logedin." });
+                    callDistributor.Tell(mlin);
                 }
                 else
                 {
@@ -46,6 +47,7 @@ namespace AkkaActorSystem
             {
                 //le paso el queuesid list en null para desloguearlo de todas las colas
                 callDistributor.Tell(new MessageQMemberRemove() { MemberId = mlof.MemberId, QueuesId = null });
+                callDistributor.Tell(mlof);
             });
 
             Receive<DAMemberQueues>(mqs =>
