@@ -144,6 +144,7 @@ namespace TestRouter
         #region Handle ARI Events
         private void Pbx_OnBridgeBlindTransferEvent(IAriClient sender, BridgeBlindTransferEvent e)
         {
+            ProtocolMessages.Message msg = null;
             CallHandler callHandler = callHandlerCache.GetByChannelId(e.Transferee.Id);
             if (callHandler == null)
             {
@@ -151,12 +152,22 @@ namespace TestRouter
             }
             if (callHandler != null)
             {
-                callHandler.AttendedTransferEvent(e.Transferee, e.Replace_channel);
+                msg = callHandler.AttendedTransferEvent(e.Transferee, e.Replace_channel);
+            }
+            //Mando el mensaje
+            if (msg != null)
+            {
+                actorPbxProxy.Send(msg);
+            }
+            else
+            {
+                Console.WriteLine("UnAttTransfer devolvió msg = null");
             }
         }
 
         private void Pbx_OnBridgeAttendedTransferEvent(IAriClient sender, BridgeAttendedTransferEvent e)
         {
+            ProtocolMessages.Message msg = null;
             //Este evento trae muchisima info, requiere de mayor estudio/prueba
             //ver como queda el canal del caller, seguro hay un rename por ahi
             CallHandler callHandler = callHandlerCache.GetByChannelId(e.Transferee.Id);
@@ -166,8 +177,18 @@ namespace TestRouter
             }
             if (callHandler != null)
             {
-                callHandler.AttendedTransferEvent(e.Transferee, e.Transfer_target);
+                msg = callHandler.AttendedTransferEvent(e.Transferee, e.Transfer_target);
             }
+            //Mando el mensaje
+            if (msg != null)
+            {
+                actorPbxProxy.Send(msg);
+            }
+            else
+            {
+                Console.WriteLine("AttTransfer devolvió msg = null");
+            }
+
         }
 
         private void Pbx_OnChannelHoldEvent(IAriClient sender, ChannelHoldEvent e)
@@ -263,7 +284,7 @@ namespace TestRouter
                 {
                     //Lo comento porque si remplazo el canal, el nuevo canal no esta en stasis y nunca detecto el hangup
                     //para poder hacer esto debería recibir los eventos de todos los canales osea pbx.Applications.Subscribe(appName, "channel:"); 
-                    //callHandler.ChannelReplace(e.Replace_channel, e.Channel);
+                    callHandler.ChannelReplace(e.Replace_channel, e.Channel);
                 }
 
             }

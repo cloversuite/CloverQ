@@ -173,7 +173,7 @@ namespace TestRouter
         {
             ProtocolMessages.Message msg = null;
             //Hay que pulir la lógica del hangup, también hay que tener en cuenta los transfer
-            if (channelId == caller.Id)
+            if (channelId == caller.Id && callState != CallState.TERMINATED)
             {
                 msg = new MessageCallerHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
                 callState = CallState.TERMINATED;
@@ -197,7 +197,7 @@ namespace TestRouter
         {
             ProtocolMessages.Message msg = null;
             //Hay que pulir la lógica del hangup, también hay que tener en cuenta los transfer
-            if (channelId == caller.Id)
+            if (channelId == caller.Id && callState != CallState.TERMINATED && callState != CallState.TRANSFERRED)
             {
                 msg = new MessageCallerHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
                 TerminateAgent();
@@ -205,17 +205,18 @@ namespace TestRouter
             }
             else if (channelId == agent.Id)
             {
-                
+
                 //prevengo que si la llamada fue transferida le corte al que llamó
-                if (callState != CallState.TRANSFERRED)
+                if (callState != CallState.TRANSFERRED && callState != CallState.TERMINATED)
                 {
                     msg = new MessageAgentHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
                     TerminateCaller();
                     callState = CallState.TERMINATED;
-                }else
-                {
-                    msg = new MessageCallTransfer() { CallHandlerId = this.id, TargetId = transferTarget.Id, TargetName = transferTarget.Name };
                 }
+                //else
+                //{
+                //    msg = new MessageCallTransfer() { CallHandlerId = this.id, TargetId = transferTarget.Id, TargetName = transferTarget.Name };
+                //}
             }
             else
                 Console.WriteLine("Callhandler: El canal " + caller.Id + " no está en la llamada: " + this.id);
@@ -223,43 +224,63 @@ namespace TestRouter
             return msg;
         }
 
-        private void TerminateCaller() {
+        private void TerminateCaller()
+        {
             TerminateLeg(this.caller.Id);
         }
-        private void TerminateAgent() {
+        private void TerminateAgent()
+        {
             TerminateLeg(this.agent.Id);
         }
 
-        private void TerminateLeg(string channelId) {
+        private void TerminateLeg(string channelId)
+        {
             try
             {
                 pbx.Channels.Hangup(channelId);
             }
-            catch (Exception ex) {
-                Console.WriteLine("CallHandler: " + this.id + " request hangup failed on channel: " + channelId + "Error: " + ex.Message );
+            catch (Exception ex)
+            {
+                Console.WriteLine("CallHandler: " + this.id + " request hangup failed on channel: " + channelId + "Error: " + ex.Message);
             }
 
         }
         //TODO: esto es una versión muy simplificada, el evento de transferencia atendida requiere mayo estudio
-        public void AttendedTransferEvent(Channel ch1, Channel ch2) {
-            if(ch1.Id == caller.Id)
-                TransferTo(ch2);
+        public ProtocolMessages.Message AttendedTransferEvent(Channel ch1, Channel ch2)
+        {
+            ProtocolMessages.Message msg = null;
+            if (ch1.Id == caller.Id)
+            {
+               msg =  TransferTo(ch2);
+
+            }
 
             if (ch2.Id == caller.Id)
-                TransferTo(ch1);
+            {
+                msg = TransferTo(ch1);
+            }
+
+            return msg;
 
         }
 
-        public void UnattendedTransferEvent(Channel ch1, Channel ch2) {
-            TransferTo(ch1);
+        public ProtocolMessages.Message UnattendedTransferEvent(Channel ch1, Channel ch2)
+        {
+            return TransferTo(ch1);
         }
 
-        private void TransferTo(Channel target) {
+        private ProtocolMessages.Message TransferTo(Channel target)
+        {
+            ProtocolMessages.Message msg;
             this.transferTarget = target;
             callState = CallState.TRANSFERRED;
+            msg = new MessageCallTransfer() { CallHandlerId = this.id, TargetId = transferTarget.Id, TargetName = transferTarget.Name };
+            return msg;
+
         }
 
-        public void ChannelReplace(Channel replaceChannel, Channel newChannel) {
+        public void ChannelReplace(Channel replaceChannel, Channel newChannel)
+        {
             if (replaceChannel.Id == caller.Id)
             {
                 caller = newChannel;
