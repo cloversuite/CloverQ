@@ -33,10 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AsterNET.ARI, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AsterNET.ARI.1.1.0\lib\AsterNET.ARI.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -57,10 +53,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="WebSocket4Net, Version=0.14.1.0, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebSocket4Net.0.14.1\lib\net45\WebSocket4Net.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BridgeItem.cs" />
@@ -80,6 +72,10 @@
     <ProjectReference Include="..\AkkaActorSystem\AkkaActorSystem.csproj">
       <Project>{f181b1c8-079b-478f-bbdb-02eb38fc207a}</Project>
       <Name>AkkaActorSystem</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AsterNET.ARI.SubMod\AsterNET.ARI\AsterNET.ARI.csproj">
+      <Project>{f4c8c633-2207-4c25-89a8-4d23d9cfa964}</Project>
+      <Name>AsterNET.ARI</Name>
     </ProjectReference>
     <ProjectReference Include="..\LoginProvider\LoginProvider.csproj">
       <Project>{551bf722-e00c-48e8-be02-9c8f3748d3af}</Project>

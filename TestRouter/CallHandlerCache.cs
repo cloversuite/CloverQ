@@ -18,7 +18,13 @@ namespace TestRouter
 
         public void AddCallHandler(CallHandler callHandler) {
             channels.Add(callHandler.Caller.Id, callHandler);
-            bridges.Add(callHandler.Bridge.Id, callHandler);
+            try
+            {
+                bridges.Add(callHandler.Bridge.Id, callHandler);
+            }
+            catch(Exception ex) {
+                Console.WriteLine("No se pudo agregar al cache el bridge: " + callHandler.Bridge.Id + "Error: " + ex.Message);
+            }
             calls.Add(callHandler.Id, callHandler);
             if (callHandler.Agent != null)
                 channels.Add(callHandler.Agent.Id, callHandler);

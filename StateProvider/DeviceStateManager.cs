@@ -41,7 +41,9 @@ namespace StateProvider
             //SUBSCRIBO A EVENTOS
             pbx.OnEndpointStateChangeEvent += Pbx_OnEndpointStateChangeEvent;
             pbx.OnDeviceStateChangedEvent += Pbx_OnDeviceStateChangedEvent;
-            pbx.OnUnhandledEvent += Pbx_OnUnhandledEvent;
+            pbx.OnPeerStatusChangeEvent += Pbx_OnPeerStatusChangeEvent;
+            
+            //pbx.OnUnhandledEvent += Pbx_OnUnhandledEvent;
 
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
@@ -59,6 +61,10 @@ namespace StateProvider
 
         }
 
+        private void Pbx_OnPeerStatusChangeEvent(IAriClient sender, AsterNET.ARI.Models.PeerStatusChangeEvent e)
+        {
+            Console.WriteLine("ESTADO el PEER:" + e.Endpoint.Technology + "/" + e.Endpoint.Resource + "  esta en la dir: " + e.Peer.Address + ":" + e.Peer.Port);
+        }
 
         private void Pbx_OnUnhandledEvent(object sender, AsterNET.ARI.Models.Event eventMessage)
         {
