@@ -5,6 +5,7 @@ using AkkaActorSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ProtocolMessages;
+using System.Text.RegularExpressions;
 
 namespace LoginProvider
 {
@@ -65,8 +66,9 @@ namespace LoginProvider
                 string memberId = (string)((JObject)e.Userevent)["agent"];
                 string password = (string)((JObject)e.Userevent)["password"];
                 string contact = (string)((JObject)e.Userevent)["contact"];
+                string deviceId = Regex.Match(contact, @"\<(.+?)\@").Groups[1].Value.Replace(":","/").ToUpper();
 
-                MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = contact });
+                MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = contact, DeviceId = deviceId });
 
                 Console.WriteLine("Member " + memberId + "login from:"+ contact +" response, " + mlr.Reason);
                 

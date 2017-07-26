@@ -29,7 +29,7 @@ namespace AkkaActorSystem
             {
                 //Mensaje que proviene del ActorMemberLoginService, aca creo un nuevo member, cuando me llegan los QMemberAdd creo los
                 //QueueMember en base a este objeto. El member quue creo aca tambien recibe mensajes del stateprovider
-                queueSystem.MemberCache.Add(new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password });
+                queueSystem.MemberCache.Add(new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password, DeviceId = mlin.DeviceId });
             });
             // Ejemplo de filtro de mensaje: Receive<String>(s => s.Equals("Start"), (s) => { proxyClient.Connect(); }); //ejemplito
             //Es estado del del sipositivo de

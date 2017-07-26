@@ -21,7 +21,9 @@ namespace QueueSystem
         public int PauseCode { get; set; }
         public string PauseReason { get; set; }
         public bool IsAvailable { get; set; }
-        public int DeviceState { get; set; }
+        public string DeviceId { get; set; }
+        public string DeviceState { get; set; }
+        public string EndpointState { get; set; }
     }
 
 }

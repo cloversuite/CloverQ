@@ -11,13 +11,10 @@ namespace ProtocolMessages
     /// </summary>
     public class MessageStateChanged : Message
     {
-        /// <summary>
-        /// Indica que el dispositivo esta siendo utilizado con una llamada o mas
-        /// </summary>
+        public string MemberId { get; set; }
+        public string DeviceId { get; set; }
         public bool InUse { get; set; }
-        /// <summary>
-        /// Ubicación del dispositivo Ej: sip:1000@293.268.56.123:5060
-        /// </summary>
         public string Contact { get; set; } //tal vez debería tener un mensaje para si mimsmo, algo como MessageRegistrationChanged?
+
     }
 }
