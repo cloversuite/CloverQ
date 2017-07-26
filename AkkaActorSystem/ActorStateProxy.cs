@@ -12,8 +12,17 @@ namespace AkkaActorSystem
 {
     public class ActorStateProxy
     {
+        #region Eventos
+        public delegate void DelegateMessage(object sender, Message message);
+        public delegate void DelelegateAttachMember(object sender, MessageAttachMemberToDevice message);
+        public delegate void DelelegateDetachMember(object sender, MessageDetachMemberFromDevice message);
+        public event DelegateMessage Receive;
+        public event DelelegateAttachMember AttachMember;
+        public event DelelegateDetachMember DetachMember;
+        #endregion
+
         #region Atributos
-        //Thread threadReceiver = null;
+        Thread threadReceiver = null;
         IActorRef actorCallDitributor;
         Inbox inbox;
         #endregion
@@ -26,72 +35,70 @@ namespace AkkaActorSystem
 
         public void Diconnect()
         {
-            //Esto es solo si el proxy va a poder mandar mensajes a la pbx
-            //if (threadReceiver != null)
-            //{
-            //    try
-            //    {
-            //        threadReceiver.Interrupt();
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine("Error al detener el thread receiver del ActorPbxProxy: " + ex.Message);
-            //    }
+            if (threadReceiver != null)
+            {
+                try
+                {
+                    threadReceiver.Interrupt();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error al detener el thread receiver del ActorStateProxy: " + ex.Message);
+                }
 
-            //}
+            }
         }
 
         private void Receiver()
         {
-            //Esto es solo si el proxy va a poder mandar mensajes a la pbx
-            //threadReceiver = new Thread(() =>
-            //{
-            //    try
-            //    {
-            //        while (true)
-            //        {
-            //            object msg = inbox.Receive(TimeSpan.FromDays(1));
+            threadReceiver = new Thread(() =>
+            {
+                try
+                {
+                    while (true)
+                    {
+                        object msg = inbox.Receive(TimeSpan.FromDays(1));
 
-            //            //todos los mensajes
+                        //todos los mensajes
 
-            //            if (AnswerCall != null && msg is MessageAnswerCall)
-            //            {
-            //                Console.WriteLine("El ActorPbx recibió AnswerCall");
-            //                this.AnswerCall(this, (MessageAnswerCall)msg);
-            //            }
-            //            if (AnswerCall != null && msg is MessageCallTo)
-            //            {
-            //                Console.WriteLine("El ActorPbx recibió un CallTo");
-            //                this.CallTo(this, (MessageCallTo)msg);
-            //            }
-            //            //All Messages
-            //            if (Receive != null && msg is Message)
-            //            {
-            //                Console.WriteLine("El ActorPbx recibió un mensaje");
-            //                this.Receive(this, (Message)msg);
-            //            }
-            //            Thread.Sleep(100);
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine("El thread receiver del ActorPbxProxy se detuvo: " + ex.Message);
-            //    }
-            //});
-            //threadReceiver.Start();
+                        if (AttachMember != null && msg is MessageAttachMemberToDevice)
+                        {
+                            Console.WriteLine("El ActorStateProxy recibió AttachMember");
+                            this.AttachMember(this, (MessageAttachMemberToDevice)msg);
+                        }
+                        if (DetachMember != null && msg is MessageDetachMemberFromDevice)
+                        {
+                            Console.WriteLine("El ActorStateProxy recibió un DetachMember");
+                            this.DetachMember(this, (MessageDetachMemberFromDevice)msg);
+                        }
+                        //All Messages
+                        if (Receive != null && msg is Message)
+                        {
+                            Console.WriteLine("El ActorStateProxy recibió un mensaje");
+                            this.Receive(this, (Message)msg);
+                        }
+                        Thread.Sleep(100);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("El thread receiver del ActorStateProxy se detuvo: " + ex.Message);
+                }
+            });
+            threadReceiver.Start();
         }
 
         public void Start()
         {
-            //Esto es solo si el proxy va a poder mandar mensajes a la pbx
+            //Esto es solo si el proxy va a poder mandar mensajes 
             //Comienzo a recibir mensajitos
-            //Receiver(); //Comentado ya que el state provaider por el momento no recibe nada
+            Receiver(); 
         }
 
         public void Send(Message message)
         {
             inbox.Send(actorCallDitributor, message);
-            Console.WriteLine("El ActorPbx envió un mensaje al ActorMsgRouter");
+            Console.WriteLine("El ActorStateProxy envió un mensaje al callDitributor");
         }
 
     }

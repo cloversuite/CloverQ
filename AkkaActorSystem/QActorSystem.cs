@@ -52,7 +52,7 @@ namespace AkkaActorSystem
             actorCallDistributor = systemq.ActorOf(Props.Create(() => new ActorCallDistributor()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "CallDistributor");
 
             actorMsgRouter = systemq.ActorOf(Props.Create(() => new ActorMsgRouter(actorCallDistributor)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MsgRouter");
-            actorMemberLoginService = systemq.ActorOf(Props.Create(() => new ActorMemberLoginService(actorCallDistributor, actorDataAccess)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MemberLoginService");
+            actorMemberLoginService = systemq.ActorOf(Props.Create(() => new ActorMemberLoginService(actorCallDistributor, actorDataAccess, inboxStateProxy.Receiver)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MemberLoginService");
 
             actorPbxProxy = new ActorPbxProxy(inboxPbxProxy, actorMsgRouter);
             actorStateProxy = new ActorStateProxy(inboxStateProxy, actorCallDistributor);

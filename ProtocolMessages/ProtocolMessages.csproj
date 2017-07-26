@@ -49,6 +49,7 @@
     <Compile Include="MessaageCallerOnHold.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageAnswerCall.cs" />
+    <Compile Include="MessageAttachMemberToDevice.cs" />
     <Compile Include="MessageCallerHangup.cs" />
     <Compile Include="MessageCallQueued.cs" />
     <Compile Include="MessageCallTo.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="MessageCallTransfer.cs" />
     <Compile Include="MessageContactChanged.cs" />
     <Compile Include="MessageAgentHangup.cs" />
+    <Compile Include="MessageDetachMemberFromDevice.cs" />
     <Compile Include="MessageMemberLogin.cs" />
     <Compile Include="MessageMemberLogoff.cs" />
     <Compile Include="MessageMemberLoginResponse.cs" />

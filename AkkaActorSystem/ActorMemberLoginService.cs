@@ -16,10 +16,12 @@ namespace AkkaActorSystem
     class ActorMemberLoginService : ReceiveActor
     {
         IActorRef callDistributor;
+        IActorRef actorStateProxy;
 
-        public ActorMemberLoginService(IActorRef callDistributor, IActorRef actorDataAccess)
+        public ActorMemberLoginService(IActorRef callDistributor, IActorRef actorDataAccess, IActorRef actorStateProxy)
         {
             this.callDistributor = callDistributor;
+            this.actorStateProxy = actorStateProxy; //mediante este actor mando mensajes al DeviceStateManager
 
             Receive<MessageMemberLogin>(mlin =>
             {
@@ -35,6 +37,8 @@ namespace AkkaActorSystem
                 {
                     Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = true, Reason = "Member authenticated and logedin." });
                     callDistributor.Tell(mlin);
+
+                    actorStateProxy.Tell(new MessageAttachMemberToDevice() { DeviceId = mlin.Contact, MemberId = mlin.MemberId });
                 }
                 else
                 {
@@ -48,6 +52,7 @@ namespace AkkaActorSystem
                 //le paso el queuesid list en null para desloguearlo de todas las colas
                 callDistributor.Tell(new MessageQMemberRemove() { MemberId = mlof.MemberId, QueuesId = null });
                 callDistributor.Tell(mlof);
+                actorStateProxy.Tell(new MessageDetachMemberFromDevice() { MemberId = mlof.MemberId });
             });
 
             Receive<DAMemberQueues>(mqs =>
