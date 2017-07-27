@@ -70,7 +70,7 @@
     <Compile Include="MessageQueueAdd.cs" />
     <Compile Include="MessageQueueRemove.cs" />
     <Compile Include="MessageRouteCall.cs" />
-    <Compile Include="MessageStateChanged.cs" />
+    <Compile Include="MessageDeviceStateChanged.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

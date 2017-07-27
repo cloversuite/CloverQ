@@ -33,10 +33,17 @@ namespace AkkaActorSystem
             });
             // Ejemplo de filtro de mensaje: Receive<String>(s => s.Equals("Start"), (s) => { proxyClient.Connect(); }); //ejemplito
             //Es estado del del sipositivo de
-            Receive<MessageStateChanged>(cf =>
+            Receive<MessageDeviceStateChanged>(dsc =>
             {
-                //    Sender.Tell(new MessageAnswerCall() { CallHandlerId = cf.CallHandlerId });
-                //  Sender.Tell(new MessageCallTo { CallHandlerId = cf.CallHandlerId, destination = "SIP/192.168.56.1:6060/2000" });
+                Member member = queueSystem.MemberCache.GetMemberById(dsc.MemberId);
+                //verifico que sea del mismo dispositivo
+                if(dsc.DeviceId == member.DeviceId)
+                {
+                    member.Contact = dsc.Contact;
+                    member.DeviceIsInUse = dsc.IsInUse;
+                    member.EndpointIsOfline = dsc.IsOffline;
+                    Console.WriteLine("CALL DIST: member STATE changed, Contact: " + member.Contact + ", IsInUse: " + member.DeviceIsInUse);
+                }
             });
             Receive<MessageNewCall>(nc =>
             {
@@ -49,7 +56,8 @@ namespace AkkaActorSystem
                 if (queueMember == null)
                 {
                     Sender.Tell(new MessageCallQueued() { CallHandlerId = nc.CallHandlerId });
-                    Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = "SIP/192.168.56.1:64550/2000" });
+                    //TODO: remover MessageCallTo de aca, es solo para prueba
+                    Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = queueSystem.MemberCache.GetMemberById("3333").Contact });
                 }
                 else
                 {

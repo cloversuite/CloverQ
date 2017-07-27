@@ -38,7 +38,7 @@ namespace AkkaActorSystem
                     Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = true, Reason = "Member authenticated and logedin." });
                     callDistributor.Tell(mlin);
 
-                    actorStateProxy.Tell(new MessageAttachMemberToDevice() { DeviceId = mlin.Contact, MemberId = mlin.MemberId });
+                    actorStateProxy.Tell(new MessageAttachMemberToDevice() { DeviceId = mlin.DeviceId, MemberId = mlin.MemberId });
                 }
                 else
                 {

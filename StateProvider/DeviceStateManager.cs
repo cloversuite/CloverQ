@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using AsterNET.ARI.Models;
 using System.Collections.Generic;
+using ProtocolMessages;
 
 namespace StateProvider
 {
@@ -80,6 +81,8 @@ namespace StateProvider
 
                 pbx.Applications.Subscribe(appName, "endpoint:SIP");
                 pbx.Applications.Subscribe(appName, "deviceState:");
+                //una vez que inicializo pongo a recibir eventos al actorStateProxy, de aca me llegan los attach u detach
+                actorStateProxy.Start();
             }
             catch (Exception ex)
             {
@@ -93,14 +96,25 @@ namespace StateProvider
         #region ARI event handler
         private void Pbx_OnPeerStatusChangeEvent(IAriClient sender, AsterNET.ARI.Models.PeerStatusChangeEvent e)
         {
-            Device device = device = deviceCache.GetDeviceById(e.Endpoint.Technology + "/" + e.Endpoint.Resource);
+            Device device =  deviceCache.GetDeviceById(e.Endpoint.Technology + "/" + e.Endpoint.Resource);
+            string destination = "SIP/";
             if (device != null)
             {
-                if (!String.IsNullOrEmpty(e.Peer.Address) && !String.IsNullOrEmpty(e.Peer.Port))
+                if (!String.IsNullOrEmpty(e.Peer.Address))
                 {
-                    device.Contact = e.Peer.Address;
+                    destination += e.Peer.Address + "/" + e.Endpoint.Resource;
+                    //Solo actualizo si cambió el contact
+                    if (device.Contact != destination)
+                    {
+                        device.Contact = destination;
+                        //solo envio mensaje al calldistributor si el device posee un agente
+                        if (!String.IsNullOrEmpty(device.MemberId))
+                        {
+                            this.actorStateProxy.Send(new MessageDeviceStateChanged() { DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                        }
+                    }
+
                 }
-                   
 
                 device.EndpointState = e.Peer.Peer_status;
                 Console.WriteLine("ESTADO "+ device.Id+" PEER:" + device.DeviceState + " Endpoint: " + device.EndpointState);
@@ -115,14 +129,25 @@ namespace StateProvider
         private void Pbx_OnDeviceStateChangedEvent(IAriClient sender, AsterNET.ARI.Models.DeviceStateChangedEvent e)
         {
             Console.WriteLine("ESTADO el device:" + e.Device_state.Name + " esta en:" + e.Device_state.State);
-            deviceCache.UpdateDeviceState(e.Device_state.Name, e.Device_state.State);
+            Device device = deviceCache.UpdateDeviceState(e.Device_state.Name, e.Device_state.State);
+            //solo envio mensaje al calldistributor si el device posee un agente
+            if (device != null && !String.IsNullOrEmpty(device.MemberId))
+            {
+                this.actorStateProxy.Send(new MessageDeviceStateChanged() { DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+            }
         }
 
         private void Pbx_OnEndpointStateChangeEvent(IAriClient sender, AsterNET.ARI.Models.EndpointStateChangeEvent e)
         {
             Console.WriteLine("ESTADO el endpoint: " + e.Endpoint.Technology + "/" + e.Endpoint.Resource + " - tiene el estado: " + e.Endpoint.State + " - canales: " + e.Endpoint.Channel_ids.Count.ToString());
             string endpointId = e.Endpoint.Technology + "/" + e.Endpoint.Resource;
-            deviceCache.UpdateEndpointState(endpointId, e.Endpoint.State);
+            Device device = deviceCache.UpdateEndpointState(endpointId, e.Endpoint.State);
+            //solo envio mensaje al calldistributor si el device posee un agente
+            if (!String.IsNullOrEmpty(device.MemberId))
+            {
+                //TODO: verificar si enviar este mensaje es totalemente necesario
+                this.actorStateProxy.Send(new MessageDeviceStateChanged() { DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+            }
         }
 
         #endregion
@@ -143,6 +168,7 @@ namespace StateProvider
 
         public void Disconnect()
         {
+            actorStateProxy.Diconnect();
             pbx.Disconnect();
         }
 

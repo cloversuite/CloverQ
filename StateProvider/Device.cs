@@ -8,9 +8,9 @@ namespace StateProvider
 {
     public class Device
     {
-        private string id ;
-        private string  memberId;
-        private string  host;
+        private string id;
+        private string memberId;
+        private string host;
         private string port;
         private string contact;
         private string deviceState;
@@ -103,6 +103,23 @@ namespace StateProvider
             set
             {
                 endpointState = value;
+            }
+        }
+
+        public bool IsInUse
+        {
+            get
+            {
+                return DeviceState == "NOT_INUSE" ? false : true;
+            }
+        }
+
+        //TODO: agregar la lógica que dice que esta online, no me acuerdo si lo provee el devicestate o el endpointstate
+        public bool IsOffline
+        {
+            get
+            {
+                return true;
             }
         }
     }

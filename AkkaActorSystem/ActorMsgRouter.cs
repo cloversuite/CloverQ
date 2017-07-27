@@ -34,7 +34,7 @@ namespace AkkaActorSystem
             {
                 callDistributor.Tell(mlin, Sender);
             });
-            Receive<MessageStateChanged>(cf =>
+            Receive<MessageDeviceStateChanged>(cf =>
             {
                 callDistributor.Tell(cf, Sender);
             });

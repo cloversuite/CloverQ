@@ -66,9 +66,15 @@ namespace LoginProvider
                 string memberId = (string)((JObject)e.Userevent)["agent"];
                 string password = (string)((JObject)e.Userevent)["password"];
                 string contact = (string)((JObject)e.Userevent)["contact"];
+                //meter todo este parse en un metodo estático tal vez una clase contact Contact.Parse?
+                contact = contact.Replace(";", ">");
                 string deviceId = Regex.Match(contact, @"\<(.+?)\@").Groups[1].Value.Replace(":","/").ToUpper();
+                string number = Regex.Match(contact, @"\:(.+?)\@").Groups[1].Value;
+                string address = Regex.Match(contact, @"\@(.+?)\>").Groups[1].Value;
+                string uri = Regex.Match(contact, @"\<(.+?)\>").Groups[1].Value.Replace("<","").Replace(">", "");
+                string destination = "SIP/" + address + "/" + number;
 
-                MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = contact, DeviceId = deviceId });
+                MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId });
 
                 Console.WriteLine("Member " + memberId + "login from:"+ contact +" response, " + mlr.Reason);
                 

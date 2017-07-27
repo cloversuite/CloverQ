@@ -35,6 +35,15 @@ namespace QueueSystem
             }
         }
 
+        public Member GetMemberById(string memberId)
+        {
+            Member member = null;
+            if (members.ContainsKey(memberId))
+            {
+                member = members[memberId];
+            }
+            return member;
+        }
 
         //La info de contacto la puedo obtener si se logea con una llamada desde el tel
         //Habria que ver para poder hacer login desde una aplicacion, como le paso el tel que le pertences?

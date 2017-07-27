@@ -30,52 +30,70 @@ namespace StateProvider
             }
         }
 
-        public void UpdateDeviceContact(string id, string contact)
+        public Device UpdateDeviceContact(string id, string contact)
         {
+            Device device = null;
             if (deviceCache.ContainsKey(id))
             {
-                deviceCache[id].Contact = contact;
+                device = deviceCache[id];
+                device.Contact = contact;
             }
+            return device;
         }
 
-        public void UpdateDeviceMember(string id, string memberId)
+        public Device UpdateDeviceMember(string id, string memberId)
         {
+            Device device = null;
             if (deviceCache.ContainsKey(id))
             {
-                deviceCache[id].MemberId = memberId;
+                device = deviceCache[id];
+                device.MemberId = memberId;
             }
+            return device;
         }
 
-        public void UpdateDeviceState(string id, string state)
+        public Device UpdateDeviceState(string id, string state)
         {
+            Device device = null;
             if (deviceCache.ContainsKey(id))
             {
-                deviceCache[id].DeviceState = state;
+                device = deviceCache[id];
+                device.DeviceState = state;
             }
+            return device;
         }
 
-        public void UpdateEndpointState(string id, string state)
+        public Device UpdateEndpointState(string id, string state)
         {
+            Device device = null;
             if (deviceCache.ContainsKey(id))
             {
-                deviceCache[id].EndpointState = state;
+                device = deviceCache[id];
+                device.EndpointState = state;
             }
+            return device;
         }
 
-        public void AttachMemberToDevice(string deviceId, string memberId) {
+        public Device AttachMemberToDevice(string deviceId, string memberId) {
+            Device device = null;
             if (deviceCache.ContainsKey(deviceId))
             {
-                deviceCache[deviceId].MemberId = memberId;
+                device = deviceCache[deviceId];
+                device.MemberId = memberId;
             }
+            return device;
         }
 
-        public void DetachMemberFromDevice(string deviceId, string memberId)
+        public Device DetachMemberFromDevice(string deviceId, string memberId)
         {
+            Device device = null;
             if (deviceCache.ContainsKey(deviceId))
             {
-                //debo controlar que el member que tiene el device sea el mismo que quiero quitar?
-                deviceCache[deviceId].MemberId = "";
+                device = deviceCache[deviceId];
+                //debería controlar que sea el mismo memberId que esta actualmente en el device?
+                device.MemberId = "";
             }
+            return device;
         }
 
         public Device GetDeviceById(string id)
