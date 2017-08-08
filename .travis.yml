@@ -2,4 +2,4 @@ language: csharp
 install:
   - nuget restore TestBridge.sln
 script:
-  - xbuild /p:Configuration=Release TestBridge.sln
+  - msbuild /p:Configuration=Release TestBridge.sln
