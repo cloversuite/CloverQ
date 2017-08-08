@@ -49,7 +49,7 @@ namespace AkkaActorSystem
 
             //Creo el calldistributor, este actor es el que al recibir una llamada nueva intenta rutearla a un agente libre, 
             //tambien recibe mensajes del actorStateProxy para mantener el estado de los dispositivos de los agentes
-            actorCallDistributor = systemq.ActorOf(Props.Create(() => new ActorCallDistributor()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "CallDistributor");
+            actorCallDistributor = systemq.ActorOf(Props.Create(() => new ActorCallDistributor(actorDataAccess)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "CallDistributor");
 
             actorMsgRouter = systemq.ActorOf(Props.Create(() => new ActorMsgRouter(actorCallDistributor)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MsgRouter");
             actorMemberLoginService = systemq.ActorOf(Props.Create(() => new ActorMemberLoginService(actorCallDistributor, actorDataAccess, inboxStateProxy.Receiver)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MemberLoginService");

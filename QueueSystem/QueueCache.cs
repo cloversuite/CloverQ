@@ -24,8 +24,11 @@ namespace QueueSystem
 
         public void AddQueue(Queue queue)
         {
-            queuesWeight.Add(queue);
-            queuesWeight.Sort(queueWeightComparer);
+            if (GetQueue(queue.Id) == null) //si la cola no existe la agrego, ver como hacer si existe para actualizar la info
+            {
+                queuesWeight.Add(queue);
+                queuesWeight.Sort(queueWeightComparer);
+            }
         }
 
         public List<Queue> QueueList

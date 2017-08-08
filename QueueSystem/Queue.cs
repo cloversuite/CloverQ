@@ -22,6 +22,7 @@ namespace QueueSystem
         public string Id { get; set; }
         public string MoH { get; set; }
         public int Weight { get; set; }
+        public int WrapupTime { get; set; }
 
         #region Métodos publicos
         //TODO: excepción si trato de hacer add de un id que ya existe

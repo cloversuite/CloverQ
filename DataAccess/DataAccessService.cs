@@ -15,7 +15,12 @@ namespace DataAccess
     {
         #region Métodos públicos
         public List<DTOQueue> GetQueues() {
-            return null;
+            List<DTOQueue> queues = new List<DTOQueue>();
+            DTOQueue dtoq1 = new DTOQueue() { Id = "5000", MoH = "default", QueueMembers = null, Weight = 1, WrapupTime = 15 };
+            DTOQueue dtoq2 = new DTOQueue() { Id = "6000", MoH = "default", QueueMembers = null, Weight = 2, WrapupTime = 10 };
+            queues.Add(dtoq1);
+            queues.Add(dtoq2);
+            return queues;
         }
 
         public List<DTOMember> GetMembers() {

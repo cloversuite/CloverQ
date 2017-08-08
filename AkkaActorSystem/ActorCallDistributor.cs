@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Akka.Actor;
 using ProtocolMessages;
 using QueueSystem;
+using Models;
 
 
 
@@ -14,16 +16,39 @@ namespace AkkaActorSystem
     public class ActorCallDistributor : ReceiveActor
     {
         QueueSystemManager queueSystem;
+        IActorRef actorDataAccess;
 
         /// <summary>
         /// Esta clase va a manejar la relación colas <-> miembros
         /// Mantiene una lista de todos los miembros logeados (y los que no) y el estado de su dispositivo
         /// Interactua con el ActorQueueRouter
         /// </summary>
-        public ActorCallDistributor()
+        public ActorCallDistributor(IActorRef actorDataAccess)
         {
-
+            //solicita todas las colas que estan persistidas (estaticas) tal vez desde el mysql? como hago para manejar la actualización de valores?
+            actorDataAccess.Tell(new DAGetQueues());
+            
             queueSystem = new QueueSystemManager();
+
+            Receive<DAQueues>(daq =>
+            {
+                if(daq.Queues != null)
+                {
+                    foreach (DTOQueue dtoq in daq.Queues) {
+                        Queue q = new Queue() { Id = dtoq.Id, MoH = dtoq.MoH, Weight = dtoq.Weight, WrapupTime = dtoq.WrapupTime };
+
+                        if (dtoq.QueueMembers != null)
+                        {
+                            //foreach(DTOQueueMember qm in dtoq.QueueMembers)
+                            //{
+                                //TODO: revisar esto, me parece que esta demás, de la freepbx por ejemplo no puedo obtebner esta info
+                            //}
+                        }
+
+                        queueSystem.QueueCache.AddQueue(q); //si ya exite la cola, hago update?
+                    }
+                }
+            });
 
             Receive<MessageMemberLogin>(mlin =>
             {

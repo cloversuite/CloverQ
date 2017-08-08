@@ -12,7 +12,7 @@ namespace Models
         public string Id { get; set; }
         public string MoH { get; set; }
         public int Weight { get; set; }
-        public TimeSpan WrapupTime { get; set; }
+        public int WrapupTime { get; set; }
 
         public List<DTOQueueMember> QueueMembers { get; set; }
 
