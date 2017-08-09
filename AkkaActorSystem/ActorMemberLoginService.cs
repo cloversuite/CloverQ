@@ -23,20 +23,20 @@ namespace AkkaActorSystem
             this.callDistributor = callDistributor;
             this.actorStateProxy = actorStateProxy; //mediante este actor mando mensajes al DeviceStateManager
 
-            Receive<MessageMemberLogin>(mlin =>
+            Receive<MessageMemberLogin>(async mlin =>
             {
-                //solicito de forma asíncron las colas a las que pertenece el meimbro
-                //Que pasa si el miembro no posee registro de a que colas pertenece?, debería tener una prop en el mensaje que indique eso
-                //para no ir a buscar al dataacces??
+                //Utilizo ask porque tengo al miembro en una llamada y necesita respuesta
+                //En caso de ser un login mediante cti podría hacerlo asíncrono
+                DAMember member = await actorDataAccess.Ask<DAMember>(new DAGetMemberById() { MemberId = mlin.MemberId});
 
-                //deshabilito esto para harcodear una prueba para el agente 3333 pass 1234
-                //actorDataAccess.Tell(new DAGetMemberQueues() { MemberId = mlin.MemberId });
-
-                //harcodeadro para prueba, retirar y descomentar la linea de arriba
-                if (mlin.MemberId == "3333" && mlin.Password == "1234")
+                if (member.Member != null && member.Member.Id == mlin.MemberId && member.Member.Password == mlin.Password)
                 {
                     Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = true, Reason = "Member authenticated and logedin." });
+
                     callDistributor.Tell(mlin);
+
+                    //Solicito de manera asincrónica las colas del miembro
+                    actorDataAccess.Tell(new DAGetMemberQueues() { MemberId = mlin.MemberId });
 
                     actorStateProxy.Tell(new MessageAttachMemberToDevice() { DeviceId = mlin.DeviceId, MemberId = mlin.MemberId });
                 }

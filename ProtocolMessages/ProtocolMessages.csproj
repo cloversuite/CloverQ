@@ -40,9 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DAGetMemberById.cs" />
     <Compile Include="DAGetMemberQueues.cs" />
     <Compile Include="DAGetMembers.cs" />
     <Compile Include="DAGetQueues.cs" />
+    <Compile Include="DAMember.cs" />
     <Compile Include="DAMemberQueues.cs" />
     <Compile Include="DAMembers.cs" />
     <Compile Include="DAQueue.cs" />
