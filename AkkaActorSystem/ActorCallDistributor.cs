@@ -25,8 +25,9 @@ namespace AkkaActorSystem
         /// </summary>
         public ActorCallDistributor(IActorRef actorDataAccess)
         {
+            this.actorDataAccess = actorDataAccess;
             //solicita todas las colas que estan persistidas (estaticas) tal vez desde el mysql? como hago para manejar la actualización de valores?
-            actorDataAccess.Tell(new DAGetQueues());
+            this.actorDataAccess.Tell(new DAGetQueues());
             
             queueSystem = new QueueSystemManager();
 
@@ -55,7 +56,23 @@ namespace AkkaActorSystem
                 //Mensaje que proviene del ActorMemberLoginService, aca creo un nuevo member, cuando me llegan los QMemberAdd creo los
                 //QueueMember en base a este objeto. El member quue creo aca tambien recibe mensajes del stateprovider
                 queueSystem.MemberCache.Add(new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password, DeviceId = mlin.DeviceId });
+            }); 
+
+            Receive<MessageQMemberAdd>(memberQueues =>
+            {
+                //Mensaje que proviene del ActorMemberLoginService, posee una lista de los id de las colas de un miembro
+                foreach (string queueId in memberQueues.QueuesId)
+                {
+                    // mmmm... es correcto aca recuperar el member,crear un queue member y recien ahi agregarlo?
+                    Member member = queueSystem.MemberCache.GetMemberById(memberQueues.MemberId);
+                    if (member != null)
+                    {
+                        QueueMember qm = new QueueMember(member);
+                        queueSystem.QueueCache.GetQueue(queueId).AddQueueMember(qm);
+                    }
+                }
             });
+
             // Ejemplo de filtro de mensaje: Receive<String>(s => s.Equals("Start"), (s) => { proxyClient.Connect(); }); //ejemplito
             //Es estado del del sipositivo de
             Receive<MessageDeviceStateChanged>(dsc =>
