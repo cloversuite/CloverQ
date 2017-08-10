@@ -13,6 +13,8 @@ namespace Models
         public string MoH { get; set; }
         public int Weight { get; set; }
         public int WrapupTime { get; set; }
+        public string MemberStrategy { get; set; }
+        public string CallOrderStrategy { get; set; }
 
         public List<DTOQueueMember> QueueMembers { get; set; }
 

@@ -10,17 +10,30 @@ namespace QueueSystem
     {
         List<Call> calls = null;
 
-        public CallOrderStrategyDefault(List<Call> calls) {
+        public CallOrderStrategyDefault(List<Call> calls)
+        {
+            SetCallList(calls);
+        }
+
+        public CallOrderStrategyDefault()
+        {
+
+        }
+
+        public void SetCallList(List<Call> calls)
+        {
             this.calls = calls;
         }
 
         public Call GetNext()
         {
             Call next = null;
-            if (calls != null && calls.Count > 0) {
-                for(int i = 0; i < calls.Count; i++)
+            if (calls != null && calls.Count > 0)
+            {
+                for (int i = 0; i < calls.Count; i++)
                 {
-                    if (calls[i].IsDispatching == false) {
+                    if (calls[i].IsDispatching == false)
+                    {
                         next = calls[i];
                         next.IsDispatching = true;
                         break;

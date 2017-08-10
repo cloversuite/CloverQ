@@ -8,6 +8,7 @@ namespace QueueSystem
 {
     public interface ICallOrderStrategy
     {
+        void SetCallList(List<Call> call);
         Call GetNext();
     }
 }

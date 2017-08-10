@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace QueueSystem
 {
+
+    public enum CallOrderStrategy { DEFAULT }
+
     /// <summary>
     /// Representa una lista de llamadas ordenada por order de llegada.
     /// Al igual que la lista de miembros MemberList se debería 
@@ -40,6 +43,41 @@ namespace QueueSystem
         public void SetCallOrderSrtategy(ICallOrderStrategy strategy)
         {
             this.strategy = strategy;
+            this.strategy.SetCallList(this.calls);
+        }
+
+        /// <summary>
+        /// Método que me permite cambiar la estrategia ordenamiento de llamada
+        /// </summary>
+        /// <param name="strategy"></param>
+        public void SetCallOrderSrtategy(CallOrderStrategy strategy)
+        {
+            switch (strategy)
+            {
+                case CallOrderStrategy.DEFAULT:
+                    SetCallOrderSrtategy(new CallOrderStrategyDefault());
+                    break;
+                default:
+                    SetCallOrderSrtategy(new CallOrderStrategyDefault());
+                    break;
+            }
+        }
+
+
+        /// <summary>
+        /// Método que me permite cambiar la estrategia ordenamiento de llamada
+        /// </summary>
+        /// <param name="strategy"></param>
+        public void SetCallOrderSrtategy(string strategy)
+        {
+            try
+            {
+                SetCallOrderSrtategy((CallOrderStrategy)Enum.Parse(typeof(CallOrderStrategy), strategy.ToUpper()));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error en SetCallOrderSrtategy: " + ex.Message);
+            }
         }
 
         public void AddCall(Call call) {

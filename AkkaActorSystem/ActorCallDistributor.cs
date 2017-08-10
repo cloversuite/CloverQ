@@ -31,12 +31,14 @@ namespace AkkaActorSystem
             
             queueSystem = new QueueSystemManager();
 
+
+            //Creo las colas que tengo persistidas
             Receive<DAQueues>(daq =>
             {
                 if(daq.Queues != null)
                 {
                     foreach (DTOQueue dtoq in daq.Queues) {
-                        Queue q = new Queue() { Id = dtoq.Id, MoH = dtoq.MoH, Weight = dtoq.Weight, WrapupTime = dtoq.WrapupTime };
+                        Queue q = new Queue(dtoq.MemberStrategy, dtoq.CallOrderStrategy) { Id = dtoq.Id, MoH = dtoq.MoH, Weight = dtoq.Weight, WrapupTime = dtoq.WrapupTime };
 
                         if (dtoq.QueueMembers != null)
                         {

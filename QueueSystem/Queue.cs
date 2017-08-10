@@ -15,8 +15,28 @@ namespace QueueSystem
         CallList callList;
 
         public Queue(){
+            CreateLists("", "");
+        }
+
+        public Queue(string memberStrategy, string callOrderStrategy)
+        {
+            CreateLists(memberStrategy, callOrderStrategy);
+        }
+
+        private void CreateLists(string memberStrategy, string callOrderStrategy) {
+
             queueMeberList = new QueueMemberList();
             callList = new CallList();
+
+            if (!String.IsNullOrEmpty(memberStrategy))
+            {
+                queueMeberList.SetMemberSrtategy(memberStrategy);
+            }
+
+            if (!String.IsNullOrEmpty(callOrderStrategy))
+            {
+                callList.SetCallOrderSrtategy(callOrderStrategy);
+            }
         }
 
         public QueueMemberList members { get { return this.queueMeberList; }  set { this.queueMeberList = value; } }
