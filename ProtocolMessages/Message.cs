@@ -9,5 +9,6 @@ namespace ProtocolMessages
     public class Message
     {
         public string CallHandlerId { get; set; }
+        public string QueueId { get; set; }
     }
 }

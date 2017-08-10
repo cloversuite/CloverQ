@@ -28,23 +28,24 @@ namespace AkkaActorSystem
             this.actorDataAccess = actorDataAccess;
             //solicita todas las colas que estan persistidas (estaticas) tal vez desde el mysql? como hago para manejar la actualización de valores?
             this.actorDataAccess.Tell(new DAGetQueues());
-            
+
             queueSystem = new QueueSystemManager();
 
 
             //Creo las colas que tengo persistidas
             Receive<DAQueues>(daq =>
             {
-                if(daq.Queues != null)
+                if (daq.Queues != null)
                 {
-                    foreach (DTOQueue dtoq in daq.Queues) {
+                    foreach (DTOQueue dtoq in daq.Queues)
+                    {
                         Queue q = new Queue(dtoq.MemberStrategy, dtoq.CallOrderStrategy) { Id = dtoq.Id, MoH = dtoq.MoH, Weight = dtoq.Weight, WrapupTime = dtoq.WrapupTime };
 
                         if (dtoq.QueueMembers != null)
                         {
                             //foreach(DTOQueueMember qm in dtoq.QueueMembers)
                             //{
-                                //TODO: revisar esto, me parece que esta demás, de la freepbx por ejemplo no puedo obtebner esta info
+                            //TODO: revisar esto, me parece que esta demás, de la freepbx por ejemplo no puedo obtebner esta info
                             //}
                         }
 
@@ -58,7 +59,7 @@ namespace AkkaActorSystem
                 //Mensaje que proviene del ActorMemberLoginService, aca creo un nuevo member, cuando me llegan los QMemberAdd creo los
                 //QueueMember en base a este objeto. El member quue creo aca tambien recibe mensajes del stateprovider
                 queueSystem.MemberCache.Add(new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password, DeviceId = mlin.DeviceId });
-            }); 
+            });
 
             Receive<MessageQMemberAdd>(memberQueues =>
             {
@@ -82,7 +83,7 @@ namespace AkkaActorSystem
             {
                 Member member = queueSystem.MemberCache.GetMemberById(dsc.MemberId);
                 //verifico que sea del mismo dispositivo
-                if(dsc.DeviceId == member.DeviceId)
+                if (dsc.DeviceId == member.DeviceId)
                 {
                     member.Contact = dsc.Contact;
                     member.DeviceIsInUse = dsc.IsInUse;
@@ -107,39 +108,74 @@ namespace AkkaActorSystem
                 else
                 {
                     call.IsDispatching = true;
+                    call.QueueMember = queueMember;
                     Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = queueMember.Member.Contact });
                 }
             });
             Receive<MessageCallToFailed>(ctf =>
             {
                 //Busco otro member
-                Console.WriteLine("CALL DIST: callto failed with code: " + ctf.Code.ToString() + " Reason: " + ctf.Reason );
-                Queue queue = queueSystem.QueueCache.GetQueue(ctf.CurrentQueue);
+                Console.WriteLine("CALL DIST: callto failed with code: " + ctf.Code.ToString() + " Reason: " + ctf.Reason);
+                Queue queue = queueSystem.QueueCache.GetQueue(ctf.QueueId);
                 if (queue != null)
                 {
                     QueueMember queueMember = queue.members.NextAvailable();
-                    Sender.Tell(new MessageCallTo() { CallHandlerId = ctf.CallHandlerId, Destination = queueMember.Member.Contact });
+                    if (queueMember != null)
+                    {
+                        Call call = queue.calls.GetCallById(ctf.CallHandlerId);
+                        if (call != null)
+                        {
+                            call.QueueMember = queueMember;
+                            Sender.Tell(new MessageCallTo() { CallHandlerId = ctf.CallHandlerId, Destination = queueMember.Member.Contact });
+                        }
+                    }
                 }
             });
             Receive<MessageCallToSuccess>(cts =>
             {
-                //Busco otro member
                 Console.WriteLine("CALL DIST: callto success");
+                Queue queue = queueSystem.QueueCache.GetQueue(cts.QueueId);
+                Call call;
+                if (queue != null)
+                {
+                    call = queue.calls.GetCallById(cts.CallHandlerId);
+                    if (call != null)
+                    {
+                        call.IsDispatching = false;
+                        call.Connected = true;
+                    }
+                }
+
             });
             Receive<MessageCallerHangup>(chup =>
             {
                 //si caller hangup termino toda la llamad?
                 Console.WriteLine("CALL DIST: Caller Hangup");
+                Queue queue = queueSystem.QueueCache.GetQueue(chup.QueueId);
+                if (queue != null)
+                {
+                    queue.calls.RemoveCall(chup.CallHandlerId);
+                }
             });
             Receive<MessageAgentHangup>(ahup =>
             {
                 //Si agent hangup hago que la llamada del caller siga en el dialplan?
                 Console.WriteLine("CALL DIST: Agent Hangup");
+                Queue queue = queueSystem.QueueCache.GetQueue(ahup.QueueId);
+                if (queue != null)
+                {
+                    queue.calls.RemoveCall(ahup.CallHandlerId);
+                }
             });
             Receive<MessageCallTransfer>(ctrans =>
             {
                 //Si agent hangup hago que la llamada del caller siga en el dialplan?
-                Console.WriteLine("CALL DIST: Call Trasnfer: dst: "  + ctrans.TargetName);
+                Console.WriteLine("CALL DIST: Call Trasnfer: dst: " + ctrans.TargetName);
+                Queue queue = queueSystem.QueueCache.GetQueue(ctrans.QueueId);
+                if (queue != null)
+                {
+                    queue.calls.RemoveCall(ctrans.CallHandlerId);
+                }
             });
         }
         protected override void Unhandled(object message)

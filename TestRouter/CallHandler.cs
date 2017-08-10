@@ -167,7 +167,7 @@ namespace TestRouter
                 agent.State = newState;
                 if (newState == "Up") //Esto indica que el canal es de un agente y atendió la llamada
                 {
-                    msg = new MessageCallToSuccess() { CallHandlerId = this.id };
+                    msg = new MessageCallToSuccess() { CallHandlerId = this.id, QueueId = currentQueue };
                     callState = CallState.AGENT_ANSWERED;
                 }
             }
@@ -189,12 +189,12 @@ namespace TestRouter
             //Hay que pulir la lógica del hangup, también hay que tener en cuenta los transfer
             if (channelId == caller.Id && callState != CallState.TERMINATED)
             {
-                msg = new MessageCallerHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
+                msg = new MessageCallerHangup() { CallHandlerId = this.id, QueueId = currentQueue, HangUpCode = cause.ToString(), HangUpReason = causeText };
                 callState = CallState.TERMINATED;
             }
             else if (channelId == agent.Id)
             {
-                msg = new MessageCallToFailed() { CallHandlerId = this.id, CurrentQueue = currentQueue, Code = cause, Reason = causeText };
+                msg = new MessageCallToFailed() { CallHandlerId = this.id, QueueId = currentQueue, Code = cause, Reason = causeText };
                 callState = CallState.CONNECT_FAILDED;
             }
             else
@@ -213,7 +213,7 @@ namespace TestRouter
             //Hay que pulir la lógica del hangup, también hay que tener en cuenta los transfer
             if (channelId == caller.Id && callState != CallState.TERMINATED && callState != CallState.TRANSFERRED)
             {
-                msg = new MessageCallerHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
+                msg = new MessageCallerHangup() { CallHandlerId = this.id, QueueId = currentQueue, HangUpCode = cause.ToString(), HangUpReason = causeText };
                 TerminateAgent();
                 callState = CallState.TERMINATED;
             }
@@ -223,7 +223,7 @@ namespace TestRouter
                 //prevengo que si la llamada fue transferida le corte al que llamó
                 if (callState != CallState.TRANSFERRED && callState != CallState.TERMINATED)
                 {
-                    msg = new MessageAgentHangup() { CallHandlerId = this.id, HangUpCode = cause.ToString(), HangUpReason = causeText };
+                    msg = new MessageAgentHangup() { CallHandlerId = this.id, QueueId = currentQueue, HangUpCode = cause.ToString(), HangUpReason = causeText };
                     TerminateCaller();
                     callState = CallState.TERMINATED;
                 }
@@ -288,7 +288,7 @@ namespace TestRouter
             ProtocolMessages.Message msg;
             this.transferTarget = target;
             callState = CallState.TRANSFERRED;
-            msg = new MessageCallTransfer() { CallHandlerId = this.id, TargetId = transferTarget.Id, TargetName = transferTarget.Name };
+            msg = new MessageCallTransfer() { CallHandlerId = this.id, QueueId = currentQueue, TargetId = transferTarget.Id, TargetName = transferTarget.Name };
             return msg;
 
         }

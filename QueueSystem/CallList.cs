@@ -86,8 +86,29 @@ namespace QueueSystem
 
         public void RemoveCall(Call call) {
             //TODO: Revisar esto, lo escribo así mas que nada para expresar lo que se debe hacer
-            Call callToRemove = calls.Find(c => c.CallHandlerId == call.CallHandlerId);
-            calls.Remove(callToRemove);
+            RemoveCall(call.CallHandlerId);
+
+        }
+
+        public void RemoveCall(string callHandlerId)
+        {
+            //TODO: Revisar esto, lo escribo así mas que nada para expresar lo que se debe hacer
+            Call callToRemove = calls.Find(c => c.CallHandlerId == callHandlerId);
+            if (callToRemove != null)
+            {
+                callToRemove.QueueMember = null; //desreferencio
+                calls.Remove(callToRemove);
+            }
+        }
+
+        public Call GetCallById(string callhandlerId) {
+            Call call = null;
+            foreach (Call c in calls) {
+                if (c.CallHandlerId == callhandlerId) {
+                    call = c;
+                }
+            }
+            return call;
         }
 
         /// <summary>
