@@ -61,6 +61,7 @@ namespace AkkaActorSystem
             Receive<MessageQMemberAdd>(memberQueues =>
             {
                 //Mensaje que proviene del ActorMemberLoginService, posee una lista de los id de las colas de un miembro
+                //me parece que esta logica deberia estar dentro del queue sistem, aca no.
                 foreach (string queueId in memberQueues.QueuesId)
                 {
                     // mmmm... es correcto aca recuperar el member,crear un queue member y recien ahi agregarlo?
@@ -99,7 +100,7 @@ namespace AkkaActorSystem
                 {
                     Sender.Tell(new MessageCallQueued() { CallHandlerId = nc.CallHandlerId });
                     //TODO: remover MessageCallTo de aca, es solo para prueba
-                    Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = queueSystem.MemberCache.GetMemberById("3333").Contact });
+                    //Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = queueSystem.MemberCache.GetMemberById("3333").Contact });
                 }
                 else
                 {

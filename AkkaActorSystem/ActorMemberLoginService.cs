@@ -23,11 +23,17 @@ namespace AkkaActorSystem
             this.callDistributor = callDistributor;
             this.actorStateProxy = actorStateProxy; //mediante este actor mando mensajes al DeviceStateManager
 
-            Receive<MessageMemberLogin>(async mlin =>
+            Receive<MessageMemberLogin>(mlin =>
             {
                 //Utilizo ask porque tengo al miembro en una llamada y necesita respuesta
                 //En caso de ser un login mediante cti podría hacerlo asíncrono
-                DAMember member = await actorDataAccess.Ask<DAMember>(new DAGetMemberById() { MemberId = mlin.MemberId});
+                var t = Task.Run(async () =>
+                {
+                   DAMember m = await actorDataAccess.Ask<DAMember>(new DAGetMemberById() { MemberId = mlin.MemberId });
+                    return m;
+                });
+
+                DAMember member = t.Result;
 
                 if (member.Member != null && member.Member.Id == mlin.MemberId && member.Member.Password == mlin.Password)
                 {
@@ -36,7 +42,7 @@ namespace AkkaActorSystem
                     callDistributor.Tell(mlin);
 
                     //Solicito de manera asincrónica las colas del miembro
-                    actorDataAccess.Tell(new DAGetMemberQueues() { MemberId = mlin.MemberId });
+                    actorDataAccess.Tell(new DAGetMemberQueues() { MemberId = mlin.MemberId }, Self);
 
                     actorStateProxy.Tell(new MessageAttachMemberToDevice() { DeviceId = mlin.DeviceId, MemberId = mlin.MemberId });
                 }

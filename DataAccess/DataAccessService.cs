@@ -23,6 +23,8 @@ namespace DataAccess
         {
             members = new Dictionary<string, DTOMember>();
             queues = new Dictionary<string, DTOQueue>();
+            memberQueues = new Dictionary<string, DTOQueue>();
+            InitTestData();
         }
 
         private void InitTestData()
@@ -34,8 +36,8 @@ namespace DataAccess
             members.Add(dtom2.Id, dtom2);
             
             //creo colas
-            DTOQueue dtoq1 = new DTOQueue() { Id = "5000", MoH = "default", QueueMembers = null, Weight = 1, WrapupTime = 15 };
-            DTOQueue dtoq2 = new DTOQueue() { Id = "6000", MoH = "default", QueueMembers = null, Weight = 2, WrapupTime = 10 };
+            DTOQueue dtoq1 = new DTOQueue() { Id = "5000", MoH = "default", QueueMembers = new List<DTOQueueMember>(), Weight = 1, WrapupTime = 15 };
+            DTOQueue dtoq2 = new DTOQueue() { Id = "6000", MoH = "default", QueueMembers = new List<DTOQueueMember>(), Weight = 2, WrapupTime = 10 };
             queues.Add(dtoq1.Id, dtoq1);
             queues.Add(dtoq2.Id, dtoq2);
 
@@ -76,8 +78,8 @@ namespace DataAccess
         //TODO: mejorar esto, está medio chancho
         public List<string> GetMemberQueues(string memberId)
         {
-            if (memberQueues != null && memberQueues.ContainsKey(memberId))
-            {
+            //if (memberQueues != null && memberQueues.ContainsKey(memberId))
+            //{
                 List<string> colas = new List<string>();
                 foreach (DTOQueue q in queues.Values) {
                     foreach(DTOQueueMember m in q.QueueMembers){
@@ -87,11 +89,11 @@ namespace DataAccess
                     }
                 }
                 return colas;
-            }
-            else
-            {
-                return null;
-            }
+            //}
+            //else
+            //{
+            //    return null;
+            //}
         }
         #endregion
     }

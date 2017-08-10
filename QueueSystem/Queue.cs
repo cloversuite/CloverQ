@@ -15,6 +15,8 @@ namespace QueueSystem
         CallList callList;
 
         public Queue(){
+            queueMeberList = new QueueMemberList();
+            callList = new CallList();
         }
 
         public QueueMemberList members { get { return this.queueMeberList; }  set { this.queueMeberList = value; } }

@@ -25,9 +25,15 @@ namespace AkkaActorSystem
 
             });
 
-            Receive<DAGetMembers>(cf =>
+            Receive<DAGetMembers>(gms =>
             {
                 Sender.Tell(new DAMembers() { Members = das.GetMembers() });
+
+            });
+
+            Receive<DAGetMemberById>(gm =>
+            {
+                Sender.Tell(new DAMember() { Member = das.GetMemberById(gm.MemberId) });
 
             });
 
@@ -41,6 +47,7 @@ namespace AkkaActorSystem
 
         protected override void Unhandled(object message)
         {
+            Sender.ToString();
             base.Unhandled(message);
             Console.WriteLine("ActorDataAccess mensaje no manejado");
         }
