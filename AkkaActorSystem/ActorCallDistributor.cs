@@ -114,6 +114,12 @@ namespace AkkaActorSystem
             {
                 //Busco otro member
                 Console.WriteLine("CALL DIST: callto failed with code: " + ctf.Code.ToString() + " Reason: " + ctf.Reason );
+                Queue queue = queueSystem.QueueCache.GetQueue(ctf.CurrentQueue);
+                if (queue != null)
+                {
+                    QueueMember queueMember = queue.members.NextAvailable();
+                    Sender.Tell(new MessageCallTo() { CallHandlerId = ctf.CallHandlerId, Destination = queueMember.Member.Contact });
+                }
             });
             Receive<MessageCallToSuccess>(cts =>
             {

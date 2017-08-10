@@ -31,7 +31,7 @@ namespace DataAccess
         {
             //creo members
             DTOMember dtom1 = new DTOMember() { Id = "3333", Password = "1234", Name = "Carlos" };
-            DTOMember dtom2 = new DTOMember() { Id = "3344", Password = "4321", Name = "Juana" };
+            DTOMember dtom2 = new DTOMember() { Id = "3344", Password = "1234", Name = "Juana" };
             members.Add(dtom1.Id, dtom1);
             members.Add(dtom2.Id, dtom2);
             

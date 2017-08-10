@@ -15,6 +15,7 @@ namespace TestRouter
 
         string id;
         string appName;
+        string currentQueue;
         AriClient pbx;
         Bridge bridge;
         Channel caller;
@@ -64,6 +65,19 @@ namespace TestRouter
             set
             {
                 agent = value;
+            }
+        }
+
+        public string CurrentQueue
+        {
+            get
+            {
+                return currentQueue;
+            }
+
+            set
+            {
+                currentQueue = value;
             }
         }
 
@@ -180,7 +194,7 @@ namespace TestRouter
             }
             else if (channelId == agent.Id)
             {
-                msg = new MessageCallToFailed() { CallHandlerId = this.id, Code = cause, Reason = causeText };
+                msg = new MessageCallToFailed() { CallHandlerId = this.id, CurrentQueue = currentQueue, Code = cause, Reason = causeText };
                 callState = CallState.CONNECT_FAILDED;
             }
             else
