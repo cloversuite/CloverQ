@@ -58,6 +58,7 @@
     <Compile Include="MessageCallToFailed.cs" />
     <Compile Include="MessageCallToSuccess.cs" />
     <Compile Include="MessageCallTransfer.cs" />
+    <Compile Include="MessageCheckReadyMember.cs" />
     <Compile Include="MessageContactChanged.cs" />
     <Compile Include="MessageAgentHangup.cs" />
     <Compile Include="MessageDetachMemberFromDevice.cs" />

@@ -27,11 +27,15 @@ namespace QueueSystem
         {
             get { return this.member.Id; }
         }
-
-        public Member Member { get { return member; }  }
-
+        public Member Member { get { return member; } }
+        public DateTime LastCall { get; set; }
         public int Priority { get; set; }
         public bool IsPaused { get; set; }
+
+        public void MarkLastCallTime()
+        {
+            LastCall = DateTime.Now;
+        }
 
     }
 }

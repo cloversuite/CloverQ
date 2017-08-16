@@ -13,6 +13,7 @@ namespace QueueSystem
         /// </summary>
         /// <returns></returns>
         QueueMember GetNext();
+        QueueMember GetNext(int wrapupTime);
         List<QueueMember> Members { get; set; }
     }
 }

@@ -32,7 +32,7 @@ namespace QueueSystem
             {
                 for (int i = 0; i < calls.Count; i++)
                 {
-                    if (calls[i].IsDispatching == false)
+                    if ( !calls[i].IsDispatching && !calls[i].Connected)
                     {
                         next = calls[i];
                         next.IsDispatching = true;

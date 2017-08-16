@@ -15,6 +15,7 @@ namespace AkkaActorSystem
 {
     public class ActorCallDistributor : ReceiveActor
     {
+        Dictionary<long, IActorRef> callSenders; //almacena los senders, si la llamada quedó enconlada tengo qeu saber donde mandar el callto
         QueueSystemManager queueSystem;
         IActorRef actorDataAccess;
 
@@ -25,12 +26,12 @@ namespace AkkaActorSystem
         /// </summary>
         public ActorCallDistributor(IActorRef actorDataAccess)
         {
+            callSenders = new Dictionary<long, IActorRef>();
             this.actorDataAccess = actorDataAccess;
             //solicita todas las colas que estan persistidas (estaticas) tal vez desde el mysql? como hago para manejar la actualización de valores?
             this.actorDataAccess.Tell(new DAGetQueues());
 
             queueSystem = new QueueSystemManager();
-
 
             //Creo las colas que tengo persistidas
             Receive<DAQueues>(daq =>
@@ -101,9 +102,14 @@ namespace AkkaActorSystem
                 Sender.Tell(new MessageAnswerCall() { CallHandlerId = nc.CallHandlerId, MediaType = "MoH", Media = "default" });
                 if (queueMember == null)
                 {
+                    //guardo en el call el uid del sender
+                    call.SenderUid = Sender.Path.Uid;
+                    //guardo una referencia al sender si no la tengo
+                    if ( !callSenders.ContainsKey(Sender.Path.Uid) )
+                        callSenders.Add(Sender.Path.Uid, Sender);
+                    //le aviso al sender que su llamada quedó encolada hasta que se libere un member
                     Sender.Tell(new MessageCallQueued() { CallHandlerId = nc.CallHandlerId });
-                    //TODO: remover MessageCallTo de aca, es solo para prueba
-                    //Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = queueSystem.MemberCache.GetMemberById("3333").Contact });
+                    
                 }
                 else
                 {
@@ -149,12 +155,17 @@ namespace AkkaActorSystem
             });
             Receive<MessageCallerHangup>(chup =>
             {
-                //si caller hangup termino toda la llamad?
+                //si caller hangup termino toda la llamada?, tal vez comportamiento configurable?
                 Console.WriteLine("CALL DIST: Caller Hangup");
                 Queue queue = queueSystem.QueueCache.GetQueue(chup.QueueId);
                 if (queue != null)
                 {
-                    queue.calls.RemoveCall(chup.CallHandlerId);
+                    Call call = queue.calls.RemoveCall(chup.CallHandlerId);
+                    QueueMember queueMember = call.QueueMember;
+                    if (queueMember != null)
+                    {
+                        queueMember.MarkLastCallTime();
+                    }
                 }
             });
             Receive<MessageAgentHangup>(ahup =>
@@ -164,20 +175,69 @@ namespace AkkaActorSystem
                 Queue queue = queueSystem.QueueCache.GetQueue(ahup.QueueId);
                 if (queue != null)
                 {
-                    queue.calls.RemoveCall(ahup.CallHandlerId);
+                    Call call = queue.calls.RemoveCall(ahup.CallHandlerId);
+                    QueueMember queueMember = call.QueueMember;
+                    if (queueMember != null)
+                    {
+                        queueMember.MarkLastCallTime();
+                    }
                 }
             });
             Receive<MessageCallTransfer>(ctrans =>
             {
-                //Si agent hangup hago que la llamada del caller siga en el dialplan?
                 Console.WriteLine("CALL DIST: Call Trasnfer: dst: " + ctrans.TargetName);
                 Queue queue = queueSystem.QueueCache.GetQueue(ctrans.QueueId);
                 if (queue != null)
                 {
-                    queue.calls.RemoveCall(ctrans.CallHandlerId);
+                    Call call = queue.calls.RemoveCall(ctrans.CallHandlerId);
+                    QueueMember queueMember = call.QueueMember;
+                    if (queueMember != null)
+                    {
+                        queueMember.MarkLastCallTime();
+                    }
                 }
             });
+
+            Receive<MessageCheckReadyMember>(rdymem =>
+            {
+                Console.WriteLine("CALL DIST: Check Ready Member: ");
+                foreach(Queue queue in queueSystem.QueueCache.QueueList)
+                if (queue != null)
+                {
+                        Call call = queue.CheckPendingCalls();
+                        QueueMember queueMember = null;
+
+                        if (queue != null)
+                            queueMember = call.QueueMember;
+
+                        if (queueMember != null)
+                        {
+                            //guardo una referencia al sender si no la tengo
+                            if (!callSenders.ContainsKey(call.SenderUid))
+                            {
+                                call.IsDispatching = true;
+                                callSenders[Sender.Path.Uid].Tell(new MessageCallTo() { CallHandlerId = call.CallHandlerId, Destination = queueMember.Member.Contact });
+                            }
+                        }
+                    }
+            });
+
         }
+        private void ScheduleMessageToCallDist() {
+            //create a new instance of the performance counter
+            Context.System.Scheduler.ScheduleTellOnce(
+                TimeSpan.FromSeconds(1),
+                Self,
+                new MessageCheckReadyMember(),
+                Self);
+        }
+
+        protected override void PreStart()
+        {
+            base.PreStart();
+            ScheduleMessageToCallDist();
+        }
+
         protected override void Unhandled(object message)
         {
             base.Unhandled(message);

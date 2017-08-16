@@ -124,5 +124,14 @@ namespace QueueSystem
         {
             return strategy.GetNext();
         }
+
+        /// <summary>
+        /// Devuelve el próximo miembro dsiponible según la estrategia indicada teniendo en cuenta el WrapupTime de la cola
+        /// </summary>
+        /// <returns></returns>
+        public QueueMember NextAvailable(int wrapupTime)
+        {
+            return strategy.GetNext(wrapupTime);
+        }
     }
 }

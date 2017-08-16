@@ -26,16 +26,35 @@ namespace QueueSystem
             get { return members; }
         }
 
-        public QueueMember GetNext()
+        public QueueMember GetNext() {
+            QueueMember next = null;
+
+            if (members != null && members.Count > 0)
+            {
+                do
+                {
+                    //Implementación muy simple de round robin con memoria
+                    next = members[0];
+                    members.RemoveAt(0);
+                    members.Add(next);
+                } while (!next.IsPaused);
+            }
+            //Si next es nulo no hay agentes disponibles
+            return next;
+        }
+
+        public QueueMember GetNext(int wrapupTime)
         {
             QueueMember next = null;
 
             if (members != null && members.Count > 0)
             {
-                //Implementación muy simple de round robin con memoria
-                next = members[0];
-                members.RemoveAt(0);
-                members.Add(next);
+                do {
+                    //Implementación muy simple de round robin con memoria
+                    next = members[0];
+                    members.RemoveAt(0);
+                    members.Add(next);
+                } while ( !next.IsPaused && next.LastCall.AddSeconds((double)wrapupTime) < DateTime.Now);
             }
             //Si next es nulo no hay agentes disponibles
             return next;
