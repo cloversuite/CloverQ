@@ -225,7 +225,8 @@ namespace AkkaActorSystem
         }
         private void ScheduleMessageToCallDist() {
             //create a new instance of the performance counter
-            Context.System.Scheduler.ScheduleTellOnce(
+            Context.System.Scheduler.ScheduleTellRepeatedly(
+                TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(1),
                 Self,
                 new MessageCheckReadyMember(),
