@@ -35,7 +35,7 @@ namespace QueueSystem
                     if ( !calls[i].IsDispatching && !calls[i].Connected)
                     {
                         next = calls[i];
-                        next.IsDispatching = true;
+                        //next.IsDispatching = true;
                         break;
                     }
                 }

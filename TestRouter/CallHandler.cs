@@ -244,7 +244,8 @@ namespace TestRouter
         }
         private void TerminateAgent()
         {
-            TerminateLeg(this.agent.Id);
+            if(agent != null)
+                TerminateLeg(this.agent.Id);
         }
 
         private void TerminateLeg(string channelId)

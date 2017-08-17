@@ -56,6 +56,10 @@ namespace QueueSystem
                 queueMember = members.NextAvailable(WrapupTime);
                 if (queueMember != null) {
                     call.QueueMember = queueMember;
+                }else
+                {
+
+                    call.IsDispatching = false; //la devuelvo a la cola en espera porque no tengo member para asignarle
                 }
             }
             return call;

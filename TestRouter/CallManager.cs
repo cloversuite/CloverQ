@@ -203,7 +203,9 @@ namespace TestRouter
             {
                 msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelHangupEvent(e.Channel.Id, e.Cause, "");
             }
-            catch { } //TODO: arreglar esto!!
+            catch (Exception ex){
+                Console.WriteLine("Channel HangUpReques: ERROR " + ex.Message + "\n" + ex.StackTrace);
+            } 
 
             if (msg != null)
             {

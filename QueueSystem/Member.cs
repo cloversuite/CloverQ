@@ -11,6 +11,10 @@ namespace QueueSystem
     /// </summary>
     public class Member
     {
+        public Member()
+        {
+            IsAvailable = true;
+        }
         public string Id { get; set; }
         public string Name { get; set; }
         public string User { get; set; }

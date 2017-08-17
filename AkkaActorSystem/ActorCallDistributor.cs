@@ -105,11 +105,11 @@ namespace AkkaActorSystem
                     //guardo en el call el uid del sender
                     call.SenderUid = Sender.Path.Uid;
                     //guardo una referencia al sender si no la tengo
-                    if ( !callSenders.ContainsKey(Sender.Path.Uid) )
+                    if (!callSenders.ContainsKey(Sender.Path.Uid))
                         callSenders.Add(Sender.Path.Uid, Sender);
                     //le aviso al sender que su llamada quedó encolada hasta que se libere un member
                     Sender.Tell(new MessageCallQueued() { CallHandlerId = nc.CallHandlerId });
-                    
+
                 }
                 else
                 {
@@ -125,11 +125,12 @@ namespace AkkaActorSystem
                 Queue queue = queueSystem.QueueCache.GetQueue(ctf.QueueId);
                 if (queue != null)
                 {
-                    QueueMember queueMember = queue.members.NextAvailable();
-                    if (queueMember != null)
+                    Call call = queue.calls.GetCallById(ctf.CallHandlerId);
+                    if (call != null)
                     {
-                        Call call = queue.calls.GetCallById(ctf.CallHandlerId);
-                        if (call != null)
+                        call.QueueMember.Member.IsAvailable = true;
+                        QueueMember queueMember = queue.members.NextAvailable(queue.WrapupTime);
+                        if (queueMember != null)
                         {
                             call.QueueMember = queueMember;
                             Sender.Tell(new MessageCallTo() { CallHandlerId = ctf.CallHandlerId, Destination = queueMember.Member.Contact });
@@ -165,6 +166,7 @@ namespace AkkaActorSystem
                     if (queueMember != null)
                     {
                         queueMember.MarkLastCallTime();
+                        queueMember.Member.IsAvailable = true;
                     }
                 }
             });
@@ -176,10 +178,16 @@ namespace AkkaActorSystem
                 if (queue != null)
                 {
                     Call call = queue.calls.RemoveCall(ahup.CallHandlerId);
-                    QueueMember queueMember = call.QueueMember;
-                    if (queueMember != null)
+                    QueueMember queueMember;
+                    if (call != null)
                     {
-                        queueMember.MarkLastCallTime();
+                        queueMember = call.QueueMember;
+
+                        if (queueMember != null)
+                        {
+                            queueMember.MarkLastCallTime();
+                            queueMember.Member.IsAvailable = true;
+                        }
                     }
                 }
             });
@@ -194,36 +202,38 @@ namespace AkkaActorSystem
                     if (queueMember != null)
                     {
                         queueMember.MarkLastCallTime();
+                        queueMember.Member.IsAvailable = true;
                     }
                 }
             });
 
             Receive<MessageCheckReadyMember>(rdymem =>
             {
-                Console.WriteLine("CALL DIST: Check Ready Member: ");
-                foreach(Queue queue in queueSystem.QueueCache.QueueList)
-                if (queue != null)
-                {
+                //Console.WriteLine("CALL DIST: Check Ready Member: ");
+                foreach (Queue queue in queueSystem.QueueCache.QueueList)
+                    if (queue != null)
+                    {
                         Call call = queue.CheckPendingCalls();
                         QueueMember queueMember = null;
 
-                        if (queue != null)
+                        if (call != null)
                             queueMember = call.QueueMember;
 
                         if (queueMember != null)
                         {
                             //guardo una referencia al sender si no la tengo
-                            if (!callSenders.ContainsKey(call.SenderUid))
+                            if (callSenders.ContainsKey(call.SenderUid))
                             {
                                 call.IsDispatching = true;
-                                callSenders[Sender.Path.Uid].Tell(new MessageCallTo() { CallHandlerId = call.CallHandlerId, Destination = queueMember.Member.Contact });
+                                callSenders[call.SenderUid].Tell(new MessageCallTo() { CallHandlerId = call.CallHandlerId, Destination = queueMember.Member.Contact });
                             }
                         }
                     }
             });
 
         }
-        private void ScheduleMessageToCallDist() {
+        private void ScheduleMessageToCallDist()
+        {
             //create a new instance of the performance counter
             Context.System.Scheduler.ScheduleTellRepeatedly(
                 TimeSpan.FromSeconds(1),

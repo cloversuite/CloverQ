@@ -96,7 +96,7 @@ namespace QueueSystem
             Call callToRemove = calls.Find(c => c.CallHandlerId == callHandlerId);
             if (callToRemove != null)
             {
-                callToRemove.QueueMember = null; //desreferencio
+                //callToRemove.QueueMember = null; //desreferencio
                 calls.Remove(callToRemove);
             }
             return callToRemove;

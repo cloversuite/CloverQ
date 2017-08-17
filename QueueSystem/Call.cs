@@ -12,6 +12,7 @@ namespace QueueSystem
         public bool IsDispatching { get; set; } //  esto indica que ya mandé al callhandler un memeber para que contacte, y aún no concretó
         public bool Connected { get; set; }
         public long SenderUid { get; set; }
-        public QueueMember QueueMember { get; set; } //contiene el memeber que mandé a conectar
+        public QueueMember QueueMember { get;
+            set; } //contiene el memeber que mandé a conectar
     }
 }
