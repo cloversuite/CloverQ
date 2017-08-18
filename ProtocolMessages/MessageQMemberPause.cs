@@ -9,6 +9,6 @@ namespace ProtocolMessages
     public class MessageQMemberPause
     {
         public string MemberId { get; set; }
-        public int PauseReason { get; set; }
+        public string PauseReason { get; set; }
     }
 }

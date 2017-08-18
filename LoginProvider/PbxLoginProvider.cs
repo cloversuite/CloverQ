@@ -59,28 +59,40 @@ namespace LoginProvider
         private async void  Pbx_OnChannelUsereventEvent(IAriClient sender, AsterNET.ARI.Models.ChannelUsereventEvent e)
         {
             Console.WriteLine("User event from: " + e.Channel.Name);
+
             //string eventname = ((JObject)e.Userevent).SelectToken("eventname").Value<string>();
             string eventname = (string)((JObject)e.Userevent)["eventname"];
+            string memberId = (string)((JObject)e.Userevent)["agent"];
+            string password = (string)((JObject)e.Userevent)["password"];
+            string contact = (string)((JObject)e.Userevent)["contact"];
+
             if (eventname == "login")
             {
-                string memberId = (string)((JObject)e.Userevent)["agent"];
-                string password = (string)((JObject)e.Userevent)["password"];
-                string contact = (string)((JObject)e.Userevent)["contact"];
                 //meter todo este parse en un metodo estático tal vez una clase contact Contact.Parse?
                 contact = contact.Replace(";", ">");
-                string deviceId = Regex.Match(contact, @"\<(.+?)\@").Groups[1].Value.Replace(":","/").ToUpper();
+                string deviceId = Regex.Match(contact, @"\<(.+?)\@").Groups[1].Value.Replace(":", "/").ToUpper();
                 string number = Regex.Match(contact, @"\:(.+?)\@").Groups[1].Value;
                 string address = Regex.Match(contact, @"\@(.+?)\>").Groups[1].Value;
-                string uri = Regex.Match(contact, @"\<(.+?)\>").Groups[1].Value.Replace("<","").Replace(">", "");
+                string uri = Regex.Match(contact, @"\<(.+?)\>").Groups[1].Value.Replace("<", "").Replace(">", "");
                 string destination = "SIP/" + address + "/" + number;
 
                 MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId });
 
-                Console.WriteLine("Member " + memberId + "login from:"+ contact +" response, " + mlr.Reason);
-                
+                Console.WriteLine("Member " + memberId + "login from:" + contact + " response, " + mlr.Reason);
+
                 //En el dialplan espero un segundo para dar tienpo al setvar, esto es para prueba, en prod el login services es un IVR hecho con ari, agi o async agi
                 sender.Channels.SetChannelVar(e.Channel.Id, "logedin", mlr.LoguedIn.ToString());
                 sender.Channels.ContinueInDialplan(e.Channel.Id);
+            } else if ( eventname == "logoff") {
+                actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password });
+            }
+            else if (eventname == "pause")
+            {
+                actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password });
+            }
+            else if (eventname == "unpause")
+            {
+                actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password });
             }
 
         }

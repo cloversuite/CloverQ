@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    public class MessageMemberLogoff : Message
+    public class MessageMemberUnPause : Message
     {
         public string MemberId { get; set; }
         public string Password { get; set; }

@@ -55,11 +55,31 @@ namespace AkkaActorSystem
 
             Receive<MessageMemberLogoff>(mlof =>
             {
+                var t = Task.Run(async () =>
+                {
+                    DAMemberQueues q = await actorDataAccess.Ask<DAMemberQueues>(new DAGetMemberQueues() { MemberId = mlof.MemberId });
+                    return q;
+                });
+
+                DAMemberQueues memberQueues = t.Result;
+                
                 //le paso el queuesid list en null para desloguearlo de todas las colas
-                callDistributor.Tell(new MessageQMemberRemove() { MemberId = mlof.MemberId, QueuesId = null });
+                callDistributor.Tell(new MessageQMemberRemove() { MemberId = mlof.MemberId, QueuesId = memberQueues.MemberQueues });
                 callDistributor.Tell(mlof);
                 actorStateProxy.Tell(new MessageDetachMemberFromDevice() { MemberId = mlof.MemberId });
             });
+
+            Receive<MessageMemberPause>(mpau =>
+            {
+                //le paso el queuesid list en null para desloguearlo de todas las colas
+                callDistributor.Tell(new MessageQMemberPause() { MemberId = mpau.MemberId, PauseReason = mpau.PauseReason });
+            });
+            Receive<MessageMemberUnPause>(mupau =>
+            {
+                //le paso el queuesid list en null para desloguearlo de todas las colas
+                callDistributor.Tell(new MessageQMemberUnpause() { MemberId = mupau.MemberId });
+            });
+
 
             Receive<DAMemberQueues>(mqs =>
             {
