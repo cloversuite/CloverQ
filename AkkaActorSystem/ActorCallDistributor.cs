@@ -62,6 +62,16 @@ namespace AkkaActorSystem
                 queueSystem.MemberCache.Add(new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password, DeviceId = mlin.DeviceId });
             });
 
+            Receive<MessageQMemberPause>(mpau =>
+            {
+                queueSystem.MemberCache.MemberPause( mpau.MemberId, mpau.PauseReason, mpau.PauseReason );
+            });
+
+            Receive<MessageQMemberUnpause>(munpau =>
+            {
+                queueSystem.MemberCache.MemberUnPause(munpau.MemberId);
+            });
+
             Receive<MessageQMemberAdd>(memberQueues =>
             {
                 //Mensaje que proviene del ActorMemberLoginService, posee una lista de los id de las colas de un miembro
@@ -78,6 +88,21 @@ namespace AkkaActorSystem
                 }
             });
 
+            Receive<MessageQMemberRemove>(memberQueues =>
+            {
+                //Mensaje que proviene del ActorMemberLoginService, posee una lista de los id de las colas de un miembro
+                //me parece que esta logica deberia estar dentro del queue sistem, aca no.
+                foreach (string queueId in memberQueues.QueuesId)
+                {
+                    // mmmm... es correcto aca recuperar el member,crear un queue member y recien ahi agregarlo?
+                    Member member = queueSystem.MemberCache.GetMemberById(memberQueues.MemberId);
+                    if (member != null)
+                    {
+                        QueueMember qm = new QueueMember(member);
+                        queueSystem.QueueCache.GetQueue(queueId).AddQueueMember(qm);
+                    }
+                }
+            });
             // Ejemplo de filtro de mensaje: Receive<String>(s => s.Equals("Start"), (s) => { proxyClient.Connect(); }); //ejemplito
             //Es estado del del sipositivo de
             Receive<MessageDeviceStateChanged>(dsc =>

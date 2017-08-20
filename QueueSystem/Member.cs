@@ -22,7 +22,7 @@ namespace QueueSystem
         public string Contact { get; set; }
         public bool IsLogedIn { get; set; }
         public bool IsPaused { get; set; }
-        public int PauseCode { get; set; }
+        public string PauseCode { get; set; }
         public string PauseReason { get; set; }
         public bool IsAvailable { get; set; }
         public string DeviceId { get; set; }

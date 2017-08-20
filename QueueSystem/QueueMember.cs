@@ -30,7 +30,7 @@ namespace QueueSystem
         public Member Member { get { return member; } }
         public DateTime LastCall { get; set; }
         public int Priority { get; set; }
-        public bool IsPaused { get; set; }
+        public bool IsPaused { get { return member.IsPaused; } set { member.IsPaused = value; } }
 
         public void MarkLastCallTime()
         {

@@ -55,13 +55,41 @@ namespace QueueSystem
                 m.Contact = member.Contact;
             }
         }
-        public void MemberLogoff(Member m) { }
+        public void MemberLogoff(string memberId)
+        {
+            if (members.ContainsKey(memberId))
+            {
+                Member m = members[memberId];
+                m.PauseCode = "";
+                m.PauseReason = "";
+                m.IsPaused = false;
+                m.IsLogedIn = false;
+
+            }
+        }
         //public void Pause(Member m) { }
         //public void Unpause(Member m) { }
         //public void Add(Member m, Queue q) { }
         //public void Remove(Member m, Queue q) { }
         //public void GetFree(Queue q) { }
-
+        public void MemberUnPause(string memberId) {
+            if (members.ContainsKey(memberId))
+            {
+                Member m = members[memberId];
+                m.PauseCode = "";
+                m.PauseReason = "";
+                m.IsPaused = false;
+            }
+        }
+        public void MemberPause(string memberId, string pauseCode, string pauseReaon) {
+            if (members.ContainsKey(memberId))
+            {
+                Member m = members[memberId];
+                m.PauseCode = pauseCode;
+                m.PauseReason = pauseReaon;
+                m.IsPaused = true;
+            }
+        }
         #endregion
 
     }
