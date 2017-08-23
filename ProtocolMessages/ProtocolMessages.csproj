@@ -77,6 +77,18 @@
     <Compile Include="MessageRouteCall.cs" />
     <Compile Include="MessageDeviceStateChanged.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueueLog\QLAbandon.cs" />
+    <Compile Include="QueueLog\QLAgentHangUp.cs" />
+    <Compile Include="QueueLog\QLCallerHangUp.cs" />
+    <Compile Include="QueueLog\QLCallHoldStart.cs" />
+    <Compile Include="QueueLog\QLCallHoldStop.cs" />
+    <Compile Include="QueueLog\QLMemberLogin.cs" />
+    <Compile Include="QueueLog\QLMemberLogoff.cs" />
+    <Compile Include="QueueLog\QLMemberPause.cs" />
+    <Compile Include="QueueLog\QLMemberUnpause.cs" />
+    <Compile Include="QueueLog\QLMessage.cs" />
+    <Compile Include="QueueLog\QLRingNoAnswer.cs" />
+    <Compile Include="QueueLog\QLTransfer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Models\Models.csproj">
