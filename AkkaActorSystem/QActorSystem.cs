@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using Akka.Actor;
 using Akka.Configuration;
+using Serilog;
 
 namespace AkkaActorSystem
 {
@@ -31,6 +32,19 @@ namespace AkkaActorSystem
             //Conf Dispatcher
             //https://blog.knoldus.com/2016/01/15/sample-akka-dispatcher-configuration/
             var config = ConfigurationFactory.ParseString(@"
+                akka {
+                        log-config-on-start = on
+                        stdout-loglevel = INFO
+                        loglevel = DEBUG
+                        loggers= ""[Akka.Logger.Serilog.SerilogLogger, Akka.Logger.Serilog]""
+                }
+                akka.actor.debug {
+                                    receive = on
+                                    autoreceive = on
+                                    lifecycle = on
+                                    event-stream = on
+                                    unhandled = on
+                }
                 akka.actor.my-pinned-dispatcher {
                     type = ""PinnedDispatcher""
                     executor = ""fork-join-executor""
@@ -39,7 +53,15 @@ namespace AkkaActorSystem
                     inbox-size=100000
               }");
 
+            //Creo logger para actores, life cycle, y demas del sistema de actores.
+            var logger = new LoggerConfiguration()
+                .WriteTo.ColoredConsole()
+                .MinimumLevel.Information()
+                .CreateLogger();
+            Serilog.Log.Logger = logger;
             systemq = ActorSystem.Create("clover-q", config);
+            
+
             Inbox inboxPbxProxy = Inbox.Create(systemq);
             Inbox inboxStateProxy = Inbox.Create(systemq);
             Inbox inboxLoginProxy = Inbox.Create(systemq);
