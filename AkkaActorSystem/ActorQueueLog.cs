@@ -14,7 +14,7 @@ namespace AkkaActorSystem
         private readonly ILoggingAdapter logger;
         public ActorQueueLog()
         {
-            logger= Context.GetLogger();
+            logger = Context.GetLogger();
             
             Receive<QLMessage>( qlmsg =>
                 {
