@@ -8,16 +8,20 @@ namespace ProtocolMessages.QueueLog
 {
     public class QLMessage
     {
-        public DateTime EventDate { get; set; }
-        public string EventName { get; set; }
-        public string Channel { get; set; }
-        public string Queue { get; set; }
-        public string data1 { get; set; }
-        public string data2 { get; set; }
-        public string data3 { get; set; }
+        public QLMessage()
+        {
+            EventDate = DateTime.Now;
+        }
+        public DateTime EventDate { get; protected set; }
+        public string EventName { get; protected set; }
+        public string Channel { get; protected set; }
+        public string QueueId { get; protected set; }
+        public string data1 { get; protected set; }
+        public string data2 { get; protected set; }
+        public string data3 { get; protected set; }
         public override string ToString()
         {
-            return $"{EventDate.ToString("s")}|{Channel}|{Queue}|{EventName}|{data1}|{data2}|{data3}";
+            return $"{EventDate.ToString("s")}|{Channel}|{QueueId}|{EventName}|{data1}|{data2}|{data3}";
         }
     }
 }

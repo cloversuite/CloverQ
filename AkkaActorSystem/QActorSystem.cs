@@ -19,6 +19,7 @@ namespace AkkaActorSystem
         ActorSystem systemq;
         private IActorRef actorMsgRouter;
         private IActorRef actorDataAccess;
+        private IActorRef actorQueueLog;
         private IActorRef actorCallDistributor;
         private IActorRef actorMemberLoginService;
 
@@ -69,9 +70,12 @@ namespace AkkaActorSystem
             //Este actor se encarga de acceder al sistema de persistencia (DB)
             actorDataAccess = systemq.ActorOf(Props.Create(() => new ActorDataAccess()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "ActorDataAccess");
 
+            //Este actor se encarga de generar el queuelog
+            actorQueueLog = systemq.ActorOf(Props.Create(() => new ActorQueueLog()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "ActorQueueLog");
+
             //Creo el calldistributor, este actor es el que al recibir una llamada nueva intenta rutearla a un agente libre, 
             //tambien recibe mensajes del actorStateProxy para mantener el estado de los dispositivos de los agentes
-            actorCallDistributor = systemq.ActorOf(Props.Create(() => new ActorCallDistributor(actorDataAccess)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "CallDistributor");
+            actorCallDistributor = systemq.ActorOf(Props.Create(() => new ActorCallDistributor(actorDataAccess, actorQueueLog)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "CallDistributor");
 
             actorMsgRouter = systemq.ActorOf(Props.Create(() => new ActorMsgRouter(actorCallDistributor)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MsgRouter");
             actorMemberLoginService = systemq.ActorOf(Props.Create(() => new ActorMemberLoginService(actorCallDistributor, actorDataAccess, inboxStateProxy.Receiver)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MemberLoginService");

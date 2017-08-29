@@ -82,6 +82,7 @@
     <Compile Include="QueueLog\QLCallerHangUp.cs" />
     <Compile Include="QueueLog\QLCallHoldStart.cs" />
     <Compile Include="QueueLog\QLCallHoldStop.cs" />
+    <Compile Include="QueueLog\QLEnterQueue.cs" />
     <Compile Include="QueueLog\QLMemberLogin.cs" />
     <Compile Include="QueueLog\QLMemberLogoff.cs" />
     <Compile Include="QueueLog\QLMemberPause.cs" />

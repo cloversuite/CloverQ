@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using ProtocolMessages;
+using ProtocolMessages.QueueLog;
 using QueueSystem;
 using Models;
 
@@ -18,13 +19,14 @@ namespace AkkaActorSystem
         Dictionary<long, IActorRef> callSenders; //almacena los senders, si la llamada quedó enconlada tengo qeu saber donde mandar el callto
         QueueSystemManager queueSystem;
         IActorRef actorDataAccess;
+        IActorRef actorQueueLog;
 
         /// <summary>
         /// Esta clase va a manejar la relación colas <-> miembros
         /// Mantiene una lista de todos los miembros logeados (y los que no) y el estado de su dispositivo
         /// Interactua con el ActorQueueRouter
         /// </summary>
-        public ActorCallDistributor(IActorRef actorDataAccess)
+        public ActorCallDistributor(IActorRef actorDataAccess, IActorRef actorQueueLog)
         {
             callSenders = new Dictionary<long, IActorRef>();
             this.actorDataAccess = actorDataAccess;
@@ -123,7 +125,10 @@ namespace AkkaActorSystem
                 Call call = new Call() { CallHandlerId = nc.CallHandlerId };
                 QueueMember queueMember = null;
                 if (queue != null)
+                {
                     queueMember = queue.AddCall(call); //agrega la llamada y si hay un qm para atenderla lo devuelve
+                    actorQueueLog.Tell(new QLEnterQueue() { QueueId = queue.Id });
+                }
                 Sender.Tell(new MessageAnswerCall() { CallHandlerId = nc.CallHandlerId, MediaType = "MoH", Media = "default" });
                 if (queueMember == null)
                 {
