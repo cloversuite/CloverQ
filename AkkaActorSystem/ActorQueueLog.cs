@@ -14,11 +14,12 @@ namespace AkkaActorSystem
         private readonly ILoggingAdapter logger;
         public ActorQueueLog()
         {
+            //TODO: crear aca un logger especifico para este actor 
             logger = Context.GetLogger();
             
             Receive<QLMessage>( qlmsg =>
                 {
-                    //logger.Info();
+                    logger.Info(qlmsg.ToString());
                 });
         }
 
