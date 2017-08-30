@@ -10,7 +10,8 @@ namespace Models
     public class DTOQueue
     {
         public string Id { get; set; }
-        public string MoH { get; set; }
+        public string Media { get; set; }
+        public string MediaType { get; set; }
         public int Weight { get; set; }
         public int WrapupTime { get; set; }
         public string MemberStrategy { get; set; }

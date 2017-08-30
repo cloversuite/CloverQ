@@ -82,10 +82,13 @@
     <Compile Include="QueueLog\QLCallerHangUp.cs" />
     <Compile Include="QueueLog\QLCallHoldStart.cs" />
     <Compile Include="QueueLog\QLCallHoldStop.cs" />
+    <Compile Include="QueueLog\QLConnect.cs" />
     <Compile Include="QueueLog\QLEnterQueue.cs" />
+    <Compile Include="QueueLog\QLMemberAdd.cs" />
     <Compile Include="QueueLog\QLMemberLogin.cs" />
     <Compile Include="QueueLog\QLMemberLogoff.cs" />
     <Compile Include="QueueLog\QLMemberPause.cs" />
+    <Compile Include="QueueLog\QLMemberRemove.cs" />
     <Compile Include="QueueLog\QLMemberUnpause.cs" />
     <Compile Include="QueueLog\QLMessage.cs" />
     <Compile Include="QueueLog\QLRingNoAnswer.cs" />

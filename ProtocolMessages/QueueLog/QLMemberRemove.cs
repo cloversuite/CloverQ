@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages.QueueLog
 {
-    public class QLCallerHangUp : QLMessage
+    public class QLMemberRemove : QLMessage
     {
-        public QLCallerHangUp()
+        public QLMemberRemove()
         {
             base.EventName = this.GetType().Name;
+
         }
     }
 }

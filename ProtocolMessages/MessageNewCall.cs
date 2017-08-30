@@ -9,6 +9,6 @@ namespace ProtocolMessages
     //lo envia el call manager al actor que lo va a manejar
     public class MessageNewCall : Message
     {
-        public string QueueId { get; set; }
+        public string ChannelId { get; set; }
     }
 }

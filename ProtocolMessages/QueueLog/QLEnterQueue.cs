@@ -12,8 +12,5 @@ namespace ProtocolMessages.QueueLog
         {
             base.EventName = this.GetType().Name;
         }
-
-        public new string QueueId { get { return base.QueueId; } set { base.QueueId = value; } }
-
     }
 }

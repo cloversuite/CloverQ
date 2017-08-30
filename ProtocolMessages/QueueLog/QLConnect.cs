@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages.QueueLog
 {
-    public class QLCallerHangUp : QLMessage
+    public class QLConnect : QLMessage
     {
-        public QLCallerHangUp()
+        public QLConnect()
         {
             base.EventName = this.GetType().Name;
         }

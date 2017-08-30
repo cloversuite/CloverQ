@@ -14,8 +14,9 @@ namespace ProtocolMessages.QueueLog
         }
         public DateTime EventDate { get; protected set; }
         public string EventName { get; protected set; }
-        public string Channel { get; protected set; }
-        public string QueueId { get; protected set; }
+        public string Channel { get; set; }
+        public string QueueId { get; set; }
+        public string MemberId { get; set; }
         public string data1 { get; protected set; }
         public string data2 { get; protected set; }
         public string data3 { get; protected set; }

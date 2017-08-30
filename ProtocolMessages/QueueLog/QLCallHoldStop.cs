@@ -8,5 +8,9 @@ namespace ProtocolMessages.QueueLog
 {
     public class QLCallHoldStop : QLMessage
     {
+        public QLCallHoldStop()
+        {
+            base.EventName = this.GetType().Name;
+        }
     }
 }

@@ -8,5 +8,10 @@ namespace ProtocolMessages.QueueLog
 {
     public class QLMemberLogoff : QLMessage
     {
+        public QLMemberLogoff()
+        {
+            base.EventName = this.GetType().Name;
+
+        }
     }
 }

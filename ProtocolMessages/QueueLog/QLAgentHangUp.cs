@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages.QueueLog
 {
-    class QLAgentHangUp
+    public class QLAgentHangUp: QLMessage
     {
+        public QLAgentHangUp()
+        {
+            base.EventName = this.GetType().Name;
+        }
     }
 }

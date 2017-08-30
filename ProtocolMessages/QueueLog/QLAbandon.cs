@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages.QueueLog
 {
-    class QLAbandon
+    public class QLAbandon : QLMessage
     {
+        public QLAbandon()
+        {
+            base.EventName = this.GetType().Name;
+        }
     }
 }

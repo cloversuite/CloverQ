@@ -329,7 +329,7 @@ namespace TestRouter
                     //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
                     var queueId = e.Args[0];
                     callHandler.CurrentQueue = queueId;
-                    actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id, QueueId = queueId });
+                    actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id, QueueId = queueId, ChannelId = e.Channel.Id });
                 }
                 else //si no es null entonces el canal lo agregé yo cuando hice el CallTo
                 {

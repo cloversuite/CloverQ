@@ -42,7 +42,7 @@ namespace AkkaActorSystem
                 {
                     foreach (DTOQueue dtoq in daq.Queues)
                     {
-                        Queue q = new Queue(dtoq.MemberStrategy, dtoq.CallOrderStrategy) { Id = dtoq.Id, MoH = dtoq.MoH, Weight = dtoq.Weight, WrapupTime = dtoq.WrapupTime };
+                        Queue q = new Queue(dtoq.MemberStrategy, dtoq.CallOrderStrategy) { Id = dtoq.Id, Media = dtoq.Media, MediaType = dtoq.MediaType, Weight = dtoq.Weight, WrapupTime = dtoq.WrapupTime };
 
                         if (dtoq.QueueMembers != null)
                         {
@@ -62,16 +62,27 @@ namespace AkkaActorSystem
                 //Mensaje que proviene del ActorMemberLoginService, aca creo un nuevo member, cuando me llegan los QMemberAdd creo los
                 //QueueMember en base a este objeto. El member quue creo aca tambien recibe mensajes del stateprovider
                 queueSystem.MemberCache.Add(new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password, DeviceId = mlin.DeviceId });
+                actorQueueLog.Tell(new QLMemberLogin() { MemberId = mlin.MemberId, Name = mlin.Name, DeviceId = mlin.DeviceId });
+            });
+
+            Receive<MessageMemberLogoff>(mlof =>
+            {
+                //Mensaje que proviene del ActorMemberLoginService 
+                queueSystem.MemberCache.Remove(mlof.MemberId);
+                actorQueueLog.Tell(new QLMemberLogoff() { MemberId = mlof.MemberId });
             });
 
             Receive<MessageQMemberPause>(mpau =>
             {
-                queueSystem.MemberCache.MemberPause( mpau.MemberId, mpau.PauseReason, mpau.PauseReason );
+                queueSystem.MemberCache.MemberPause(mpau.MemberId, mpau.PauseReason, mpau.PauseReason);
+                actorQueueLog.Tell(new QLMemberPause() { MemberId = mpau.MemberId, Reason = mpau.PauseReason });
+
             });
 
             Receive<MessageQMemberUnpause>(munpau =>
             {
                 queueSystem.MemberCache.MemberUnPause(munpau.MemberId);
+                actorQueueLog.Tell(new QLMemberUnpause() { MemberId = munpau.MemberId });
             });
 
             Receive<MessageQMemberAdd>(memberQueues =>
@@ -86,6 +97,7 @@ namespace AkkaActorSystem
                     {
                         QueueMember qm = new QueueMember(member);
                         queueSystem.QueueCache.GetQueue(queueId).AddQueueMember(qm);
+                        actorQueueLog.Tell(new QLMemberAdd() { QueueId = queueId, MemberId = member.Id });
                     }
                 }
             });
@@ -102,6 +114,7 @@ namespace AkkaActorSystem
                     {
                         QueueMember qm = new QueueMember(member);
                         queueSystem.QueueCache.GetQueue(queueId).AddQueueMember(qm);
+                        actorQueueLog.Tell(new QLMemberRemove() { QueueId = queueId, MemberId = member.Id });
                     }
                 }
             });
@@ -127,9 +140,9 @@ namespace AkkaActorSystem
                 if (queue != null)
                 {
                     queueMember = queue.AddCall(call); //agrega la llamada y si hay un qm para atenderla lo devuelve
-                    actorQueueLog.Tell(new QLEnterQueue() { QueueId = queue.Id });
+                    actorQueueLog.Tell(new QLEnterQueue() { QueueId = queue.Id, Channel = call.ChannelId });
                 }
-                Sender.Tell(new MessageAnswerCall() { CallHandlerId = nc.CallHandlerId, MediaType = "MoH", Media = "default" });
+                Sender.Tell(new MessageAnswerCall() { CallHandlerId = nc.CallHandlerId, MediaType = queue.MediaType, Media = queue.Media });
                 if (queueMember == null)
                 {
                     //guardo en el call el uid del sender
@@ -164,6 +177,7 @@ namespace AkkaActorSystem
                         {
                             call.QueueMember = queueMember;
                             Sender.Tell(new MessageCallTo() { CallHandlerId = ctf.CallHandlerId, Destination = queueMember.Member.Contact });
+                            actorQueueLog.Tell(new QLRingNoAnswer() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id, Code = ctf.Code, Reason = ctf.Reason });
                         }
                     }
                 }
@@ -180,6 +194,7 @@ namespace AkkaActorSystem
                     {
                         call.IsDispatching = false;
                         call.Connected = true;
+                        actorQueueLog.Tell(new QLConnect() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id });
                     }
                 }
 
@@ -197,6 +212,14 @@ namespace AkkaActorSystem
                     {
                         queueMember.MarkLastCallTime();
                         queueMember.Member.IsAvailable = true;
+                    }
+                    if (call.Connected == false)
+                    {
+                        actorQueueLog.Tell(new QLAbandon() { QueueId = queue.Id, Channel = call.ChannelId });
+                    }
+                    else
+                    {
+                        actorQueueLog.Tell(new QLCallerHangUp() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id });
                     }
                 }
             });
@@ -217,6 +240,7 @@ namespace AkkaActorSystem
                         {
                             queueMember.MarkLastCallTime();
                             queueMember.Member.IsAvailable = true;
+                            actorQueueLog.Tell(new QLAgentHangUp() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id });
                         }
                     }
                 }
@@ -233,6 +257,7 @@ namespace AkkaActorSystem
                     {
                         queueMember.MarkLastCallTime();
                         queueMember.Member.IsAvailable = true;
+                        actorQueueLog.Tell(new QLTransfer() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id, TargetChannelId = ctrans.TargetId, TargetChannelName = ctrans.TargetName });
                     }
                 }
             });

@@ -36,8 +36,8 @@ namespace DataAccess
             members.Add(dtom2.Id, dtom2);
             
             //creo colas
-            DTOQueue dtoq1 = new DTOQueue() { Id = "5000", MoH = "default", QueueMembers = new List<DTOQueueMember>(), Weight = 1, WrapupTime = 15, MemberStrategy = "rrmemory", CallOrderStrategy = "default" };
-            DTOQueue dtoq2 = new DTOQueue() { Id = "6000", MoH = "default", QueueMembers = new List<DTOQueueMember>(), Weight = 2, WrapupTime = 10, MemberStrategy = "rrmemory", CallOrderStrategy = "default" };
+            DTOQueue dtoq1 = new DTOQueue() { Id = "5000", Media = "MoH", MediaType = "default", QueueMembers = new List<DTOQueueMember>(), Weight = 1, WrapupTime = 15, MemberStrategy = "rrmemory", CallOrderStrategy = "default" };
+            DTOQueue dtoq2 = new DTOQueue() { Id = "6000", Media = "MoH", MediaType = "default", QueueMembers = new List<DTOQueueMember>(), Weight = 2, WrapupTime = 10, MemberStrategy = "rrmemory", CallOrderStrategy = "default" };
             queues.Add(dtoq1.Id, dtoq1);
             queues.Add(dtoq2.Id, dtoq2);
 
