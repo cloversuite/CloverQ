@@ -39,7 +39,7 @@ namespace AkkaActorSystem
                         log-config-on-start = on
                         stdout-loglevel = DEBUG
                         loglevel = DEBUG
-                        
+                        loggers = [""Akka.Logger.Serilog.SerilogLogger, Akka.Logger.Serilog""]
                 
                     actor {
                             debug {
@@ -60,13 +60,12 @@ namespace AkkaActorSystem
                     }");
 
             //Creo logger para actores, life cycle, y demas del sistema de actores.
-            SerilogLogger loggerfake; 
-            //= new LoggerConfiguration()
-            //    .WriteTo.ColoredConsole()
-            //    .MinimumLevel.Debug()
-            //    .CreateLogger();
-            //Serilog.Log.Logger = logger;
-            SerilogLogger serifake;
+            Serilog.Core.Logger logger = new LoggerConfiguration()
+                .WriteTo.ColoredConsole()
+                .MinimumLevel.Debug()
+                .CreateLogger();
+            Serilog.Log.Logger = logger; //Esto es necesario para que akka utilice el serilog
+            SerilogLogger serifake; 
             systemq = ActorSystem.Create("clover-q", config);
             //systemq.Log.Info("Sistema de acotores iniciado.");
 
