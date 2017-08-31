@@ -87,11 +87,23 @@ namespace StateProvider
         public Device DetachMemberFromDevice(string deviceId, string memberId)
         {
             Device device = null;
-            if (deviceCache.ContainsKey(deviceId))
+            if (deviceId != null)
             {
-                device = deviceCache[deviceId];
-                //debería controlar que sea el mismo memberId que esta actualmente en el device?
-                device.MemberId = "";
+                if (deviceCache.ContainsKey(deviceId))
+                {
+                    device = deviceCache[deviceId];
+                    //debería controlar que sea el mismo memberId que esta actualmente en el device?
+                    device.MemberId = "";
+                }
+            }else
+            {
+                foreach(Device dev in deviceCache.Values)
+                {
+                    if (dev.MemberId == memberId) {
+                        dev.MemberId = "";
+                        device = dev;
+                    }
+                }
             }
             return device;
         }

@@ -113,7 +113,7 @@ namespace AkkaActorSystem
                     if (member != null)
                     {
                         QueueMember qm = new QueueMember(member);
-                        queueSystem.QueueCache.GetQueue(queueId).AddQueueMember(qm);
+                        queueSystem.QueueCache.GetQueue(queueId).RemoveQueueMember(qm);
                         actorQueueLog.Tell(new QLMemberRemove() { QueueId = queueId, MemberId = member.Id });
                     }
                 }
@@ -135,7 +135,7 @@ namespace AkkaActorSystem
             Receive<MessageNewCall>(nc =>
             {
                 Queue queue = queueSystem.QueueCache.GetQueue(nc.QueueId);
-                Call call = new Call() { CallHandlerId = nc.CallHandlerId };
+                Call call = new Call() { CallHandlerId = nc.CallHandlerId, ChannelId = nc.ChannelId };
                 QueueMember queueMember = null;
                 if (queue != null)
                 {

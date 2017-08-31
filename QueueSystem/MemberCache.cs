@@ -25,6 +25,9 @@ namespace QueueSystem
         public void Add(Member member) {
             if (!members.ContainsKey(member.Id)) {
                 members.Add(member.Id, member);
+            }else
+            {
+                members[member.Id].IsLogedIn = true;
             }
         }
 

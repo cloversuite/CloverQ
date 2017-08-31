@@ -7,6 +7,7 @@ using System.Threading;
 using Akka.Actor;
 using Akka.Configuration;
 using Serilog;
+using Akka.Logger.Serilog;
 
 namespace AkkaActorSystem
 {
@@ -32,36 +33,42 @@ namespace AkkaActorSystem
             //https://github.com/akkadotnet/akka.net/blob/v1.3/src/core/Akka/Configuration/Pigeon.conf
             //Conf Dispatcher
             //https://blog.knoldus.com/2016/01/15/sample-akka-dispatcher-configuration/
+            //loggers = [""Akka.Logger.Serilog.SerilogLogger, Akka.Logger.Serilog""]
             var config = ConfigurationFactory.ParseString(@"
                 akka {
                         log-config-on-start = on
-                        stdout-loglevel = INFO
+                        stdout-loglevel = DEBUG
                         loglevel = DEBUG
-                        loggers= ""[Akka.Logger.Serilog.SerilogLogger, Akka.Logger.Serilog]""
-                }
-                akka.actor.debug {
+                        
+                
+                    actor {
+                            debug {
                                     receive = on
                                     autoreceive = on
                                     lifecycle = on
                                     event-stream = on
                                     unhandled = on
-                }
-                akka.actor.my-pinned-dispatcher {
-                    type = ""PinnedDispatcher""
-                    executor = ""fork-join-executor""
-                }
-                akka.actor.inbox {
-                    inbox-size=100000
-              }");
+                                    }
+                            my-pinned-dispatcher {
+                                type = ""PinnedDispatcher""
+                                executor = ""fork-join-executor""
+                            }
+                            inbox {
+                                inbox-size=100000
+                            }
+                        }
+                    }");
 
             //Creo logger para actores, life cycle, y demas del sistema de actores.
-            var logger = new LoggerConfiguration()
-                .WriteTo.ColoredConsole()
-                .MinimumLevel.Information()
-                .CreateLogger();
-            Serilog.Log.Logger = logger;
+            SerilogLogger loggerfake; 
+            //= new LoggerConfiguration()
+            //    .WriteTo.ColoredConsole()
+            //    .MinimumLevel.Debug()
+            //    .CreateLogger();
+            //Serilog.Log.Logger = logger;
+            SerilogLogger serifake;
             systemq = ActorSystem.Create("clover-q", config);
-            
+            //systemq.Log.Info("Sistema de acotores iniciado.");
 
             Inbox inboxPbxProxy = Inbox.Create(systemq);
             Inbox inboxStateProxy = Inbox.Create(systemq);

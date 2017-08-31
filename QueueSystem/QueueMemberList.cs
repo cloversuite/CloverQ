@@ -82,7 +82,8 @@ namespace QueueSystem
             {
                 SetMemberSrtategy((MemberStrategy)Enum.Parse(typeof(MemberStrategy), strategy.ToUpper()));
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Console.WriteLine("Error en SetMemberStrategy: " + ex.Message);
             }
         }
@@ -107,11 +108,11 @@ namespace QueueSystem
         /// <param name="member"></param>
         public void RemoveMember(QueueMember member)
         {
-            foreach (QueueMember qm in this.members)
+            for (int i = members.Count - 1; i >= 0; --i)
             {
-                if (member.Id == qm.Id)
+                if (members[i].Id == member.Id)
                 {
-                    this.members.Remove(qm);
+                    this.members.RemoveAt(i);
                 }
             }
         }

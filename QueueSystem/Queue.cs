@@ -106,6 +106,11 @@ namespace QueueSystem
         {
             queueMeberList.AddMember(queueMember);
         }
+
+        public void RemoveQueueMember(QueueMember queueMember)
+        {
+            queueMeberList.RemoveMember(queueMember);
+        }
         #endregion
 
     }

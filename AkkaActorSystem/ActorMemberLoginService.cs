@@ -62,11 +62,14 @@ namespace AkkaActorSystem
                 });
 
                 DAMemberQueues memberQueues = t.Result;
+
                 
+                actorStateProxy.Tell(new MessageDetachMemberFromDevice() { MemberId = mlof.MemberId });
                 //le paso el queuesid list en null para desloguearlo de todas las colas
                 callDistributor.Tell(new MessageQMemberRemove() { MemberId = mlof.MemberId, QueuesId = memberQueues.MemberQueues });
+
                 callDistributor.Tell(mlof);
-                actorStateProxy.Tell(new MessageDetachMemberFromDevice() { MemberId = mlof.MemberId });
+                
             });
 
             Receive<MessageMemberPause>(mpau =>
