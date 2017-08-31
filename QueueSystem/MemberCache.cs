@@ -28,6 +28,7 @@ namespace QueueSystem
             }else
             {
                 members[member.Id].IsLogedIn = true;
+                members[member.Id].IsAvailable = true;
             }
         }
 
