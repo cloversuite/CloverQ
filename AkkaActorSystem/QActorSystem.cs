@@ -8,6 +8,7 @@ using Akka.Actor;
 using Akka.Configuration;
 using Serilog;
 using Akka.Logger.Serilog;
+using Akka.Remote;
 
 namespace AkkaActorSystem
 {
@@ -23,6 +24,7 @@ namespace AkkaActorSystem
         private IActorRef actorQueueLog;
         private IActorRef actorCallDistributor;
         private IActorRef actorMemberLoginService;
+        private IActorRef actorRestApiGW;
 
         /// <summary>
         /// Esta clase inicia el sistema de actores, crea un router de mensajes y una instancia del proxy para la pbx
@@ -42,6 +44,7 @@ namespace AkkaActorSystem
                         loggers = [""Akka.Logger.Serilog.SerilogLogger, Akka.Logger.Serilog""]
                 
                     actor {
+                            provider = ""Akka.Remote.RemoteActorRefProvider, Akka.Remote""
                             debug {
                                     receive = on
                                     autoreceive = on
@@ -56,6 +59,14 @@ namespace AkkaActorSystem
                             inbox {
                                 inbox-size=100000
                             }
+
+                        }
+                        remote {
+                            dot-netty.tcp {
+                                port = 8081
+                                hostname = 0.0.0.0
+                                public-hostname = localhost
+                            }
                         }
                     }");
 
@@ -65,13 +76,18 @@ namespace AkkaActorSystem
                 .MinimumLevel.Debug()
                 .CreateLogger();
             Serilog.Log.Logger = logger; //Esto es necesario para que akka utilice el serilog
-            SerilogLogger serifake; 
+            SerilogLogger serifake;
+            Akka.Remote.RemoteActorRef fackeRef;
             systemq = ActorSystem.Create("clover-q", config);
             //systemq.Log.Info("Sistema de acotores iniciado.");
 
             Inbox inboxPbxProxy = Inbox.Create(systemq);
             Inbox inboxStateProxy = Inbox.Create(systemq);
             Inbox inboxLoginProxy = Inbox.Create(systemq);
+
+            //Este actor se encarga de recibir mensajes desde la API REST con Nancy
+            actorRestApiGW = systemq.ActorOf(Props.Create(() => new ActorRestApiGW()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "ActorRestApiGW");
+
 
             //Este actor se encarga de acceder al sistema de persistencia (DB)
             actorDataAccess = systemq.ActorOf(Props.Create(() => new ActorDataAccess()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "ActorDataAccess");
