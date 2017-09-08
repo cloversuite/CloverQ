@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="BridgeItem.cs" />
     <Compile Include="BridgesList.cs" />
+    <Compile Include="CallChronometer.cs" />
     <Compile Include="CallHandler.cs" />
     <Compile Include="CallHandlerCache.cs" />
     <Compile Include="CallManager.cs" />
