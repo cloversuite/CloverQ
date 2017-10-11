@@ -256,11 +256,9 @@ namespace TestRouter
                     Console.WriteLine("Channel State Change: " + e.Channel.Id + " el callhandler devolvió msg = null");
                 }
             }
-            catch { } //TODO: no dejar esto asi!!!
-
-
-            if (msg != null)
-                actorPbxProxy.Send(msg);
+            catch(Exception ex) {
+                Console.WriteLine("ERROR!!: Pbx_OnChannelStateChangeEvent chan:" + e.Channel.Id + ", error: " + ex.Message);
+            }
 
             //log to console
             Console.WriteLine("El canal: " + e.Channel.Id + " cambio su estado a: " + e.Channel.State.ToString());
@@ -328,8 +326,10 @@ namespace TestRouter
 
                     //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
                     var queueId = e.Args[0];
-                    callHandler.CurrentQueue = queueId;
-                    actorPbxProxy.Send(new MessageNewCall() { CallHandlerId = callHandler.Id, QueueId = queueId, ChannelId = e.Channel.Id });
+                    ProtocolMessages.Message msg = null;
+                    msg = callHandler.SetCurrentQueue(queueId);
+                    if(msg != null)
+                        actorPbxProxy.Send(msg);
                 }
                 else //si no es null entonces el canal lo agregé yo cuando hice el CallTo
                 {

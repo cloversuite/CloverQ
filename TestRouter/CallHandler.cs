@@ -67,20 +67,13 @@ namespace TestRouter
                 agent = value;
             }
         }
-
         public string CurrentQueue
         {
             get
             {
                 return currentQueue;
             }
-
-            set
-            {
-                currentQueue = value;
-            }
         }
-
 
 
         //Constructor
@@ -94,6 +87,13 @@ namespace TestRouter
             bridge.Channels.Add(caller.Id);
             this.caller = caller;
             this.agent = null;
+
+        }
+
+        //significa EnterQueue
+        public ProtocolMessages.Message SetCurrentQueue(string queueId) {
+            currentQueue = queueId;
+            return new MessageNewCall() { CallHandlerId = id, QueueId = queueId, ChannelId = caller.Id };
 
         }
 
