@@ -53,6 +53,7 @@
     <Compile Include="MessageAnswerCall.cs" />
     <Compile Include="MessageAttachMemberToDevice.cs" />
     <Compile Include="MessageCallerHangup.cs" />
+    <Compile Include="MessageCallHold.cs" />
     <Compile Include="MessageCallQueued.cs" />
     <Compile Include="MessageCallTo.cs" />
     <Compile Include="MessageCallToFailed.cs" />

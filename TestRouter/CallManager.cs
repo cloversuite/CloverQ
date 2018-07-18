@@ -97,6 +97,7 @@ namespace TestRouter
             pbx.OnChannelStateChangeEvent += Pbx_OnChannelStateChangeEvent; //cambió el estado del canal ej: down->up->ringing. No se si lo voy a usar
             pbx.OnChannelDestroyedEvent += Pbx_OnChannelDestroyedEvent; //el canal fué terminado, sehizo efectivo el hangup
             pbx.OnChannelHoldEvent += Pbx_OnChannelHoldEvent; //el canal se puso onhold
+            pbx.OnChannelUnholdEvent += Pbx_OnChannelUnholdEvent;
             pbx.OnBridgeAttendedTransferEvent += Pbx_OnBridgeAttendedTransferEvent;
             pbx.OnBridgeBlindTransferEvent += Pbx_OnBridgeBlindTransferEvent;
 
@@ -193,7 +194,12 @@ namespace TestRouter
 
         private void Pbx_OnChannelHoldEvent(IAriClient sender, ChannelHoldEvent e)
         {
-            Console.WriteLine("Channel OnHold: " + e.Channel.Id);
+            Console.WriteLine("Channel Hold: " + e.Channel.Id);
+        }
+
+        private void Pbx_OnChannelUnholdEvent(IAriClient sender, ChannelUnholdEvent e)
+        {
+            Console.WriteLine("Channel UnHold: " + e.Channel.Id);
         }
 
         private void Pbx_OnChannelHangupRequestEvent(IAriClient sender, ChannelHangupRequestEvent e)

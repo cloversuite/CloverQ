@@ -8,6 +8,9 @@ namespace ProtocolMessages
 {
     public class MessageCallToSuccess : Message
     {
-
+        /// <summary>
+        /// Time elapsed between call enqueued and agent answer
+        /// </summary>
+        public int HoldTime { get; set; }
     }
 }

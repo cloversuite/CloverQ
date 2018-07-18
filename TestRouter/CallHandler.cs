@@ -21,6 +21,7 @@ namespace TestRouter
         Channel caller;
         Channel agent;
         Channel transferTarget;
+        CallChronometer chronometer;
 
         CallState callState;
 
@@ -87,12 +88,14 @@ namespace TestRouter
             bridge.Channels.Add(caller.Id);
             this.caller = caller;
             this.agent = null;
+            this.chronometer = new CallChronometer();
 
         }
 
         //significa EnterQueue
         public ProtocolMessages.Message SetCurrentQueue(string queueId) {
             currentQueue = queueId;
+            chronometer.CallStart();
             return new MessageNewCall() { CallHandlerId = id, QueueId = queueId, ChannelId = caller.Id };
 
         }
@@ -104,7 +107,8 @@ namespace TestRouter
             {
                 agent = pbx.Channels.Originate(dst, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
                 callState = CallState.CONNECTIING;
-                bridge.Channels.Add(agent.Id);
+                chronometer.CallToStart();
+                bridge.Channels.Add(agent.Id); //no debería hacerlo cuando es calltosuccess?
             }
             catch (Exception ex)
             {
@@ -127,6 +131,7 @@ namespace TestRouter
                 //agrego el canal al bridge, controlar que pasa si falla el originate
                 pbx.Bridges.AddChannel(this.Bridge.Id, channelId, null);
                 callState = CallState.CONNECTED;
+                chronometer.CallToSuccess();
             }
             catch (Exception ex)
             {
@@ -167,7 +172,8 @@ namespace TestRouter
                 agent.State = newState;
                 if (newState == "Up") //Esto indica que el canal es de un agente y atendió la llamada
                 {
-                    msg = new MessageCallToSuccess() { CallHandlerId = this.id, QueueId = currentQueue };
+                    int holdTime = chronometer.CallToSuccess();
+                    msg = new MessageCallToSuccess() { CallHandlerId = this.id, QueueId = currentQueue, HoldTime = holdTime };
                     callState = CallState.AGENT_ANSWERED;
                 }
             }
@@ -189,12 +195,23 @@ namespace TestRouter
             //Hay que pulir la lógica del hangup, también hay que tener en cuenta los transfer
             if (channelId == caller.Id && callState != CallState.TERMINATED)
             {
-                msg = new MessageCallerHangup() { CallHandlerId = this.id, QueueId = currentQueue, HangUpCode = cause.ToString(), HangUpReason = causeText };
+                int x = chronometer.CallEnd();
+                msg = new MessageCallerHangup() {
+                    CallHandlerId = this.id,
+                    QueueId = currentQueue,
+                    HangUpCode = cause.ToString(),
+                    HangUpReason = causeText,
+                    WatingTime = chronometer.WaitingTime,
+                    HoldingTime = chronometer.HoldingTime,
+                    ConnectedTime = chronometer.ConnectedTime,
+                    TalkingTime = chronometer.TalkingTime
+                };
                 callState = CallState.TERMINATED;
             }
             else if (channelId == agent.Id)
             {
-                msg = new MessageCallToFailed() { CallHandlerId = this.id, QueueId = currentQueue, Code = cause, Reason = causeText };
+                int ringingTime = chronometer.CallToEndFailed();
+                msg = new MessageCallToFailed() { CallHandlerId = this.id, QueueId = currentQueue, Code = cause, Reason = causeText, RingingTime = ringingTime };
                 callState = CallState.CONNECT_FAILDED;
             }
             else
@@ -213,7 +230,17 @@ namespace TestRouter
             //Hay que pulir la lógica del hangup, también hay que tener en cuenta los transfer
             if (channelId == caller.Id && callState != CallState.TERMINATED && callState != CallState.TRANSFERRED)
             {
-                msg = new MessageCallerHangup() { CallHandlerId = this.id, QueueId = currentQueue, HangUpCode = cause.ToString(), HangUpReason = causeText };
+                int x = chronometer.CallEnd();
+                msg = new MessageCallerHangup() {
+                    CallHandlerId = this.id,
+                    QueueId = currentQueue,
+                    HangUpCode = cause.ToString(),
+                    HangUpReason = causeText,
+                    WatingTime = chronometer.WaitingTime,
+                    HoldingTime = chronometer.HoldingTime,
+                    ConnectedTime = chronometer.ConnectedTime,
+                    TalkingTime = chronometer.TalkingTime
+                };
                 TerminateAgent();
                 callState = CallState.TERMINATED;
             }
@@ -223,7 +250,17 @@ namespace TestRouter
                 //prevengo que si la llamada fue transferida le corte al que llamó
                 if (callState != CallState.TRANSFERRED && callState != CallState.TERMINATED)
                 {
-                    msg = new MessageAgentHangup() { CallHandlerId = this.id, QueueId = currentQueue, HangUpCode = cause.ToString(), HangUpReason = causeText };
+                    int x = chronometer.CallEnd();
+                    msg = new MessageAgentHangup() {
+                        CallHandlerId = this.id,
+                        QueueId = currentQueue,
+                        HangUpCode = cause.ToString(),
+                        HangUpReason = causeText,
+                        WatingTime = chronometer.WaitingTime,
+                        HoldingTime = chronometer.HoldingTime,
+                        ConnectedTime = chronometer.ConnectedTime,
+                        TalkingTime = chronometer.TalkingTime
+                    };
                     TerminateCaller();
                     callState = CallState.TERMINATED;
                 }
@@ -286,10 +323,20 @@ namespace TestRouter
 
         private ProtocolMessages.Message TransferTo(Channel target)
         {
+            int x = chronometer.CallEnd();
             ProtocolMessages.Message msg;
             this.transferTarget = target;
             callState = CallState.TRANSFERRED;
-            msg = new MessageCallTransfer() { CallHandlerId = this.id, QueueId = currentQueue, TargetId = transferTarget.Id, TargetName = transferTarget.Name };
+            msg = new MessageCallTransfer() {
+                CallHandlerId = this.id,
+                QueueId = currentQueue,
+                TargetId = transferTarget.Id,
+                TargetName = transferTarget.Name,
+                WatingTime = chronometer.WaitingTime,
+                HoldingTime = chronometer.HoldingTime,
+                ConnectedTime = chronometer.ConnectedTime,
+                TalkingTime = chronometer.TalkingTime
+            };
             return msg;
 
         }

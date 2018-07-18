@@ -8,6 +8,12 @@ namespace ProtocolMessages
 {
     public class Message
     {
+        public Message()
+        {
+            EventTime = DateTime.Now;
+        }
+
+        public DateTime EventTime { get; set; }
         public string CallHandlerId { get; set; }
         public string QueueId { get; set; }
     }

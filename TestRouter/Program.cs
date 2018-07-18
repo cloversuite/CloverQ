@@ -18,17 +18,17 @@ namespace TestRouter
 
 
             CallManager callManager = new CallManager(qActorSystem.GetActorPbxProxy());
-            callManager.Connect("192.168.56.102", 8088, "asterisk", "pelo2dos"); //192.168.1.20
+            callManager.Connect("192.168.56.102", 8088, "asterisk", "pelo2dos"); //192.168.56.102
             Console.WriteLine("CallManager iniciado...");
 
 
 
             DeviceStateManager dsm = new DeviceStateManager(qActorSystem.GetActorStateProxy());
-            dsm.Connect("192.168.56.90", 8088, "asterisk", "pelo2dos");
+            dsm.Connect("192.168.56.90", 8088, "asterisk", "pelo2dos"); //192.168.56.90
             Console.WriteLine("StateManager iniciado...");
 
             PbxLoginProvider plp = new PbxLoginProvider(qActorSystem.GetActorLoginProxy());
-            plp.Connect("192.168.56.90", 8088, "asterisk", "pelo2dos"); //192.168.1.30
+            plp.Connect("192.168.56.90", 8088, "asterisk", "pelo2dos"); //192.168.56.90
             Console.WriteLine("PbxLoginProvider iniciado...");
 
             Console.WriteLine("Presione una tecla para terminar la aplicación...");

@@ -11,5 +11,6 @@ namespace ProtocolMessages
         
         public int Code { get; set; }
         public string Reason { get; set; }
+        public int RingingTime { get; set; }
     }
 }
