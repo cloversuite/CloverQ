@@ -11,7 +11,6 @@ namespace ProtocolMessages
         public string TargetId { get; set; }
         public string TargetName { get; set; }
         public int WatingTime { get; set; }
-        public int ConnectedTime { get; set; }
         public int HoldingTime { get; set; }
         public int TalkingTime { get; set; }
     }

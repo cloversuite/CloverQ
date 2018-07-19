@@ -15,5 +15,6 @@ namespace ProtocolMessages.QueueLog
         }
         public int Code { get { return int.Parse(base.data1); } set { base.data1 = value.ToString(); } }
         public string Reason { get { return base.data2; } set { base.data2 = value; } }
+        public int RingingTime { get { return int.Parse(base.data3); } set { base.data3 = value.ToString(); } }
     }
 }

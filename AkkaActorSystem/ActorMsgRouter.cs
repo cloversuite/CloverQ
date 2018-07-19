@@ -58,8 +58,14 @@ namespace AkkaActorSystem
             {
                 callDistributor.Tell(ahup, Sender);
             });
-
-            
+            Receive<MessageCallHold>(cho =>
+            {
+                callDistributor.Tell(cho, Sender);
+            });
+            Receive<MessageCallUnHold>(cuho =>
+            {
+                callDistributor.Tell(cuho, Sender);
+            });
 
         }
         protected override void Unhandled(object message)

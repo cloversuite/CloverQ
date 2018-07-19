@@ -13,7 +13,6 @@ namespace ProtocolMessages
         //ej: normal clearing.
         public string HangUpReason { get; set; }
         public int WatingTime { get; set; }
-        public int ConnectedTime { get; set; }
         public int HoldingTime { get; set; }
         public int TalkingTime { get; set; }
     }

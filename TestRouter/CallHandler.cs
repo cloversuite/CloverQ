@@ -108,7 +108,7 @@ namespace TestRouter
                 agent = pbx.Channels.Originate(dst, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
                 callState = CallState.CONNECTIING;
                 chronometer.CallToStart();
-                bridge.Channels.Add(agent.Id); //no debería hacerlo cuando es calltosuccess?
+                //bridge.Channels.Add(agent.Id); //no debería hacerlo cuando es calltosuccess?
             }
             catch (Exception ex)
             {
@@ -297,7 +297,39 @@ namespace TestRouter
             }
 
         }
-        //TODO: esto es una versión muy simplificada, el evento de transferencia atendida requiere mayo estudio
+
+
+        public ProtocolMessages.Message ChannelHoldEvent(string channelId) {
+            ProtocolMessages.Message msg = null;
+
+            chronometer.CallHoldStart();
+
+            msg = new MessageCallHold()
+            {
+                CallHandlerId = this.id,
+                QueueId = currentQueue
+            };
+
+            return msg;
+        }
+
+        public ProtocolMessages.Message ChannelUnHoldEvent(string channelId)
+        {
+            ProtocolMessages.Message msg = null;
+
+            int holdTime = chronometer.CallHoldStop();
+
+            msg = new MessageCallUnHold()
+            {
+                CallHandlerId = this.id,
+                QueueId = currentQueue,
+                HoldTime = holdTime
+            };
+
+            return msg;
+        }
+
+        //TODO: esto es una versión muy simplificada, el evento de transferencia atendida requiere mayor estudio
         public ProtocolMessages.Message AttendedTransferEvent(Channel ch1, Channel ch2)
         {
             ProtocolMessages.Message msg = null;

@@ -177,7 +177,12 @@ namespace AkkaActorSystem
                         {
                             call.QueueMember = queueMember;
                             Sender.Tell(new MessageCallTo() { CallHandlerId = ctf.CallHandlerId, Destination = queueMember.Member.Contact });
-                            actorQueueLog.Tell(new QLRingNoAnswer() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id, Code = ctf.Code, Reason = ctf.Reason });
+                            actorQueueLog.Tell(new QLRingNoAnswer() { QueueId = queue.Id
+                                , Channel = call.ChannelId
+                                , MemberId = call.QueueMember.Id
+                                , Code = ctf.Code, Reason = ctf.Reason
+                                , RingingTime = ctf.RingingTime
+                            });
                         }
                     }
                 }
@@ -194,7 +199,11 @@ namespace AkkaActorSystem
                     {
                         call.IsDispatching = false;
                         call.Connected = true;
-                        actorQueueLog.Tell(new QLConnect() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id });
+                        actorQueueLog.Tell(new QLConnect() { QueueId = queue.Id
+                            , Channel = call.ChannelId
+                            , MemberId = call.QueueMember.Id
+                            , HoldTime = cts.HoldTime
+                        });
                     }
                 }
 
@@ -215,14 +224,24 @@ namespace AkkaActorSystem
                     }
                     if (call.Connected == false)
                     {
-                        actorQueueLog.Tell(new QLAbandon() { QueueId = queue.Id, Channel = call.ChannelId });
+                        actorQueueLog.Tell(new QLAbandon() { QueueId = queue.Id,
+                            Channel = call.ChannelId,
+                            HoldingTime = chup.HoldingTime 
+                        });
                     }
                     else
                     {
-                        actorQueueLog.Tell(new QLCallerHangUp() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id });
+                        actorQueueLog.Tell(new QLCallerHangUp() { QueueId = queue.Id,
+                            Channel = call.ChannelId,
+                            MemberId = call.QueueMember.Id,
+                            WatingTime = chup.WatingTime,
+                            HoldingTime = chup.HoldingTime,
+                            TalkingTime = chup.TalkingTime
+                        });
                     }
                 }
             });
+
             Receive<MessageAgentHangup>(ahup =>
             {
                 //Si agent hangup hago que la llamada del caller siga en el dialplan?
@@ -240,11 +259,18 @@ namespace AkkaActorSystem
                         {
                             queueMember.MarkLastCallTime();
                             queueMember.Member.IsAvailable = true;
-                            actorQueueLog.Tell(new QLAgentHangUp() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id });
+                            actorQueueLog.Tell(new QLAgentHangUp() { QueueId = queue.Id,
+                                    Channel = call.ChannelId,
+                                    MemberId = call.QueueMember.Id,
+                                    WatingTime = ahup.WatingTime,
+                                    HoldingTime = ahup.HoldingTime,
+                                    TalkingTime = ahup.TalkingTime
+                               });
                         }
                     }
                 }
             });
+
             Receive<MessageCallTransfer>(ctrans =>
             {
                 Console.WriteLine("CALL DIST: Call Trasnfer: dst: " + ctrans.TargetName);
@@ -257,7 +283,43 @@ namespace AkkaActorSystem
                     {
                         queueMember.MarkLastCallTime();
                         queueMember.Member.IsAvailable = true;
-                        actorQueueLog.Tell(new QLTransfer() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id, TargetChannelId = ctrans.TargetId, TargetChannelName = ctrans.TargetName });
+                        actorQueueLog.Tell(new QLTransfer() { QueueId = queue.Id,
+                            Channel = call.ChannelId,
+                            MemberId = call.QueueMember.Id,
+                            TargetChannelId = ctrans.TargetId,
+                            TargetChannelName = ctrans.TargetName,
+                            WatingTime = ctrans.WatingTime,
+                            HoldingTime = ctrans.HoldingTime,
+                            TalkingTime = ctrans.TalkingTime
+                        });
+                    }
+                }
+            });
+
+            Receive<MessageCallHold>(cho =>
+            {
+                Queue queue = queueSystem.QueueCache.GetQueue(cho.QueueId);
+                if (queue != null)
+                {
+                    Call call = queue.calls.GetCallById(cho.CallHandlerId);
+                    QueueMember queueMember = call.QueueMember;
+                    if (queueMember != null)
+                    {
+                        actorQueueLog.Tell(new QLCallHoldStart() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id});
+                    }
+                }
+            });
+
+            Receive<MessageCallUnHold>(cuho =>
+            {
+                Queue queue = queueSystem.QueueCache.GetQueue(cuho.QueueId);
+                if (queue != null)
+                {
+                    Call call = queue.calls.GetCallById(cuho.CallHandlerId);
+                    QueueMember queueMember = call.QueueMember;
+                    if (queueMember != null)
+                    {
+                        actorQueueLog.Tell(new QLCallHoldStop() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id, HoldTime = cuho.HoldTime });
                     }
                 }
             });

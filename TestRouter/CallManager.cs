@@ -58,8 +58,12 @@ namespace TestRouter
             Channel ch = null;
             try
             {
+                //No deberia usar esto en vez de hacer el originate aca directamente?
+                ch = callHandler.CallTo(message.Destination);
+
                 //Origino la llamada al agente. Seguramente hay que hacerlo async
-                ch = pbx.Channels.Originate(message.Destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
+                //ch = pbx.Channels.Originate(message.Destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
+                
                 //guardo el canal en el callhandler
                 callHandlerCache.AddChannelToCallHandler(message.CallHandlerId, ch.Id);
                 //Aca no puedo agregarlo al bridge porque aun no entra en el stasis, lo agrego en el stasisStart en el else
@@ -194,11 +198,47 @@ namespace TestRouter
 
         private void Pbx_OnChannelHoldEvent(IAriClient sender, ChannelHoldEvent e)
         {
+            ProtocolMessages.Message msg = null;
+            try
+            {
+                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelHoldEvent(e.Channel.Id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Channel Hold: ERROR " + ex.Message + "\n" + ex.StackTrace);
+            }
+
+            if (msg != null)
+            {
+                actorPbxProxy.Send(msg);
+            }
+            else
+            {
+                Console.WriteLine("Channel Hold: " + e.Channel.Id + " el callhandler devolvió msg = null");
+            }
             Console.WriteLine("Channel Hold: " + e.Channel.Id);
         }
 
         private void Pbx_OnChannelUnholdEvent(IAriClient sender, ChannelUnholdEvent e)
         {
+            ProtocolMessages.Message msg = null;
+            try
+            {
+                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelUnHoldEvent(e.Channel.Id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Channel UnHold: ERROR " + ex.Message + "\n" + ex.StackTrace);
+            }
+
+            if (msg != null)
+            {
+                actorPbxProxy.Send(msg);
+            }
+            else
+            {
+                Console.WriteLine("Channel UnHold: " + e.Channel.Id + " el callhandler devolvió msg = null");
+            }
             Console.WriteLine("Channel UnHold: " + e.Channel.Id);
         }
 

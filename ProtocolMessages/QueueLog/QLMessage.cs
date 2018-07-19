@@ -20,9 +20,10 @@ namespace ProtocolMessages.QueueLog
         public string data1 { get; protected set; }
         public string data2 { get; protected set; }
         public string data3 { get; protected set; }
+        public string data4 { get; protected set; }
         public override string ToString()
         {
-            return $"{EventDate.ToString("s")}|{Channel}|{QueueId}|{EventName}|{data1}|{data2}|{data3}";
+            return $"{EventDate.ToString("s")}|{Channel}|{QueueId}|{EventName}|{data1}|{data2}|{data3}|{data4}";
         }
     }
 }
