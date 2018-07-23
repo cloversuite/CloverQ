@@ -95,6 +95,7 @@
     <Compile Include="QueueLog\QLMessage.cs" />
     <Compile Include="QueueLog\QLRingNoAnswer.cs" />
     <Compile Include="QueueLog\QLTransfer.cs" />
+    <Compile Include="RestApiGW\CMDGetAgents.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Models\Models.csproj">

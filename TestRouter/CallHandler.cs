@@ -125,9 +125,20 @@ namespace TestRouter
                 throw new Exception("Callhandler: CallToSucces: " + channelId + " no es un canal de agente: ");
             }
 
+            //trato de detener el musica en espera, puede que falle si el canal no está pasando musica en espera y yo realizo esta eccion
             try
             {
                 pbx.Bridges.StopMoh(this.Bridge.Id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Fallo al realizar StopMoh en el bridge: " + this.Bridge.Id);
+                //puedo continual ya que no es un error fatal
+            }
+
+
+            try
+            {
                 //agrego el canal al bridge, controlar que pasa si falla el originate
                 pbx.Bridges.AddChannel(this.Bridge.Id, channelId, null);
                 callState = CallState.CONNECTED;
@@ -203,7 +214,7 @@ namespace TestRouter
                     HangUpReason = causeText,
                     WatingTime = chronometer.WaitingTime,
                     HoldingTime = chronometer.HoldingTime,
-                    ConnectedTime = chronometer.ConnectedTime,
+                    //ConnectedTime = chronometer.ConnectedTime,
                     TalkingTime = chronometer.TalkingTime
                 };
                 callState = CallState.TERMINATED;
@@ -238,7 +249,7 @@ namespace TestRouter
                     HangUpReason = causeText,
                     WatingTime = chronometer.WaitingTime,
                     HoldingTime = chronometer.HoldingTime,
-                    ConnectedTime = chronometer.ConnectedTime,
+                    //ConnectedTime = chronometer.ConnectedTime,
                     TalkingTime = chronometer.TalkingTime
                 };
                 TerminateAgent();
@@ -258,7 +269,7 @@ namespace TestRouter
                         HangUpReason = causeText,
                         WatingTime = chronometer.WaitingTime,
                         HoldingTime = chronometer.HoldingTime,
-                        ConnectedTime = chronometer.ConnectedTime,
+                        //ConnectedTime = chronometer.ConnectedTime,
                         TalkingTime = chronometer.TalkingTime
                     };
                     TerminateCaller();
@@ -366,7 +377,7 @@ namespace TestRouter
                 TargetName = transferTarget.Name,
                 WatingTime = chronometer.WaitingTime,
                 HoldingTime = chronometer.HoldingTime,
-                ConnectedTime = chronometer.ConnectedTime,
+                //ConnectedTime = chronometer.ConnectedTime,
                 TalkingTime = chronometer.TalkingTime
             };
             return msg;

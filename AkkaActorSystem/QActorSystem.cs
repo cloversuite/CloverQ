@@ -85,8 +85,6 @@ namespace AkkaActorSystem
             Inbox inboxStateProxy = Inbox.Create(systemq);
             Inbox inboxLoginProxy = Inbox.Create(systemq);
 
-            //Este actor se encarga de recibir mensajes desde la API REST con Nancy
-            actorRestApiGW = systemq.ActorOf(Props.Create(() => new ActorRestApiGW()).WithDispatcher("akka.actor.my-pinned-dispatcher"), "ActorRestApiGW");
 
 
             //Este actor se encarga de acceder al sistema de persistencia (DB)
@@ -98,6 +96,10 @@ namespace AkkaActorSystem
             //Creo el calldistributor, este actor es el que al recibir una llamada nueva intenta rutearla a un agente libre, 
             //tambien recibe mensajes del actorStateProxy para mantener el estado de los dispositivos de los agentes
             actorCallDistributor = systemq.ActorOf(Props.Create(() => new ActorCallDistributor(actorDataAccess, actorQueueLog)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "CallDistributor");
+
+            //Este actor se encarga de recibir mensajes desde la API REST con Nancy
+            actorRestApiGW = systemq.ActorOf(Props.Create(() => new ActorRestApiGW(actorCallDistributor)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "ActorRestApiGW");
+
 
             actorMsgRouter = systemq.ActorOf(Props.Create(() => new ActorMsgRouter(actorCallDistributor)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MsgRouter");
             actorMemberLoginService = systemq.ActorOf(Props.Create(() => new ActorMemberLoginService(actorCallDistributor, actorDataAccess, inboxStateProxy.Receiver)).WithDispatcher("akka.actor.my-pinned-dispatcher"), "MemberLoginService");

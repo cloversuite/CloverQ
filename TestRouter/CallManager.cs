@@ -59,6 +59,7 @@ namespace TestRouter
             try
             {
                 //No deberia usar esto en vez de hacer el originate aca directamente?
+                Console.WriteLine("CALL TO: " + message.Destination);
                 ch = callHandler.CallTo(message.Destination);
 
                 //Origino la llamada al agente. Seguramente hay que hacerlo async

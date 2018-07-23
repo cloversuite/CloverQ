@@ -27,6 +27,12 @@ namespace QueueSystem
                 members.Add(member.Id, member);
             }else
             {
+                //verifico si se relogueo desde otro endpoint, si es asi actualizo el contacto
+                if (members[member.Id].DeviceId != member.DeviceId)
+                {
+                    members[member.Id].DeviceId = member.DeviceId;
+                    members[member.Id].Contact = member.Contact;
+                }
                 members[member.Id].IsLogedIn = true;
                 members[member.Id].IsAvailable = true;
             }

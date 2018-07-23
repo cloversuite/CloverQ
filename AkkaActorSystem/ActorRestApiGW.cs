@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
+using ProtocolMessages.RestApiGW;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +13,22 @@ namespace AkkaActorSystem
     {
         private readonly ILoggingAdapter logger;
 
-        public ActorRestApiGW()
+        public ActorRestApiGW(IActorRef actorCallDistributor)
         {
             logger = Context.GetLogger();
             Receive<string>(msg =>
             {
+                if (msg == "status") {
+                    logger.Info("FROM Nancy: " + msg + " required");
+                }
+                else
+                {
+                    logger.Error("FROM Nancy: " + msg + ", no manejado");
+                }
+
                 logger.Info("FROM Nancy: " + msg);
             });
+
         }
     }
 }
