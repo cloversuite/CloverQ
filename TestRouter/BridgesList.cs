@@ -15,13 +15,30 @@ namespace TestRouter
         {
 
         }
+        public void SetFreeBridge(string bridgeId)
+        {
+            foreach (BridgeItem b in this.bridgeCache)
+            {
+                if (b.Id == bridgeId)
+                    b.Free = true;
+            }
+        }
         public Bridge GetFreeBridge()
         {
             Bridge b = null;
             foreach (BridgeItem bi in bridgeCache)
             {
-                if (bi.Free)
-                    b = bi.Bridge;
+                lock (bridgeCache)
+                {
+                    if (bi.Free)
+                    {
+                        b = bi.Bridge;
+                        bi.Free = false;
+                        break;
+
+                    }
+                }
+                
             }
             return b;
         }
@@ -29,7 +46,10 @@ namespace TestRouter
         public BridgeItem AddNewBridge(Bridge bridge)
         {
             BridgeItem bi = new BridgeItem(bridge);
-            bi.Free = true;
+            if (bridge.Channels.Count != 0)
+                bi.Free = true;
+            else
+                bi.Free = false;
             bridgeCache.Add(bi);
             return bi;
         }

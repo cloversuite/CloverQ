@@ -35,7 +35,11 @@ namespace TestRouter
         {
             get
             {
-                return (timeConnect - timeStart).Seconds;
+                //si es un abandono nunca hay un connect
+                if((int)(timeConnect - timeStart).TotalSeconds < 0)
+                    return (int)(DateTime.Now - timeStart).TotalSeconds;
+                else
+                    return (int)(timeConnect - timeStart).TotalSeconds;
             }
         }
 
@@ -45,7 +49,7 @@ namespace TestRouter
         public int ConnectedTime {
             get
             {
-                return (timeEnd - timeConnect).Seconds;
+                return (int)(timeEnd - timeConnect).TotalSeconds;
             }
         }
 
@@ -83,7 +87,7 @@ namespace TestRouter
         public int CallToEndFailed()
         {
             timeStopRing = DateTime.Now;
-            int elapsed = (timeStopRing - timeStartRing).Seconds;
+            int elapsed = (int)(timeStopRing - timeStartRing).TotalSeconds;
             return elapsed;
         }
         /// <summary>
@@ -94,7 +98,7 @@ namespace TestRouter
         {
             timeStopRing = DateTime.Now;
             timeConnect = timeStopRing;
-            int elapsed = (timeConnect - timeStart).Seconds;
+            int elapsed = (int)(timeConnect - timeStart).TotalSeconds;
             return elapsed;
         }
 
@@ -113,7 +117,7 @@ namespace TestRouter
         public int CallHoldStop()
         {
             timeStopHold = DateTime.Now;
-            int elapsed = (timeStopHold - timeStartHold).Seconds;
+            int elapsed = (int) (timeStopHold - timeStartHold).TotalSeconds;
             totalCallHold += elapsed;
             return elapsed;
         }
@@ -124,7 +128,7 @@ namespace TestRouter
         public int CallEnd()
         {
             timeEnd = DateTime.Now;
-            int elapsed = (timeEnd - timeStart).Seconds;
+            int elapsed = (int)(timeEnd - timeStart).TotalSeconds;
             return elapsed;
         }
     }

@@ -60,7 +60,7 @@ namespace QueueSystem
                     members.Add(next);
 
                     //TODO: poner esta logica dentro del queuemember cosa de solo consultar una propiedad 
-                    if ((next.Member.IsAvailable && !next.IsPaused && next.LastCall.AddSeconds((double)wrapupTime) < DateTime.Now)) //!next.Member.IsAvailable ||
+                    if ((!next.Member.DeviceIsInUse && next.Member.IsAvailable && !next.IsPaused && next.LastCall.AddSeconds((double)wrapupTime) < DateTime.Now)) //!next.Member.IsAvailable ||
                     {
                         hasOne = true;
                         next.Member.IsAvailable = false;

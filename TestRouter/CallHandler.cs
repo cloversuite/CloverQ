@@ -76,6 +76,12 @@ namespace TestRouter
             }
         }
 
+        public bool IsCallTerminated() {
+            if (callState == CallState.TERMINATED)
+                return true;
+            else
+                return false;
+        }
 
         //Constructor
         public CallHandler(string appName, AriClient pbx, Bridge bridge, Channel caller)

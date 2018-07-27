@@ -33,7 +33,7 @@ namespace TestRouter
         public void RemoveCallHandler(string id) {
             CallHandler c = this.GetByCallHandlerlId(id);
             channels.Remove(c.Caller.Id);
-            bridges.Remove(c.Bridge.Id);
+            //bridges.Remove(c.Bridge.Id); //no lo debo remover, debo marcarlo como libre para otra llamada
             calls.Remove(c.Id);
             if (c.Agent != null)
                 channels.Remove(c.Agent.Id);

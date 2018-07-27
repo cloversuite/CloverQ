@@ -64,7 +64,7 @@ namespace TestRouter
 
                 //Origino la llamada al agente. Seguramente hay que hacerlo async
                 //ch = pbx.Channels.Originate(message.Destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
-                
+
                 //guardo el canal en el callhandler
                 callHandlerCache.AddChannelToCallHandler(message.CallHandlerId, ch.Id);
                 //Aca no puedo agregarlo al bridge porque aun no entra en el stasis, lo agrego en el stasisStart en el else
@@ -103,8 +103,10 @@ namespace TestRouter
             pbx.OnChannelDestroyedEvent += Pbx_OnChannelDestroyedEvent; //el canal fué terminado, sehizo efectivo el hangup
             pbx.OnChannelHoldEvent += Pbx_OnChannelHoldEvent; //el canal se puso onhold
             pbx.OnChannelUnholdEvent += Pbx_OnChannelUnholdEvent;
+            pbx.OnChannelLeftBridgeEvent += Pbx_OnChannelLeftBridgeEvent;
             pbx.OnBridgeAttendedTransferEvent += Pbx_OnBridgeAttendedTransferEvent;
             pbx.OnBridgeBlindTransferEvent += Pbx_OnBridgeBlindTransferEvent;
+            
 
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
@@ -125,7 +127,6 @@ namespace TestRouter
             }
 
         }
-
 
         public void Disconnect()
         {
@@ -250,9 +251,10 @@ namespace TestRouter
             {
                 msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelHangupEvent(e.Channel.Id, e.Cause, "");
             }
-            catch (Exception ex){
+            catch (Exception ex)
+            {
                 Console.WriteLine("Channel HangUpReques: ERROR " + ex.Message + "\n" + ex.StackTrace);
-            } 
+            }
 
             if (msg != null)
             {
@@ -262,8 +264,21 @@ namespace TestRouter
             {
                 Console.WriteLine("Channel HangUpReques: " + e.Channel.Id + " el callhandler devolvió msg = null");
             }
-            callHandlerCache.RemoveChannel(e.Channel.Id);
-            Console.WriteLine("Channel HangUpReques: " + e.Channel.Id + " remuevo channel del callhandler");
+            //si la llamada finalizó remuevo todo
+            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
+            if (callHandler != null && callHandler.IsCallTerminated())
+            {
+                Console.WriteLine("Channel HangUpRequest: " + e.Channel.Id + ", call TERMINATED remuevo todo el callhandler: " + callHandler);
+                callHandlerCache.RemoveCallHandler(callHandler.Id);
+                
+                Console.WriteLine("Channel HangUpRequest: el bridge: " + callHandler.Bridge.Id + " lo marco como free");
+                bridgesList.SetFreeBridge(callHandler.Bridge.Id);
+            }
+            else // hago lo mismo que el channel destroy
+            {
+                callHandlerCache.RemoveChannel(e.Channel.Id);
+                Console.WriteLine("Channel HangUpRequest: " + e.Channel.Id + " remuevo channel del callhandler");
+            }
         }
 
         private void Pbx_OnChannelDestroyedEvent(IAriClient sender, ChannelDestroyedEvent e)
@@ -271,9 +286,14 @@ namespace TestRouter
             ProtocolMessages.Message msg = null;
             try
             {
-                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelDestroyEvent(e.Channel.Id, e.Cause, e.Cause_txt);
+                //si aun existe el callhandler manejo el evento
+                if (callHandlerCache.GetByChannelId(e.Channel.Id) != null)
+                    msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelDestroyEvent(e.Channel.Id, e.Cause, e.Cause_txt);
             }
-            catch { } //TODO: arreglar esto!!
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error en Pbx_OnChannelDestroyedEvent - " + ex.Message);
+            }
 
             if (msg != null)
             {
@@ -285,6 +305,24 @@ namespace TestRouter
             }
             callHandlerCache.RemoveChannel(e.Channel.Id);
             Console.WriteLine("Channel Destroy: " + e.Channel.Id + " remuevo channel del callhandler");
+
+        }
+
+        private void Pbx_OnChannelLeftBridgeEvent(IAriClient sender, ChannelLeftBridgeEvent e)
+        {
+            //Aca no puedo marcar un bridge como free, el primer channel entra y sale varias veces por la negociacion o algo asi y en 
+            //consecuencia cuando el primer channerl entra y sale y en ese momento tengo 0 channels en el bridge y lo marco como free, lo que es incorrecto
+            //Esto produce que varias llamadas entrantes queden conectadas al mismo bridge, muuuuy malo!
+
+            //string bridgeId = e.Bridge.Id;
+            //int bridgeChannelsCount = e.Bridge.Channels.Count;
+            //Console.WriteLine("El canal: " + e.Channel.Id+ ", dejo el bridge: " + bridgeId + " posee: " + bridgeChannelsCount);
+            //if (bridgeChannelsCount == 0) {
+            //    //esto si lo hago aca, ya que si el bridge no posee mas canales lo marco como libre para otra llamada
+            //    Console.WriteLine("El bridge: " + bridgeId + " lo marco como free");
+            //    bridgesList.SetFreeBridge(bridgeId);
+            //}
+
         }
 
         private void Pbx_OnChannelStateChangeEvent(IAriClient sender, ChannelStateChangeEvent e)
@@ -303,7 +341,8 @@ namespace TestRouter
                     Console.WriteLine("Channel State Change: " + e.Channel.Id + " el callhandler devolvió msg = null");
                 }
             }
-            catch(Exception ex) {
+            catch (Exception ex)
+            {
                 Console.WriteLine("ERROR!!: Pbx_OnChannelStateChangeEvent chan:" + e.Channel.Id + ", error: " + ex.Message);
             }
 
@@ -318,8 +357,10 @@ namespace TestRouter
             //aca debería ver el abandono, si sale de la app sin que lo atiendan abandonó?
             CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
             if (callHandler != null) //esto es en caso de que existan llamadas en stasis antes de arrancar la app, debería cargar la info de lo preexistente en la pbx
+            {
                 callHandlerCache.RemoveCallHandler(callHandler.Id);
-
+                Console.WriteLine("El canal: " + e.Channel.Id + ", remuevo el callhandler: " + callHandler.Id);
+            }
         }
 
         private void Pbx_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
@@ -355,7 +396,6 @@ namespace TestRouter
                         Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
                     }
 
-
                     CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
                     callHandlerCache.AddCallHandler(callHandler);
                     Console.WriteLine("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
@@ -363,6 +403,10 @@ namespace TestRouter
                     //Agrego el canal al bridge
                     try
                     {
+                        //Seteo la variabl callhandlerid del canal para identificarlo, esto solo para el caller
+                        //ver que pasa cuando se hace un transfer a una cola, deberia cambiar el callhandlerid?
+                        //En el hangup pregunto por esta variable y si la encuentro, libero la llamada y marco el bridge como libre
+                        pbx.Channels.SetChannelVar(e.Channel.Id, "cq_callhandlerid",callHandler.Id);
                         //agrego el canal al bridge, controlar que pasa si falla el originate
                         pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
                     }
@@ -375,7 +419,7 @@ namespace TestRouter
                     var queueId = e.Args[0];
                     ProtocolMessages.Message msg = null;
                     msg = callHandler.SetCurrentQueue(queueId);
-                    if(msg != null)
+                    if (msg != null)
                         actorPbxProxy.Send(msg);
                 }
                 else //si no es null entonces el canal lo agregé yo cuando hice el CallTo

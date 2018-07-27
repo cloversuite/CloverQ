@@ -226,7 +226,7 @@ namespace AkkaActorSystem
                     {
                         actorQueueLog.Tell(new QLAbandon() { QueueId = queue.Id,
                             Channel = call.ChannelId,
-                            HoldingTime = chup.HoldingTime 
+                            WaitingTime = chup.WatingTime 
                         });
                     }
                     else

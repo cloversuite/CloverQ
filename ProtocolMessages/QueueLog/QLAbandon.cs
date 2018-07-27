@@ -13,6 +13,6 @@ namespace ProtocolMessages.QueueLog
             base.EventName = this.GetType().Name;
         }
 
-        public int HoldingTime { get { return int.Parse(base.data1); } set { base.data1 = value.ToString(); } }
+        public int WaitingTime { get { return int.Parse(base.data1); } set { base.data1 = value.ToString(); } }
     }
 }
