@@ -4,20 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QueueSystem
+namespace ProtocolMessages.Commands
 {
-    public class Call
+    public class RESCall
     {
-        public Call()
-        {
-            StartTime = DateTime.Now;
-        }
         public DateTime StartTime { get; set; }
         public string CallHandlerId { get; set; }
         public string ChannelId { get; set; }
         public bool IsDispatching { get; set; } //  esto indica que ya mandé al callhandler un memeber para que contacte, y aún no concretó
         public bool Connected { get; set; }
         public long SenderUid { get; set; }
-        public QueueMember QueueMember { get; set; } //contiene el memeber que mandé a conectar
+        public string QueueMemberId { get; set; }
+        public string QueueMemberName { get; set; }
+        public string QueueMemberChannelId { get; set; }
+
     }
 }

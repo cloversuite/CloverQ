@@ -40,6 +40,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\CMDListAgents.cs" />
+    <Compile Include="Commands\CMDListQueues.cs" />
+    <Compile Include="Commands\CMDLoginAgent.cs" />
+    <Compile Include="Commands\CMDLogoffAgent.cs" />
+    <Compile Include="Commands\CMDMessage.cs" />
+    <Compile Include="Commands\CMDMoveAgent.cs" />
+    <Compile Include="Commands\CMDPauseAgent.cs" />
+    <Compile Include="Commands\CMDUnpauseAgent.cs" />
+    <Compile Include="Commands\RESCall.cs" />
+    <Compile Include="Commands\RESJson.cs" />
+    <Compile Include="Commands\RESMember.cs" />
+    <Compile Include="Commands\RESQueue.cs" />
+    <Compile Include="Commands\RESQueueList.cs" />
     <Compile Include="DAGetMemberById.cs" />
     <Compile Include="DAGetMemberQueues.cs" />
     <Compile Include="DAGetMembers.cs" />
@@ -95,7 +108,6 @@
     <Compile Include="QueueLog\QLMessage.cs" />
     <Compile Include="QueueLog\QLRingNoAnswer.cs" />
     <Compile Include="QueueLog\QLTransfer.cs" />
-    <Compile Include="RestApiGW\CMDGetAgents.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Models\Models.csproj">

@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.Event;
-using ProtocolMessages.RestApiGW;
+using Newtonsoft.Json;
+using ProtocolMessages.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,18 +16,23 @@ namespace AkkaActorSystem
 
         public ActorRestApiGW(IActorRef actorCallDistributor)
         {
-            logger = Context.GetLogger();
-            Receive<string>(msg =>
-            {
-                if (msg == "status") {
-                    logger.Info("FROM Nancy: " + msg + " required");
-                }
-                else
-                {
-                    logger.Error("FROM Nancy: " + msg + ", no manejado");
-                }
+            IActorRef originalSender;
 
-                logger.Info("FROM Nancy: " + msg);
+            logger = Context.GetLogger();
+
+            Receive<CMDListQueues>(msg =>
+            {
+                originalSender = Sender;
+                RESQueueList rql =  actorCallDistributor.Ask<RESQueueList>(msg).Result;
+                rql.Nombre = "Ahi lo mando ";
+                RESJson rqljson = new RESJson()
+                {
+                    JsonString = JsonConvert.SerializeObject(rql)
+                };
+                
+                originalSender.Tell(rqljson, Self );
+
+                logger.Info("=> ResJson FROM Nancy: " + rqljson.JsonString);
             });
 
         }

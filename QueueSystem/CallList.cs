@@ -36,6 +36,13 @@ namespace QueueSystem
             strategy = new CallOrderStrategyDefault(calls);
         }
 
+        public List<Call> Calls {
+            get
+            {
+                return calls;
+            }
+        }
+
         /// <summary>
         /// Método que me permite cambiar la estrategia ordenamiento de llamada
         /// </summary>

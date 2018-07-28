@@ -68,6 +68,7 @@ namespace AkkaActorSystem
                                 public-hostname = localhost
                             }
                         }
+                            
                     }");
 
             //Creo logger para actores, life cycle, y demas del sistema de actores.

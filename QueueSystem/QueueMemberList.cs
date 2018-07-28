@@ -91,7 +91,7 @@ namespace QueueSystem
         /// <summary>
         /// Propiedad que permite asignar u obtener la lista subyacente de miembros
         /// </summary>
-        List<QueueMember> Members { get { return members; } set { members = value; } }
+        public List<QueueMember> Members { get { return members; } set { members = value; } }
 
         /// <summary>
         /// Agrega un miembro a la lista

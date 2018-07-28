@@ -9,8 +9,7 @@ using ProtocolMessages;
 using ProtocolMessages.QueueLog;
 using QueueSystem;
 using Models;
-
-
+using ProtocolMessages.Commands;
 
 namespace AkkaActorSystem
 {
@@ -347,6 +346,51 @@ namespace AkkaActorSystem
                         }
                     }
             });
+
+            #region "MANEJO DE CONSULTAS"
+
+            /**************** MANEJO DE CONSULTAS *******************/
+
+            Receive<CMDListQueues>(cmdlq => {
+                RESQueueList rql = new RESQueueList();
+
+                foreach (Queue queue in queueSystem.QueueCache.QueueList) {
+                    RESQueue rq = new RESQueue() {
+                        Id = queue.Id,
+                        MediaType = queue.MediaType
+                    };
+
+                    foreach (Call call in queue.calls.Calls) {
+                        RESCall rc = new RESCall()
+                        {
+                            CallHandlerId = call.CallHandlerId,
+                            ChannelId = call.ChannelId,
+                            QueueMemberId = call.QueueMember!=null? call.QueueMember.Member.Id:null,
+                            QueueMemberName = call.QueueMember != null ? call.QueueMember.Member.Name : null,
+                            StartTime = call.StartTime,
+                            IsDispatching = call.IsDispatching,
+                            Connected = call.Connected
+                        };
+                        rq.Calls.Add(rc);
+                    }
+
+                    foreach (QueueMember qMember in queue.members.Members)
+                    {
+                        RESMember rm = new RESMember()
+                        {
+                            Contact = qMember.Member.Contact,
+                            DeviceId = qMember.Member.DeviceId,
+                            Name = qMember.Member.Name
+                        };
+                        rq.Members.Add(rm);
+                    }
+
+                    rql.Queues.Add(rq);
+                }
+                Sender.Tell(rql, Self);
+            });
+
+            #endregion
 
         }
         private void ScheduleMessageToCallDist()

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProtocolMessages.RestApiGW
+namespace ProtocolMessages.Commands
 {
-    public class CMDGetAgents
+    public class CMDMoveAgent : CMDMessage
     {
     }
 }
