@@ -12,6 +12,7 @@ namespace LoginProvider
     //esta clase recibe los login /logoff desde un asterisk y realiza esas funciones contra el actorMemberLoginService
     public class PbxLoginProvider
     {
+        DeviceMemberMap deviceMemberMap = new DeviceMemberMap();
         ActorLoginProxy actorLoginProxy = null;
         AriClient pbx;
         string appName = "myPbxLoginProvider";
@@ -19,6 +20,9 @@ namespace LoginProvider
         public PbxLoginProvider(ActorLoginProxy actorLoginProxy)
         {
             this.actorLoginProxy = actorLoginProxy;
+            actorLoginProxy.LoginResponse += ActorLoginProxy_LoginResponse;
+            //Comienzo a recibir eventos
+            actorLoginProxy.Start();
         }
 
         /// <summary>
@@ -37,6 +41,8 @@ namespace LoginProvider
 
             //SUBSCRIBO A EVENTOS
             pbx.OnUnhandledEvent += Pbx_OnUnhandledEvent;
+            pbx.OnStasisStartEvent += Pbx_OnStasisStartEvent;
+            pbx.OnStasisEndEvent += Pbx_OnStasisEndEvent;
 
 
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
@@ -44,9 +50,9 @@ namespace LoginProvider
             {
                 pbx.EventDispatchingStrategy = EventDispatchingStrategy.DedicatedThread;
                 pbx.Connect(true, 5);
-                Thread.Sleep(1000);
-                pbx.Applications.Subscribe(appName, "endpoint:SIP");
-                pbx.Applications.Subscribe(appName, "deviceState:");
+                //Thread.Sleep(1000);
+                //pbx.Applications.Subscribe(appName, "endpoint:SIP");
+                //pbx.Applications.Subscribe(appName, "deviceState:");
 
             }
             catch (Exception ex)
@@ -55,6 +61,115 @@ namespace LoginProvider
             }
 
         }
+
+        private void Pbx_OnStasisEndEvent(IAriClient sender, AsterNET.ARI.Models.StasisEndEvent e)
+        {
+            Console.WriteLine("EL canal: "+ e.Channel.Id + "abandonó la app: " + appName);
+        }
+
+        /// <summary>
+        /// This stasis app receives in e.Args[0] the action like "login" and then send de corresponding msg to the login proxy
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Pbx_OnStasisStartEvent(IAriClient sender, AsterNET.ARI.Models.StasisStartEvent e)
+        {
+            //string eventname = ((JObject)e.Userevent).SelectToken("eventname").Value<string>();
+            string eventname = e.Args[0]; //["eventname"];
+            string memberId = e.Args[1]; //["agent"];
+            string password = e.Args[2]; //["password"];
+            string contact = e.Args[3]; //["contact"];
+            string channelId = e.Channel.Id; //Envio el channel ID para trackear la respuesta
+            string deviceId = "";
+            try
+            {
+                //obtenemos el deviceId del string de contacto
+                deviceId = Regex.Match(contact, @"\<(.+?)\@").Groups[1].Value.Replace(":", "/").ToUpper();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("PbxLoginProvider: Error al obtener deviceId del contacto. " + ex.Message);
+            }
+            
+
+            //Si no me pasan el memberId, trato de recuperarlo del deviceMemberMap
+            if (String.IsNullOrEmpty(memberId))
+            {
+                memberId = deviceMemberMap.GetMemberIdFromDeviceId(deviceId);
+                //Si tampoco lo encuentro en el deviceMemberMap
+                if (String.IsNullOrEmpty(memberId))
+                {
+                    Console.WriteLine("PbxLoginProvider: no se pudo determinar el memeberId para logoff");
+                }
+            }
+
+            if (eventname == "login")
+            {
+                //meter todo este parse en un metodo estático tal vez una clase contact Contact.Parse?
+                contact = contact.Replace(";", ">");
+                deviceId = Regex.Match(contact, @"\<(.+?)\@").Groups[1].Value.Replace(":", "/").ToUpper();
+                string number = Regex.Match(contact, @"\:(.+?)\@").Groups[1].Value;
+                string address = Regex.Match(contact, @"\@(.+?)\>").Groups[1].Value;
+                string uri = Regex.Match(contact, @"\<(.+?)\>").Groups[1].Value.Replace("<", "").Replace(">", "");
+                string destination = "SIP/" + address + "/" + number;
+
+                //esta llamada la tengo que pasar de ask a tell para poder hacer todo async
+                //MessageMemberLoginResponse mlr = await 
+                Console.WriteLine("Login para: " + memberId);
+                actorLoginProxy.Send(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId, RequestId = channelId });
+            }
+            else if (eventname == "logoff")
+            {
+                if (!String.IsNullOrEmpty(memberId))
+                {
+                    deviceMemberMap.UnTrackMemberDeviceId(deviceId);
+                    actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password });
+                }
+                else
+                    Console.WriteLine("LogOff: Error MembderId es nulo o vacio");
+
+                //como no manejo nada mas sigo adelante en el dialplan
+                pbx.Channels.ContinueInDialplan(e.Channel.Id);
+            }
+            else if (eventname == "pause")
+            {
+                if (!String.IsNullOrEmpty(memberId))
+                    actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password });
+                else
+                    Console.WriteLine("Pause: Error MembderId es nulo o vacio");
+
+                //como no manejo nada mas sigo adelante en el dialplan
+                pbx.Channels.ContinueInDialplan(e.Channel.Id);
+            }
+            else if (eventname == "unpause")
+            {
+                if (!String.IsNullOrEmpty(memberId))
+                    actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password });
+                else
+                    Console.WriteLine("UnPause: Error MembderId es nulo o vacio");
+
+                //como no manejo nada mas sigo adelante en el dialplan
+                pbx.Channels.ContinueInDialplan(e.Channel.Id);
+            }
+
+        }
+
+        private void ActorLoginProxy_LoginResponse(object sender, MessageMemberLoginResponse message)
+        {
+            //Manejo la respuesta del login 
+            Console.WriteLine("Member " + message.MemberId + "login from:" + message.Contact + " response, " + message.Reason);
+
+            //si el login es satisfactorio lo asicio al device
+            if (message.LoguedIn)
+            {
+                deviceMemberMap.TrackMemberDeviceId(message.DeviceId, message.MemberId);
+            }
+
+            //En el RequestId me viene el canal que originó el mesaje de login
+            pbx.Channels.SetChannelVar(message.ResquestId, "logedin", message.LoguedIn.ToString());
+            pbx.Channels.ContinueInDialplan(message.ResquestId);
+        }
+
 
         private async void  Pbx_OnChannelUsereventEvent(IAriClient sender, AsterNET.ARI.Models.ChannelUsereventEvent e)
         {

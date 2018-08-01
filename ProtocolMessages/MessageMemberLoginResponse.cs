@@ -10,5 +10,9 @@ namespace ProtocolMessages
     {
         public bool LoguedIn { get; set; }
         public string Reason { get; set; }
+        public string MemberId { get; set; }
+        public string DeviceId { get; set; }
+        public string Contact { get; set; }
+        public string ResquestId { get; set; }
     }
 }

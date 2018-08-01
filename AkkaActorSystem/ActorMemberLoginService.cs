@@ -37,8 +37,10 @@ namespace AkkaActorSystem
 
                 if (member.Member != null && member.Member.Id == mlin.MemberId && member.Member.Password == mlin.Password)
                 {
-                    Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = true, Reason = "Member authenticated and logedin." });
+                    Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = true, Reason = "Member authenticated and logedin.", MemberId = mlin.MemberId, ResquestId = mlin.RequestId, DeviceId = mlin.DeviceId });
 
+                    //le agrego al mlin el nombre del member
+                    mlin.Name = member.Member.Name;
                     callDistributor.Tell(mlin);
 
                     //Solicito de manera asincrónica las colas del miembro

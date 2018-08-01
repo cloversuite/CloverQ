@@ -125,7 +125,9 @@ namespace AkkaActorSystem
                 //verifico que sea del mismo dispositivo
                 if (dsc.DeviceId == member.DeviceId)
                 {
-                    member.Contact = dsc.Contact;
+                    if(!String.IsNullOrEmpty(dsc.Contact))
+                        member.Contact = dsc.Contact;
+
                     member.DeviceIsInUse = dsc.IsInUse;
                     member.EndpointIsOfline = dsc.IsOffline;
                     Console.WriteLine("CALL DIST: member STATE changed, Contact: " + member.Contact + ", IsInUse: " + member.DeviceIsInUse);
@@ -378,6 +380,7 @@ namespace AkkaActorSystem
                     {
                         RESMember rm = new RESMember()
                         {
+                            Id = qMember.Member.Id,
                             Contact = qMember.Member.Contact,
                             DeviceId = qMember.Member.DeviceId,
                             Name = qMember.Member.Name

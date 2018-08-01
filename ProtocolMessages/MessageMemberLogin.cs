@@ -13,5 +13,6 @@ namespace ProtocolMessages
         public string Password { get; set; }
         public string Contact { get; set; }
         public string DeviceId { get; set; }
+        public string RequestId { get; set; }
     }
 }
