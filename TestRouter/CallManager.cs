@@ -17,6 +17,7 @@ namespace TestRouter
         ActorPbxProxy actorPbxProxy = null;
         BridgesList bridgesList = new BridgesList();
         CallHandlerCache callHandlerCache = new CallHandlerCache();
+        CallTimeoutHandler callTimeOutHandler = new CallTimeoutHandler();
         private const string appName = "bridge_test";
 
         public CallManager(ActorPbxProxy actorPbxProxy)
@@ -26,9 +27,27 @@ namespace TestRouter
             actorPbxProxy.Receive += ActorPbxProxy_Receive;
             actorPbxProxy.AnswerCall += ActorPbxProxy_AnswerCall;
             actorPbxProxy.CallTo += ActorPbxProxy_CallTo;
+            //subcribo al evento del call timeout handler
+            callTimeOutHandler.CallTimeOutEvent += CallTimeOutHandler_CallTimeOutEvent;
+
+            //comienzo a monitorear los calltimeout
+            callTimeOutHandler.Start();
             //Comienzo a recibir eventos
             actorPbxProxy.Start();
         }
+
+        #region Handle Call Timeout Events
+        /// <summary>
+        /// This event fires every time that a call has timeout waiting on the queue
+        /// </summary>
+        /// <param name="callTimeOut">Holds the call id and the timeout</param>
+        private void CallTimeOutHandler_CallTimeOutEvent(CallTimeOut callTimeOut)
+        {
+            //TODO: ver como hago que la llamada continue y enviar el msg adecuado al callditributor
+            //Esto deberia generar un mensaje EXIT WITH TIMEOUT
+            Console.WriteLine("La LLamada: " + callTimeOut.CallHandlerId + " Expiro!");
+        }
+        #endregion
 
         #region Handle Actor Sistem Events
         private void ActorPbxProxy_AnswerCall(object sender, MessageAnswerCall message)
@@ -39,6 +58,24 @@ namespace TestRouter
                 if (message.MediaType == "MoH")
                 {
                     callHandler.AnswerCaller(message.MediaType, message.Media);
+                    //Si el calldistributor me envia timeout = 0 entonces no hay timeout
+                    //Si el call handler posee timeout > 0 tiene precedencia sobre el message.timeout
+                    int callTimeOut = 0;
+                    if (callHandler.TimeOut > 0)
+                        callTimeOut = callHandler.TimeOut;
+                    else if (message.TimeOut > 0)
+                        callTimeOut = message.TimeOut;
+
+                    //si calltimeout = 0 significa quen no hay timeout
+                    if (callTimeOut > 0)
+                    {
+                        callTimeOutHandler.AddCallTimeOut(
+                            new CallTimeOut()
+                            {
+                                CallHandlerId = message.CallHandlerId,
+                                TimeOut = callTimeOut
+                            });
+                    }
                     Console.WriteLine("El canal: " + callHandler.Caller.Id + " fué atendido correctamente ");
                 }
             }
@@ -143,8 +180,8 @@ namespace TestRouter
                 }
 
             }
+            callTimeOutHandler.Stop();
             actorPbxProxy.Stop();
-
             pbx.Disconnect();
         }
 
@@ -416,7 +453,10 @@ namespace TestRouter
                     }
 
                     //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
+                    //TODO: si este parametro no existe no entrar al evento stasisstart
                     var queueId = e.Args[0];
+                    if (e.Args.Count >= 1)
+                        callHandler.SetTimeOut(e.Args[1]);
                     ProtocolMessages.Message msg = null;
                     msg = callHandler.SetCurrentQueue(queueId);
                     if (msg != null)
@@ -427,7 +467,11 @@ namespace TestRouter
                     CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
                     try
                     {
-                        callHandler.CallToSuccess(e.Channel.Id); //Le digo al callhandler que el canal generado en el callto ya está en el dial plan, cuando el estado pasa a Up es que contestó el agente
+                        //lo conecte a un member, asi que temuevo el timeout
+                        callTimeOutHandler.CancelCallTimOut(callHandler.Id);
+                        //Le digo al callhandler que el canal generado en el callto ya está en el dial plan, cuando el estado pasa a Up es que contestó el agente
+                        callHandler.CallToSuccess(e.Channel.Id); 
+                        
                     }
                     catch (Exception ex)
                     {

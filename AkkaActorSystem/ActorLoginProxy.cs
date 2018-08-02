@@ -32,21 +32,20 @@ namespace AkkaActorSystem
             this.inbox = inbox;
         }
 
-        public void Diconnect()
+        public void Stop()
         {
             //Esto es solo si el proxy va a poder mandar mensajes a la pbx
-            //if (threadReceiver != null)
-            //{
-            //    try
-            //    {
-            //        threadReceiver.Interrupt();
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine("Error al detener el thread receiver del ActorPbxProxy: " + ex.Message);
-            //    }
-
-            //}
+            if (threadReceiver != null)
+            {
+                try
+                {
+                    threadReceiver.Interrupt();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error al detener el thread receiver del ActorLoginProxy: " + ex.Message);
+                }
+            }
         }
 
         private void Receiver()

@@ -13,5 +13,7 @@ namespace ProtocolMessages
         public string MediaType { get; set; }
         //indica que va a escuchar el que llama mientras espera
         public string Media { get; set; }
+        //indica el timeout de la cola
+        public int TimeOut { get; set; }
     }
 }

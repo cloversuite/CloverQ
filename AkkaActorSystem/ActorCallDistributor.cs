@@ -383,7 +383,11 @@ namespace AkkaActorSystem
                             Id = qMember.Member.Id,
                             Contact = qMember.Member.Contact,
                             DeviceId = qMember.Member.DeviceId,
-                            Name = qMember.Member.Name
+                            Name = qMember.Member.Name,
+                            IsPaused = qMember.Member.IsPaused,
+                            IsLogedIn = qMember.Member.IsLogedIn,
+                            PauseCode = qMember.Member.PauseCode,
+                            PauseReason = qMember.Member.PauseReason
                         };
                         rq.Members.Add(rm);
                     }

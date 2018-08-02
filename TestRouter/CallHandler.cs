@@ -16,6 +16,7 @@ namespace TestRouter
         string id;
         string appName;
         string currentQueue;
+        int timeOut = 0; //queue timeout
         AriClient pbx;
         Bridge bridge;
         Channel caller;
@@ -75,8 +76,12 @@ namespace TestRouter
                 return currentQueue;
             }
         }
+        public int TimeOut {
+            get { return timeOut; }
+        }
 
-        public bool IsCallTerminated() {
+        public bool IsCallTerminated()
+        {
             if (callState == CallState.TERMINATED)
                 return true;
             else
@@ -99,7 +104,8 @@ namespace TestRouter
         }
 
         //significa EnterQueue
-        public ProtocolMessages.Message SetCurrentQueue(string queueId) {
+        public ProtocolMessages.Message SetCurrentQueue(string queueId)
+        {
             currentQueue = queueId;
             chronometer.CallStart();
             return new MessageNewCall() { CallHandlerId = id, QueueId = queueId, ChannelId = caller.Id };
@@ -213,7 +219,8 @@ namespace TestRouter
             if (channelId == caller.Id && callState != CallState.TERMINATED)
             {
                 int x = chronometer.CallEnd();
-                msg = new MessageCallerHangup() {
+                msg = new MessageCallerHangup()
+                {
                     CallHandlerId = this.id,
                     QueueId = currentQueue,
                     HangUpCode = cause.ToString(),
@@ -248,7 +255,8 @@ namespace TestRouter
             if (channelId == caller.Id && callState != CallState.TERMINATED && callState != CallState.TRANSFERRED)
             {
                 int x = chronometer.CallEnd();
-                msg = new MessageCallerHangup() {
+                msg = new MessageCallerHangup()
+                {
                     CallHandlerId = this.id,
                     QueueId = currentQueue,
                     HangUpCode = cause.ToString(),
@@ -268,7 +276,8 @@ namespace TestRouter
                 if (callState != CallState.TRANSFERRED && callState != CallState.TERMINATED)
                 {
                     int x = chronometer.CallEnd();
-                    msg = new MessageAgentHangup() {
+                    msg = new MessageAgentHangup()
+                    {
                         CallHandlerId = this.id,
                         QueueId = currentQueue,
                         HangUpCode = cause.ToString(),
@@ -298,7 +307,7 @@ namespace TestRouter
         }
         private void TerminateAgent()
         {
-            if(agent != null)
+            if (agent != null)
                 TerminateLeg(this.agent.Id);
         }
 
@@ -316,7 +325,8 @@ namespace TestRouter
         }
 
 
-        public ProtocolMessages.Message ChannelHoldEvent(string channelId) {
+        public ProtocolMessages.Message ChannelHoldEvent(string channelId)
+        {
             ProtocolMessages.Message msg = null;
 
             chronometer.CallHoldStart();
@@ -352,7 +362,7 @@ namespace TestRouter
             ProtocolMessages.Message msg = null;
             if (ch1.Id == caller.Id)
             {
-               msg =  TransferTo(ch2);
+                msg = TransferTo(ch2);
 
             }
 
@@ -376,7 +386,8 @@ namespace TestRouter
             ProtocolMessages.Message msg;
             this.transferTarget = target;
             callState = CallState.TRANSFERRED;
-            msg = new MessageCallTransfer() {
+            msg = new MessageCallTransfer()
+            {
                 CallHandlerId = this.id,
                 QueueId = currentQueue,
                 TargetId = transferTarget.Id,
@@ -403,6 +414,14 @@ namespace TestRouter
             else
                 Console.WriteLine("Callhandler: ChannelReplace: El canal " + caller.Id + " no está en la llamada: " + this.id);
 
+        }
+
+        internal void SetTimeOut(string timeOut)
+        {
+            if (!Int32.TryParse(timeOut, out this.timeOut))
+            {
+                Console.WriteLine("CallHandler: fallo convercion timeOut de string a int");
+            }
         }
     }
 }

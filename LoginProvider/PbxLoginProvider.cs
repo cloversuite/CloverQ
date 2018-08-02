@@ -79,6 +79,11 @@ namespace LoginProvider
             string memberId = e.Args[1]; //["agent"];
             string password = e.Args[2]; //["password"];
             string contact = e.Args[3]; //["contact"];
+            string pauseReason="";
+
+            if (e.Args.Count >= 5) //verifico que tenga 4 o mas argumentos para tratar de recuperar el pause reason
+                pauseReason= e.Args[4];
+
             string channelId = e.Channel.Id; //Envio el channel ID para trackear la respuesta
             string deviceId = "";
             try
@@ -134,7 +139,7 @@ namespace LoginProvider
             else if (eventname == "pause")
             {
                 if (!String.IsNullOrEmpty(memberId))
-                    actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password });
+                    actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password, PauseReason = pauseReason });
                 else
                     Console.WriteLine("Pause: Error MembderId es nulo o vacio");
 
@@ -219,6 +224,7 @@ namespace LoginProvider
 
         public void Disconnect()
         {
+            actorLoginProxy.Stop();
             pbx.Disconnect();
         }
 
