@@ -125,7 +125,7 @@ namespace AkkaActorSystem
                 //verifico que sea del mismo dispositivo
                 if (dsc.DeviceId == member.DeviceId)
                 {
-                    if(!String.IsNullOrEmpty(dsc.Contact))
+                    if (!String.IsNullOrEmpty(dsc.Contact))
                         member.Contact = dsc.Contact;
 
                     member.DeviceIsInUse = dsc.IsInUse;
@@ -162,32 +162,64 @@ namespace AkkaActorSystem
                     Sender.Tell(new MessageCallTo() { CallHandlerId = nc.CallHandlerId, Destination = queueMember.Member.Contact });
                 }
             });
-            Receive<MessageCallToFailed>(ctf =>
+
+            Receive<MessageCallerExitWithTimeOut>(cewto =>
             {
-                //Busco otro member
-                Console.WriteLine("CALL DIST: callto failed with code: " + ctf.Code.ToString() + " Reason: " + ctf.Reason);
-                Queue queue = queueSystem.QueueCache.GetQueue(ctf.QueueId);
+                Queue queue = queueSystem.QueueCache.GetQueue(cewto.QueueId);
                 if (queue != null)
                 {
-                    Call call = queue.calls.GetCallById(ctf.CallHandlerId);
+                    Call call = queue.calls.GetCallById(cewto.CallHandlerId);
                     if (call != null)
                     {
-                        call.QueueMember.Member.IsAvailable = true;
-                        QueueMember queueMember = queue.members.NextAvailable(queue.WrapupTime);
-                        if (queueMember != null)
+                        if (call.QueueMember != null)
                         {
-                            call.QueueMember = queueMember;
-                            Sender.Tell(new MessageCallTo() { CallHandlerId = ctf.CallHandlerId, Destination = queueMember.Member.Contact });
-                            actorQueueLog.Tell(new QLRingNoAnswer() { QueueId = queue.Id
-                                , Channel = call.ChannelId
-                                , MemberId = call.QueueMember.Id
-                                , Code = ctf.Code, Reason = ctf.Reason
-                                , RingingTime = ctf.RingingTime
-                            });
+                            call.IsDispatching = false;
+                            call.QueueMember.Member.IsAvailable = true;
+                            call.QueueMember = null;
                         }
+                        queue.calls.RemoveCall(call);
+                        actorQueueLog.Tell(new QLCallExitWithTimeOut(){
+                                QueueId = queue.Id,
+                                Channel = call.ChannelId,
+                                TimeOut = cewto.TimeOut
+                            });
+                    }
+                 }
+            });
+
+            Receive<MessageCallToFailed>(ctf =>
+            {
+            //Busco otro member
+            Console.WriteLine("CALL DIST: callto failed with code: " + ctf.Code.ToString() + " Reason: " + ctf.Reason);
+            Queue queue = queueSystem.QueueCache.GetQueue(ctf.QueueId);
+            if (queue != null)
+            {
+                Call call = queue.calls.GetCallById(ctf.CallHandlerId);
+                if (call != null)
+                {
+                    call.QueueMember.Member.IsAvailable = true;
+                    QueueMember queueMember = queue.members.NextAvailable(queue.WrapupTime);
+                    if (queueMember != null)
+                    {
+                        call.QueueMember = queueMember;
+                        Sender.Tell(new MessageCallTo() { CallHandlerId = ctf.CallHandlerId, Destination = queueMember.Member.Contact });
+                        actorQueueLog.Tell(new QLRingNoAnswer()
+                        {
+                            QueueId = queue.Id
+                            ,
+                            Channel = call.ChannelId
+                            ,
+                            MemberId = call.QueueMember.Id
+                            ,
+                            Code = ctf.Code,
+                            Reason = ctf.Reason
+                            ,
+                            RingingTime = ctf.RingingTime
+                        });
                     }
                 }
-            });
+            }
+        });
             Receive<MessageCallToSuccess>(cts =>
             {
                 Console.WriteLine("CALL DIST: callto success");
@@ -200,10 +232,15 @@ namespace AkkaActorSystem
                     {
                         call.IsDispatching = false;
                         call.Connected = true;
-                        actorQueueLog.Tell(new QLConnect() { QueueId = queue.Id
-                            , Channel = call.ChannelId
-                            , MemberId = call.QueueMember.Id
-                            , HoldTime = cts.HoldTime
+                        actorQueueLog.Tell(new QLConnect()
+                        {
+                            QueueId = queue.Id
+                            ,
+                            Channel = call.ChannelId
+                            ,
+                            MemberId = call.QueueMember.Id
+                            ,
+                            HoldTime = cts.HoldTime
                         });
                     }
                 }
@@ -225,14 +262,18 @@ namespace AkkaActorSystem
                     }
                     if (call.Connected == false)
                     {
-                        actorQueueLog.Tell(new QLAbandon() { QueueId = queue.Id,
+                        actorQueueLog.Tell(new QLAbandon()
+                        {
+                            QueueId = queue.Id,
                             Channel = call.ChannelId,
-                            WaitingTime = chup.WatingTime 
+                            WaitingTime = chup.WatingTime
                         });
                     }
                     else
                     {
-                        actorQueueLog.Tell(new QLCallerHangUp() { QueueId = queue.Id,
+                        actorQueueLog.Tell(new QLCallerHangUp()
+                        {
+                            QueueId = queue.Id,
                             Channel = call.ChannelId,
                             MemberId = call.QueueMember.Id,
                             WatingTime = chup.WatingTime,
@@ -260,13 +301,15 @@ namespace AkkaActorSystem
                         {
                             queueMember.MarkLastCallTime();
                             queueMember.Member.IsAvailable = true;
-                            actorQueueLog.Tell(new QLAgentHangUp() { QueueId = queue.Id,
-                                    Channel = call.ChannelId,
-                                    MemberId = call.QueueMember.Id,
-                                    WatingTime = ahup.WatingTime,
-                                    HoldingTime = ahup.HoldingTime,
-                                    TalkingTime = ahup.TalkingTime
-                               });
+                            actorQueueLog.Tell(new QLAgentHangUp()
+                            {
+                                QueueId = queue.Id,
+                                Channel = call.ChannelId,
+                                MemberId = call.QueueMember.Id,
+                                WatingTime = ahup.WatingTime,
+                                HoldingTime = ahup.HoldingTime,
+                                TalkingTime = ahup.TalkingTime
+                            });
                         }
                     }
                 }
@@ -284,7 +327,9 @@ namespace AkkaActorSystem
                     {
                         queueMember.MarkLastCallTime();
                         queueMember.Member.IsAvailable = true;
-                        actorQueueLog.Tell(new QLTransfer() { QueueId = queue.Id,
+                        actorQueueLog.Tell(new QLTransfer()
+                        {
+                            QueueId = queue.Id,
                             Channel = call.ChannelId,
                             MemberId = call.QueueMember.Id,
                             TargetChannelId = ctrans.TargetId,
@@ -306,7 +351,7 @@ namespace AkkaActorSystem
                     QueueMember queueMember = call.QueueMember;
                     if (queueMember != null)
                     {
-                        actorQueueLog.Tell(new QLCallHoldStart() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id});
+                        actorQueueLog.Tell(new QLCallHoldStart() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id });
                     }
                 }
             });
@@ -353,21 +398,25 @@ namespace AkkaActorSystem
 
             /**************** MANEJO DE CONSULTAS *******************/
 
-            Receive<CMDListQueues>(cmdlq => {
+            Receive<CMDListQueues>(cmdlq =>
+            {
                 RESQueueList rql = new RESQueueList();
 
-                foreach (Queue queue in queueSystem.QueueCache.QueueList) {
-                    RESQueue rq = new RESQueue() {
+                foreach (Queue queue in queueSystem.QueueCache.QueueList)
+                {
+                    RESQueue rq = new RESQueue()
+                    {
                         Id = queue.Id,
                         MediaType = queue.MediaType
                     };
 
-                    foreach (Call call in queue.calls.Calls) {
+                    foreach (Call call in queue.calls.Calls)
+                    {
                         RESCall rc = new RESCall()
                         {
                             CallHandlerId = call.CallHandlerId,
                             ChannelId = call.ChannelId,
-                            QueueMemberId = call.QueueMember!=null? call.QueueMember.Member.Id:null,
+                            QueueMemberId = call.QueueMember != null ? call.QueueMember.Member.Id : null,
                             QueueMemberName = call.QueueMember != null ? call.QueueMember.Member.Name : null,
                             StartTime = call.StartTime,
                             IsDispatching = call.IsDispatching,

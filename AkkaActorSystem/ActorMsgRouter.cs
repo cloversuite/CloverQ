@@ -66,7 +66,11 @@ namespace AkkaActorSystem
             {
                 callDistributor.Tell(cuho, Sender);
             });
-
+            Receive<MessageCallerExitWithTimeOut>(cewto =>
+            {
+                callDistributor.Tell(cewto, Sender);
+            });
+            
         }
         protected override void Unhandled(object message)
         {

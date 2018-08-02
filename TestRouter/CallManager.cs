@@ -43,9 +43,34 @@ namespace TestRouter
         /// <param name="callTimeOut">Holds the call id and the timeout</param>
         private void CallTimeOutHandler_CallTimeOutEvent(CallTimeOut callTimeOut)
         {
-            //TODO: ver como hago que la llamada continue y enviar el msg adecuado al callditributor
-            //Esto deberia generar un mensaje EXIT WITH TIMEOUT
-            Console.WriteLine("La LLamada: " + callTimeOut.CallHandlerId + " Expiro!");
+            ProtocolMessages.Message msg = null;
+            try
+            {
+                //TODO: no olvidar manerjar la concurrencia sobre el callHandlerCache !!! sobre ese objeto trabajan el thread del timeouthandler, el de los evenntos del ari, y uno mas de los eventos del pbxproxy!
+                //TODO: ver como hago que la llamada continue y enviar el msg adecuado al callditributor
+                //Esto deberia generar un mensaje EXIT WITH TIMEOUT
+                CallHandler callHandler = callHandler = callHandlerCache.GetByCallHandlerlId(callTimeOut.CallHandlerId);
+                if (callHandler != null)
+                {
+                    msg = callHandler.CancelCall();
+                    callHandlerCache.RemoveCallHandler(callHandler.Id); //lo hago aca, o dejo que lo haga el stasisend?
+                    pbx.Channels.ContinueInDialplan(callHandler.Caller.Id);
+                }
+                Console.WriteLine("La LLamada: " + callTimeOut.CallHandlerId + " Expiro!, remuevo el callhandler");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("CallTimeOut: ERROR! " + callTimeOut.CallHandlerId + ", Mensaje: " + ex.Message);
+            }
+
+            if (msg != null)
+            {
+                actorPbxProxy.Send(msg);
+            }
+            else
+            {
+                Console.WriteLine("CallTimeOut: " + callTimeOut.CallHandlerId + " el callhandler devolvió msg = null");
+            }
         }
         #endregion
 
@@ -143,7 +168,7 @@ namespace TestRouter
             pbx.OnChannelLeftBridgeEvent += Pbx_OnChannelLeftBridgeEvent;
             pbx.OnBridgeAttendedTransferEvent += Pbx_OnBridgeAttendedTransferEvent;
             pbx.OnBridgeBlindTransferEvent += Pbx_OnBridgeBlindTransferEvent;
-            
+
 
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
@@ -307,7 +332,7 @@ namespace TestRouter
             {
                 Console.WriteLine("Channel HangUpRequest: " + e.Channel.Id + ", call TERMINATED remuevo todo el callhandler: " + callHandler);
                 callHandlerCache.RemoveCallHandler(callHandler.Id);
-                
+
                 Console.WriteLine("Channel HangUpRequest: el bridge: " + callHandler.Bridge.Id + " lo marco como free");
                 bridgesList.SetFreeBridge(callHandler.Bridge.Id);
             }
@@ -443,7 +468,7 @@ namespace TestRouter
                         //Seteo la variabl callhandlerid del canal para identificarlo, esto solo para el caller
                         //ver que pasa cuando se hace un transfer a una cola, deberia cambiar el callhandlerid?
                         //En el hangup pregunto por esta variable y si la encuentro, libero la llamada y marco el bridge como libre
-                        pbx.Channels.SetChannelVar(e.Channel.Id, "cq_callhandlerid",callHandler.Id);
+                        pbx.Channels.SetChannelVar(e.Channel.Id, "cq_callhandlerid", callHandler.Id);
                         //agrego el canal al bridge, controlar que pasa si falla el originate
                         pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
                     }
@@ -470,8 +495,8 @@ namespace TestRouter
                         //lo conecte a un member, asi que temuevo el timeout
                         callTimeOutHandler.CancelCallTimOut(callHandler.Id);
                         //Le digo al callhandler que el canal generado en el callto ya está en el dial plan, cuando el estado pasa a Up es que contestó el agente
-                        callHandler.CallToSuccess(e.Channel.Id); 
-                        
+                        callHandler.CallToSuccess(e.Channel.Id);
+
                     }
                     catch (Exception ex)
                     {

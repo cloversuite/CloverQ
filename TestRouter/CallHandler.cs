@@ -181,6 +181,25 @@ namespace TestRouter
                 throw new Exception("Callhandler: Error al agregar el caller: " + caller.Id + " al bridge: " + bridge.Id, ex);
             }
         }
+        
+        //Este método lo llamo para cancelar la llamada, no hace hangup del canal del caller porque lo dejo continuar
+        //en el dialplan, lo que hace es terminar el callto si se originó, y genera el mensaje para el callditributor 
+        public ProtocolMessages.Message CancelCall() {
+            ProtocolMessages.Message msg = null;
+
+            if (agent != null)
+                pbx.Channels.Hangup(agent.Id);
+
+            callState = CallState.TERMINATED;
+
+            msg = new MessageCallerExitWithTimeOut {
+                CallHandlerId = this.id,
+                QueueId = currentQueue,
+                TimeOut = timeOut
+            };
+
+            return msg;
+        }
 
         public ProtocolMessages.Message ChannelStateChangedEvent(string channelId, string newState)
         {

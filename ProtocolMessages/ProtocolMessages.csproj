@@ -65,6 +65,7 @@
     <Compile Include="Message.cs" />
     <Compile Include="MessageAnswerCall.cs" />
     <Compile Include="MessageAttachMemberToDevice.cs" />
+    <Compile Include="MessageCallerExitWithTimeOut.cs" />
     <Compile Include="MessageCallerHangup.cs" />
     <Compile Include="MessageCallHold.cs" />
     <Compile Include="MessageCallQueued.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="QueueLog\QLAbandon.cs" />
     <Compile Include="QueueLog\QLAgentHangUp.cs" />
     <Compile Include="QueueLog\QLCallerHangUp.cs" />
+    <Compile Include="QueueLog\QLCallExitWithTimeOut.cs" />
     <Compile Include="QueueLog\QLCallHoldStart.cs" />
     <Compile Include="QueueLog\QLCallHoldStop.cs" />
     <Compile Include="QueueLog\QLConnect.cs" />
