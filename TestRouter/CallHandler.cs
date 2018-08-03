@@ -197,7 +197,15 @@ namespace TestRouter
                 QueueId = currentQueue,
                 TimeOut = timeOut
             };
-
+            try
+            {
+                pbx.Channels.ContinueInDialplan(Id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("CallHandler: Error continue dialplan action. " + ex.Message);
+            }
+            
             return msg;
         }
 

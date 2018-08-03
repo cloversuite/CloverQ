@@ -41,10 +41,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataAccessService.cs" />
-    <Compile Include="IDataProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DataProviderXML\DataProviderXML.csproj">
+      <Project>{cbf9bce7-6847-407a-baf5-d67a0305193c}</Project>
+      <Name>DataProviderXML</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Models\Models.csproj">
       <Project>{be765be5-c25f-4476-83bd-02a2617d8f09}</Project>
       <Name>Models</Name>

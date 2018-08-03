@@ -25,7 +25,7 @@ namespace DataProviderXML
 
         public List<DTOMember> GetMembers()
         {
-            throw new NotImplementedException();
+            return ser.DeSerializeObject<List<DTOMember>>(fileName + "members.xml");
         }
 
         public DTOQueue GetQueueById(string queueId)
@@ -35,17 +35,17 @@ namespace DataProviderXML
 
         public List<DTOQueue> GetQueues()
         {
-            throw new NotImplementedException();
+            return ser.DeSerializeObject<List<DTOQueue>>(fileName + "queues.xml");
         }
 
         public void SaveMembers(List<DTOMember> members)
         {
-            ser.SerializeObject<List<DTOMember>>(members, fileName);
+            ser.SerializeObject<List<DTOMember>>(members, fileName + "members.xml");
         }
 
         public void SaveQueues(List<DTOQueue> queues)
         {
-            ser.SerializeObject<List<DTOQueue>>(queues, fileName);
+            ser.SerializeObject<List<DTOQueue>>(queues, fileName + "queues.xml");
         }
     }
 }

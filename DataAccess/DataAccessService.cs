@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Models;
+using DataProviderXML;
+
 
 namespace DataAccess
 {
@@ -18,12 +20,14 @@ namespace DataAccess
         Dictionary<string, DTOMember> members;
         Dictionary<string, DTOQueue> queues;
         Dictionary<string, DTOQueue> memberQueues;
+        //IDataProvider dataProvider = new XMLDataProvider();
 
         public DataAccessService()
         {
             members = new Dictionary<string, DTOMember>();
             queues = new Dictionary<string, DTOQueue>();
             memberQueues = new Dictionary<string, DTOQueue>();
+            //dataProvider.Connect("datos");
             InitTestData();
         }
 
@@ -100,6 +104,7 @@ namespace DataAccess
             members.Add(dtom29.Id, dtom29);
             members.Add(dtom30.Id, dtom30);
 
+            //List<DTOMember> q = dataProvider.GetMembers();
 
             //creo colas
             DTOQueue dtoq1 = new DTOQueue() { Id = "5000", Media = "default", MediaType = "MoH", QueueMembers = new List<DTOQueueMember>(), Weight = 1, WrapupTime = 3, MemberStrategy = "rrmemory", CallOrderStrategy = "default" };
@@ -183,7 +188,7 @@ namespace DataAccess
             //dtoq2.QueueMembers.Add(dtoqm5);
             //dtoq2.QueueMembers.Add(dtoqm7);
 
-
+            //List<DTOQueue> que = dataProvider.GetQueues();
 
         }
 

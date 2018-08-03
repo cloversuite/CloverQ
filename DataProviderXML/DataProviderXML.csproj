@@ -45,10 +45,6 @@
     <Compile Include="XMLDataSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DataAccess\DataAccess.csproj">
-      <Project>{ea0d8c48-0ef4-47d8-9465-820d37700618}</Project>
-      <Name>DataAccess</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Models\Models.csproj">
       <Project>{be765be5-c25f-4476-83bd-02a2617d8f09}</Project>
       <Name>Models</Name>

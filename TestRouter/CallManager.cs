@@ -54,7 +54,7 @@ namespace TestRouter
                 {
                     msg = callHandler.CancelCall();
                     callHandlerCache.RemoveCallHandler(callHandler.Id); //lo hago aca, o dejo que lo haga el stasisend?
-                    pbx.Channels.ContinueInDialplan(callHandler.Caller.Id);
+                    
                 }
                 Console.WriteLine("La LLamada: " + callTimeOut.CallHandlerId + " Expiro!, remuevo el callhandler");
             }
@@ -465,10 +465,6 @@ namespace TestRouter
                     //Agrego el canal al bridge
                     try
                     {
-                        //Seteo la variabl callhandlerid del canal para identificarlo, esto solo para el caller
-                        //ver que pasa cuando se hace un transfer a una cola, deberia cambiar el callhandlerid?
-                        //En el hangup pregunto por esta variable y si la encuentro, libero la llamada y marco el bridge como libre
-                        pbx.Channels.SetChannelVar(e.Channel.Id, "cq_callhandlerid", callHandler.Id);
                         //agrego el canal al bridge, controlar que pasa si falla el originate
                         pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
                     }

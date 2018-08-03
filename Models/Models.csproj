@@ -43,6 +43,7 @@
     <Compile Include="DTOMember.cs" />
     <Compile Include="DTOQueue.cs" />
     <Compile Include="DTOQueueMember.cs" />
+    <Compile Include="IDataProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
