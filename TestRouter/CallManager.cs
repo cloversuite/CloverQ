@@ -12,6 +12,7 @@ namespace TestRouter
 {
     public class CallManager
     {
+        object _locker = new object(); //for local sync
         AriClient pbx;
 
         ActorPbxProxy actorPbxProxy = null;
@@ -49,12 +50,15 @@ namespace TestRouter
                 //TODO: no olvidar manerjar la concurrencia sobre el callHandlerCache !!! sobre ese objeto trabajan el thread del timeouthandler, el de los evenntos del ari, y uno mas de los eventos del pbxproxy!
                 //TODO: ver como hago que la llamada continue y enviar el msg adecuado al callditributor
                 //Esto deberia generar un mensaje EXIT WITH TIMEOUT
-                CallHandler callHandler = callHandler = callHandlerCache.GetByCallHandlerlId(callTimeOut.CallHandlerId);
-                if (callHandler != null)
+                lock (_locker)
                 {
-                    msg = callHandler.CancelCall();
-                    callHandlerCache.RemoveCallHandler(callHandler.Id); //lo hago aca, o dejo que lo haga el stasisend?
-                    
+                    CallHandler callHandler = callHandler = callHandlerCache.GetByCallHandlerlId(callTimeOut.CallHandlerId);
+                    if (callHandler != null)
+                    {
+                        msg = callHandler.CancelCall();
+                        callHandlerCache.RemoveCallHandler(callHandler.Id); //lo hago aca, o dejo que lo haga el stasisend?
+                        pbx.Channels.ContinueInDialplan(callHandler.Caller.Id);
+                    }
                 }
                 Console.WriteLine("La LLamada: " + callTimeOut.CallHandlerId + " Expiro!, remuevo el callhandler");
             }
@@ -80,28 +84,31 @@ namespace TestRouter
             CallHandler callHandler = callHandlerCache.GetByCallHandlerlId(message.CallHandlerId);
             try
             {
-                if (message.MediaType == "MoH")
+                lock (_locker)
                 {
-                    callHandler.AnswerCaller(message.MediaType, message.Media);
-                    //Si el calldistributor me envia timeout = 0 entonces no hay timeout
-                    //Si el call handler posee timeout > 0 tiene precedencia sobre el message.timeout
-                    int callTimeOut = 0;
-                    if (callHandler.TimeOut > 0)
-                        callTimeOut = callHandler.TimeOut;
-                    else if (message.TimeOut > 0)
-                        callTimeOut = message.TimeOut;
-
-                    //si calltimeout = 0 significa quen no hay timeout
-                    if (callTimeOut > 0)
+                    if (message.MediaType == "MoH")
                     {
-                        callTimeOutHandler.AddCallTimeOut(
-                            new CallTimeOut()
-                            {
-                                CallHandlerId = message.CallHandlerId,
-                                TimeOut = callTimeOut
-                            });
+                        callHandler.AnswerCaller(message.MediaType, message.Media);
+                        //Si el calldistributor me envia timeout = 0 entonces no hay timeout
+                        //Si el call handler posee timeout > 0 tiene precedencia sobre el message.timeout
+                        int callTimeOut = 0;
+                        if (callHandler.TimeOut > 0)
+                            callTimeOut = callHandler.TimeOut;
+                        else if (message.TimeOut > 0)
+                            callTimeOut = message.TimeOut;
+
+                        //si calltimeout = 0 significa quen no hay timeout
+                        if (callTimeOut > 0)
+                        {
+                            callTimeOutHandler.AddCallTimeOut(
+                                new CallTimeOut()
+                                {
+                                    CallHandlerId = message.CallHandlerId,
+                                    TimeOut = callTimeOut
+                                });
+                        }
+                        Console.WriteLine("El canal: " + callHandler.Caller.Id + " fué atendido correctamente ");
                     }
-                    Console.WriteLine("El canal: " + callHandler.Caller.Id + " fué atendido correctamente ");
                 }
             }
             catch (Exception ex)
@@ -116,29 +123,32 @@ namespace TestRouter
         }
         private void ActorPbxProxy_CallTo(object sender, MessageCallTo message)
         {
-            CallHandler callHandler = callHandlerCache.GetByCallHandlerlId(message.CallHandlerId);
-            Channel ch = null;
+            string channelId = "";
             try
             {
-                //No deberia usar esto en vez de hacer el originate aca directamente?
-                Console.WriteLine("CALL TO: " + message.Destination);
-                ch = callHandler.CallTo(message.Destination);
+                lock (_locker)
+                {
+                    CallHandler callHandler = callHandlerCache.GetByCallHandlerlId(message.CallHandlerId);
+                    Channel ch = null;
+                    //No deberia usar esto en vez de hacer el originate aca directamente?
+                    Console.WriteLine("CALL TO: " + message.Destination);
+                    ch = callHandler.CallTo(message.Destination);
+                    channelId = ch.Id;
+                    //Origino la llamada al agente. Seguramente hay que hacerlo async
+                    //ch = pbx.Channels.Originate(message.Destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
 
-                //Origino la llamada al agente. Seguramente hay que hacerlo async
-                //ch = pbx.Channels.Originate(message.Destination, null, null, null, null, appName, "", "1111", 20, null, null, null, null);
-
-                //guardo el canal en el callhandler
-                callHandlerCache.AddChannelToCallHandler(message.CallHandlerId, ch.Id);
-                //Aca no puedo agregarlo al bridge porque aun no entra en el stasis, lo agrego en el stasisStart en el else
-                //actualizo el canal del agente
-                callHandler.Agent = ch;
-
+                    //guardo el canal en el callhandler
+                    callHandlerCache.AddChannelToCallHandler(message.CallHandlerId, ch.Id);
+                    //Aca no puedo agregarlo al bridge porque aun no entra en el stasis, lo agrego en el stasisStart en el else
+                    //actualizo el canal del agente
+                    callHandler.Agent = ch;
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("No se pudo conectar con el agente: " + message.Destination + " Error: " + ex.Message);
             }
-            Console.WriteLine("La llamada " + ch.Id + " al agente: " + message.Destination + " se inició correctamente");
+            Console.WriteLine("La llamada " + channelId + " al agente: " + message.Destination + " se inició correctamente");
 
         }
 
@@ -165,7 +175,6 @@ namespace TestRouter
             pbx.OnChannelDestroyedEvent += Pbx_OnChannelDestroyedEvent; //el canal fué terminado, sehizo efectivo el hangup
             pbx.OnChannelHoldEvent += Pbx_OnChannelHoldEvent; //el canal se puso onhold
             pbx.OnChannelUnholdEvent += Pbx_OnChannelUnholdEvent;
-            pbx.OnChannelLeftBridgeEvent += Pbx_OnChannelLeftBridgeEvent;
             pbx.OnBridgeAttendedTransferEvent += Pbx_OnBridgeAttendedTransferEvent;
             pbx.OnBridgeBlindTransferEvent += Pbx_OnBridgeBlindTransferEvent;
 
@@ -173,13 +182,16 @@ namespace TestRouter
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
             {
-                pbx.Connect(true, 5);
-                if (pbx.Connected)
+                lock (_locker)
                 {
-                    List<Bridge> brs = pbx.Bridges.List();
-                    foreach (Bridge b in brs)
+                    pbx.Connect(true, 5);
+                    if (pbx.Connected)
                     {
-                        bridgesList.AddNewBridge(b);
+                        List<Bridge> brs = pbx.Bridges.List();
+                        foreach (Bridge b in brs)
+                        {
+                            bridgesList.AddNewBridge(b);
+                        }
                     }
                 }
             }
@@ -197,7 +209,10 @@ namespace TestRouter
             {
                 try
                 {
-                    pbx.Bridges.Destroy(b.Id);
+                    lock (_locker)
+                    {
+                        pbx.Bridges.Destroy(b.Id);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -214,14 +229,17 @@ namespace TestRouter
         private void Pbx_OnBridgeBlindTransferEvent(IAriClient sender, BridgeBlindTransferEvent e)
         {
             ProtocolMessages.Message msg = null;
-            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Transferee.Id);
-            if (callHandler == null)
+            lock (_locker)
             {
-                callHandler = callHandlerCache.GetByChannelId(e.Replace_channel.Id);
-            }
-            if (callHandler != null)
-            {
-                msg = callHandler.AttendedTransferEvent(e.Transferee, e.Replace_channel);
+                CallHandler callHandler = callHandlerCache.GetByChannelId(e.Transferee.Id);
+                if (callHandler == null)
+                {
+                    callHandler = callHandlerCache.GetByChannelId(e.Replace_channel.Id);
+                }
+                if (callHandler != null)
+                {
+                    msg = callHandler.AttendedTransferEvent(e.Transferee, e.Replace_channel);
+                }
             }
             //Mando el mensaje
             if (msg != null)
@@ -237,16 +255,19 @@ namespace TestRouter
         private void Pbx_OnBridgeAttendedTransferEvent(IAriClient sender, BridgeAttendedTransferEvent e)
         {
             ProtocolMessages.Message msg = null;
-            //Este evento trae muchisima info, requiere de mayor estudio/prueba
-            //ver como queda el canal del caller, seguro hay un rename por ahi
-            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Transferee.Id);
-            if (callHandler == null)
+            lock (_locker)
             {
-                callHandler = callHandlerCache.GetByChannelId(e.Transfer_target.Id);
-            }
-            if (callHandler != null)
-            {
-                msg = callHandler.AttendedTransferEvent(e.Transferee, e.Transfer_target);
+                //Este evento trae muchisima info, requiere de mayor estudio/prueba
+                //ver como queda el canal del caller, seguro hay un rename por ahi
+                CallHandler callHandler = callHandlerCache.GetByChannelId(e.Transferee.Id);
+                if (callHandler == null)
+                {
+                    callHandler = callHandlerCache.GetByChannelId(e.Transfer_target.Id);
+                }
+                if (callHandler != null)
+                {
+                    msg = callHandler.AttendedTransferEvent(e.Transferee, e.Transfer_target);
+                }
             }
             //Mando el mensaje
             if (msg != null)
@@ -265,7 +286,10 @@ namespace TestRouter
             ProtocolMessages.Message msg = null;
             try
             {
-                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelHoldEvent(e.Channel.Id);
+                lock (_locker)
+                {
+                    msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelHoldEvent(e.Channel.Id);
+                }
             }
             catch (Exception ex)
             {
@@ -288,7 +312,10 @@ namespace TestRouter
             ProtocolMessages.Message msg = null;
             try
             {
-                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelUnHoldEvent(e.Channel.Id);
+                lock (_locker)
+                {
+                    msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelUnHoldEvent(e.Channel.Id);
+                }
             }
             catch (Exception ex)
             {
@@ -311,7 +338,10 @@ namespace TestRouter
             ProtocolMessages.Message msg = null;
             try
             {
-                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelHangupEvent(e.Channel.Id, e.Cause, "");
+                lock (_locker)
+                {
+                    msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelHangupEvent(e.Channel.Id, e.Cause, "");
+                }
             }
             catch (Exception ex)
             {
@@ -326,20 +356,24 @@ namespace TestRouter
             {
                 Console.WriteLine("Channel HangUpReques: " + e.Channel.Id + " el callhandler devolvió msg = null");
             }
-            //si la llamada finalizó remuevo todo
-            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
-            if (callHandler != null && callHandler.IsCallTerminated())
+            //TODO:Revisar este lock, verificar si lo que está adentro lo estoy ejecutando
+            lock (_locker)
             {
-                Console.WriteLine("Channel HangUpRequest: " + e.Channel.Id + ", call TERMINATED remuevo todo el callhandler: " + callHandler);
-                callHandlerCache.RemoveCallHandler(callHandler.Id);
+                //si la llamada finalizó remuevo todo
+                CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
+                if (callHandler != null && callHandler.IsCallTerminated())
+                {
+                    Console.WriteLine("Channel HangUpRequest: " + e.Channel.Id + ", call TERMINATED remuevo todo el callhandler: " + callHandler);
+                    callHandlerCache.RemoveCallHandler(callHandler.Id);
 
-                Console.WriteLine("Channel HangUpRequest: el bridge: " + callHandler.Bridge.Id + " lo marco como free");
-                bridgesList.SetFreeBridge(callHandler.Bridge.Id);
-            }
-            else // hago lo mismo que el channel destroy
-            {
-                callHandlerCache.RemoveChannel(e.Channel.Id);
-                Console.WriteLine("Channel HangUpRequest: " + e.Channel.Id + " remuevo channel del callhandler");
+                    Console.WriteLine("Channel HangUpRequest: el bridge: " + callHandler.Bridge.Id + " lo marco como free");
+                    bridgesList.SetFreeBridge(callHandler.Bridge.Id);
+                }
+                else // hago lo mismo que el channel destroy
+                {
+                    callHandlerCache.RemoveChannel(e.Channel.Id);
+                    Console.WriteLine("Channel HangUpRequest: " + e.Channel.Id + " remuevo channel del callhandler");
+                }
             }
         }
 
@@ -348,9 +382,12 @@ namespace TestRouter
             ProtocolMessages.Message msg = null;
             try
             {
-                //si aun existe el callhandler manejo el evento
-                if (callHandlerCache.GetByChannelId(e.Channel.Id) != null)
-                    msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelDestroyEvent(e.Channel.Id, e.Cause, e.Cause_txt);
+                lock (_locker)
+                {
+                    //si aun existe el callhandler manejo el evento
+                    if (callHandlerCache.GetByChannelId(e.Channel.Id) != null)
+                        msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelDestroyEvent(e.Channel.Id, e.Cause, e.Cause_txt);
+                }
             }
             catch (Exception ex)
             {
@@ -365,25 +402,11 @@ namespace TestRouter
             {
                 Console.WriteLine("Channel Destroy: " + e.Channel.Id + " el callhandler devolvió msg = null");
             }
-            callHandlerCache.RemoveChannel(e.Channel.Id);
+            lock (_locker)
+            {
+                callHandlerCache.RemoveChannel(e.Channel.Id);
+            }
             Console.WriteLine("Channel Destroy: " + e.Channel.Id + " remuevo channel del callhandler");
-
-        }
-
-        private void Pbx_OnChannelLeftBridgeEvent(IAriClient sender, ChannelLeftBridgeEvent e)
-        {
-            //Aca no puedo marcar un bridge como free, el primer channel entra y sale varias veces por la negociacion o algo asi y en 
-            //consecuencia cuando el primer channerl entra y sale y en ese momento tengo 0 channels en el bridge y lo marco como free, lo que es incorrecto
-            //Esto produce que varias llamadas entrantes queden conectadas al mismo bridge, muuuuy malo!
-
-            //string bridgeId = e.Bridge.Id;
-            //int bridgeChannelsCount = e.Bridge.Channels.Count;
-            //Console.WriteLine("El canal: " + e.Channel.Id+ ", dejo el bridge: " + bridgeId + " posee: " + bridgeChannelsCount);
-            //if (bridgeChannelsCount == 0) {
-            //    //esto si lo hago aca, ya que si el bridge no posee mas canales lo marco como libre para otra llamada
-            //    Console.WriteLine("El bridge: " + bridgeId + " lo marco como free");
-            //    bridgesList.SetFreeBridge(bridgeId);
-            //}
 
         }
 
@@ -393,7 +416,10 @@ namespace TestRouter
             //track channel state changes
             try
             {
-                msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelStateChangedEvent(e.Channel.Id, e.Channel.State);
+                lock (_locker)
+                {
+                    msg = callHandlerCache.GetByChannelId(e.Channel.Id).ChannelStateChangedEvent(e.Channel.Id, e.Channel.State);
+                }
                 if (msg != null)
                 {
                     actorPbxProxy.Send(msg);
@@ -417,86 +443,98 @@ namespace TestRouter
             Console.WriteLine("El canal: " + e.Channel.Id + " salió de la app: " + e.Application);
             //uno de los dos cortó o por algun motivo se fue de stasis, transfer?? la cosa es que no estan mas en la app asi que los remuevo
             //aca debería ver el abandono, si sale de la app sin que lo atiendan abandonó?
-            CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
-            if (callHandler != null) //esto es en caso de que existan llamadas en stasis antes de arrancar la app, debería cargar la info de lo preexistente en la pbx
+            //TODO:Verificar el uso de este código, tal vez se pueda quitar 
+            lock (_locker)
             {
-                callHandlerCache.RemoveCallHandler(callHandler.Id);
-                Console.WriteLine("El canal: " + e.Channel.Id + ", remuevo el callhandler: " + callHandler.Id);
+                CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
+                if (callHandler != null) //esto es en caso de que existan llamadas en stasis antes de arrancar la app, debería cargar la info de lo preexistente en la pbx
+                {
+                    callHandlerCache.RemoveCallHandler(callHandler.Id);
+                    Console.WriteLine("El canal: " + e.Channel.Id + ", remuevo el callhandler: " + callHandler.Id);
+                }
             }
         }
 
         private void Pbx_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
         {
-            if (e.Replace_channel != null) //esto me indica si no es null que hubo un rename, por ejemplo por un transfer
+            lock (_locker) //Refinar esto, estoy bloqueando durante todo el evento
             {
-                CallHandler callHandler = callHandlerCache.GetByChannelId(e.Replace_channel.Id);
-                if (callHandler != null)
+                if (e.Replace_channel != null) //esto me indica si no es null que hubo un rename, por ejemplo por un transfer
                 {
-                    //Lo comento porque si remplazo el canal, el nuevo canal no esta en stasis y nunca detecto el hangup
-                    //para poder hacer esto debería recibir los eventos de todos los canales osea pbx.Applications.Subscribe(appName, "channel:"); 
-                    callHandler.ChannelReplace(e.Replace_channel, e.Channel);
+
+                    CallHandler callHandler = callHandlerCache.GetByChannelId(e.Replace_channel.Id);
+                    if (callHandler != null)
+                    {
+                        //Lo comento porque si remplazo el canal, el nuevo canal no esta en stasis y nunca detecto el hangup
+                        //para poder hacer esto debería recibir los eventos de todos los canales osea pbx.Applications.Subscribe(appName, "channel:"); 
+                        callHandler.ChannelReplace(e.Replace_channel, e.Channel);
+                    }
+
+
                 }
-
-            }
-            else
-            {
-
-                //TODO: si e.Replace_channel != null (rename) es un nuevo canal que reemplaza a otro, hasta ahora solo me pasa con las transferencias atendidas, debo buscar el callhandler que tiene el e.Replace_channel y reemplazarlo por el nuevo channel
-                //Verifico: si el canal es de una llamada que ya existe no creo nada. Esto es para el caso en que hago un originate al agente, ya tengo un callhandler creado por el caller que llamó inicialmente
-                if (callHandlerCache.GetByChannelId(e.Channel.Id) == null)
+                else
                 {
-                    Console.WriteLine("El canal: " + e.Channel.Id + " entró a la app: " + e.Application);
-                    Bridge bridge = bridgesList.GetFreeBridge();
-                    if (bridge == null) //si no hay un bridge libre creo uno y lo agrego a la lista
+                    //TODO: si e.Replace_channel != null (rename) es un nuevo canal que reemplaza a otro, hasta ahora solo me pasa con las transferencias atendidas, debo buscar el callhandler que tiene el e.Replace_channel y reemplazarlo por el nuevo channel
+                    //Verifico: si el canal es de una llamada que ya existe no creo nada. Esto es para el caso en que hago un originate al agente, ya tengo un callhandler creado por el caller que llamó inicialmente
+                    if (callHandlerCache.GetByChannelId(e.Channel.Id) == null)
                     {
-                        bridge = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
-                        bridgesList.AddNewBridge(bridge);
-                        Console.WriteLine("Se crea un Bridge: " + bridge.Id);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
-                    }
+                        Console.WriteLine("El canal: " + e.Channel.Id + " entró a la app: " + e.Application);
+                        Bridge bridge = bridgesList.GetFreeBridge();
+                        if (bridge == null) //si no hay un bridge libre creo uno y lo agrego a la lista
+                        {
+                            bridge = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
+                            bridgesList.AddNewBridge(bridge);
+                            Console.WriteLine("Se crea un Bridge: " + bridge.Id);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
+                        }
 
-                    CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
-                    callHandlerCache.AddCallHandler(callHandler);
-                    Console.WriteLine("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
+                        CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
+                        callHandlerCache.AddCallHandler(callHandler);
+                        Console.WriteLine("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
 
-                    //Agrego el canal al bridge
-                    try
-                    {
-                        //agrego el canal al bridge, controlar que pasa si falla el originate
-                        pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
-                    }
+                        //Agrego el canal al bridge
+                        try
+                        {
+                            //Seteo la variabl callhandlerid del canal para identificarlo, esto solo para el caller
+                            //ver que pasa cuando se hace un transfer a una cola, deberia cambiar el callhandlerid?
+                            //En el hangup pregunto por esta variable y si la encuentro, libero la llamada y marco el bridge como libre
+                            pbx.Channels.SetChannelVar(e.Channel.Id, "cq_callhandlerid", callHandler.Id);
+                            //agrego el canal al bridge, controlar que pasa si falla el originate
+                            pbx.Bridges.AddChannel(callHandler.Bridge.Id, e.Channel.Id, null);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                        }
 
-                    //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
-                    //TODO: si este parametro no existe no entrar al evento stasisstart
-                    var queueId = e.Args[0];
-                    if (e.Args.Count >= 1)
-                        callHandler.SetTimeOut(e.Args[1]);
-                    ProtocolMessages.Message msg = null;
-                    msg = callHandler.SetCurrentQueue(queueId);
-                    if (msg != null)
-                        actorPbxProxy.Send(msg);
-                }
-                else //si no es null entonces el canal lo agregé yo cuando hice el CallTo
-                {
-                    CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
-                    try
-                    {
-                        //lo conecte a un member, asi que temuevo el timeout
-                        callTimeOutHandler.CancelCallTimOut(callHandler.Id);
-                        //Le digo al callhandler que el canal generado en el callto ya está en el dial plan, cuando el estado pasa a Up es que contestó el agente
-                        callHandler.CallToSuccess(e.Channel.Id);
-
+                        //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
+                        //TODO: si este parametro no existe no entrar al evento stasisstart
+                        var queueId = e.Args[0];
+                        if (e.Args.Count >= 1)
+                            callHandler.SetTimeOut(e.Args[1]);
+                        ProtocolMessages.Message msg = null;
+                        msg = callHandler.SetCurrentQueue(queueId);
+                        if (msg != null)
+                            actorPbxProxy.Send(msg);
                     }
-                    catch (Exception ex)
+                    else //si no es null entonces el canal lo agregé yo cuando hice el CallTo
                     {
-                        Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                        CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
+                        try
+                        {
+                            //lo conecte a un member, asi que temuevo el timeout
+                            callTimeOutHandler.CancelCallTimOut(callHandler.Id);
+                            //Le digo al callhandler que el canal generado en el callto ya está en el dial plan, cuando el estado pasa a Up es que contestó el agente
+                            callHandler.CallToSuccess(e.Channel.Id);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                        }
                     }
                 }
             }
