@@ -63,9 +63,12 @@
     <Compile Include="CallManager.cs" />
     <Compile Include="CallTimeOut.cs" />
     <Compile Include="CallTimeoutHandler.cs" />
+    <Compile Include="ConfHost.cs" />
+    <Compile Include="ConfQueueLog.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Router.cs" />
+    <Compile Include="SystemConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -14,6 +14,17 @@ namespace TestRouter
         static void Main(string[] args)
         {
 
+            SystemConfiguration config = new SystemConfiguration("cloverq-conf.json");
+            config.QueueLog = new ConfQueueLog() {LogFilePrefix = "logcito" };
+            config.CallManagers.Add(new ConfHost() { Ip = "192.168.56.102", Port = 8088, User = "asterisk", Password = "pelo2dos" });
+            config.StateProviders.Add(new ConfHost() { Ip = "192.168.56.102", Port = 8088, User = "asterisk", Password = "pelo2dos" });
+            config.LoginProviders.Add(new ConfHost() { Ip = "192.168.56.102", Port = 8088, User = "asterisk", Password = "pelo2dos" });
+
+            config.SaveConf();
+
+            SystemConfiguration conf = SystemConfiguration.GetConf("cloverq-conf.json");
+
+
             QActorSystem qActorSystem = new QActorSystem();
 
 
