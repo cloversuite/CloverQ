@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AsterNET.ARI.Models;
 
-namespace TestRouter
+namespace CallManager
 {
     //decorator para usar en la lista cacheBridge
     public class BridgeItem

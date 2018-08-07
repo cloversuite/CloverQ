@@ -9,7 +9,7 @@ using AkkaActorSystem;
 using ProtocolMessages;
 using ConfigProvider;
 
-namespace TestRouter
+namespace CallManager
 {
     public class CallManager
     {

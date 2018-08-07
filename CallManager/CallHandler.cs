@@ -7,7 +7,7 @@ using AsterNET.ARI.Models;
 using AsterNET.ARI;
 using ProtocolMessages;
 
-namespace TestRouter
+namespace CallManager
 {
     public class CallHandler
     {

@@ -8,7 +8,7 @@ using AkkaActorSystem;
 using LoginProvider;
 using ConfigProvider;
 
-namespace TestRouter
+namespace CallManager
 {
     class Program
     {
