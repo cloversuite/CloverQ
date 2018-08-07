@@ -39,7 +39,7 @@ namespace AkkaActorSystem
 
             Receive<DAGetMemberQueues>(mq =>
             {
-                Sender.Tell(new DAMemberQueues() { MemberId = mq.MemberId, MemberQueues = das.GetMemberQueues(mq.MemberId) });
+                Sender.Tell(new DAMemberQueues() { MemberId = mq.MemberId, MemberQueues = das.GetMemberQueues(mq.MemberId), RequestId = mq.RequestId });
 
             });
 

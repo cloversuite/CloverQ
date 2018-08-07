@@ -11,5 +11,6 @@ namespace ProtocolMessages
         public string MemberId { get; set; }
         public string Password { get; set; }
         public string PauseReason { get; set; }
+        public string RequestId { get; set; }
     }
 }

@@ -60,28 +60,37 @@ namespace AkkaActorSystem
             {
                 //Mensaje que proviene del ActorMemberLoginService, aca creo un nuevo member, cuando me llegan los QMemberAdd creo los
                 //QueueMember en base a este objeto. El member quue creo aca tambien recibe mensajes del stateprovider
-                queueSystem.MemberCache.Add(new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password, DeviceId = mlin.DeviceId });
-                actorQueueLog.Tell(new QLMemberLogin() { MemberId = mlin.MemberId, Name = mlin.Name, DeviceId = mlin.DeviceId });
+                Member member = new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password, DeviceId = mlin.DeviceId };
+                queueSystem.MemberCache.Add(member);
+                queueSystem.MemberCache.MemberLogin(member);
+                
+                actorQueueLog.Tell(new QLMemberLogin() { Channel = mlin.RequestId, MemberId = mlin.MemberId, Name = mlin.Name, DeviceId = mlin.DeviceId });
             });
 
             Receive<MessageMemberLogoff>(mlof =>
             {
                 //Mensaje que proviene del ActorMemberLoginService 
-                queueSystem.MemberCache.Remove(mlof.MemberId);
-                actorQueueLog.Tell(new QLMemberLogoff() { MemberId = mlof.MemberId });
+                queueSystem.MemberCache.MemberLogoff(mlof.MemberId);
+                Member member = queueSystem.MemberCache.Remove(mlof.MemberId);
+             
+                actorQueueLog.Tell(new QLMemberLogoff() { Channel = mlof.RequestId, MemberId = mlof.MemberId, LoggedInTime = member.LoginElapsedTime });
             });
 
             Receive<MessageQMemberPause>(mpau =>
             {
                 queueSystem.MemberCache.MemberPause(mpau.MemberId, mpau.PauseReason, mpau.PauseReason);
-                actorQueueLog.Tell(new QLMemberPause() { MemberId = mpau.MemberId, Reason = mpau.PauseReason });
+                actorQueueLog.Tell(new QLMemberPause() { Channel = mpau.RequestId, MemberId = mpau.MemberId, Reason = mpau.PauseReason });
 
             });
 
             Receive<MessageQMemberUnpause>(munpau =>
             {
-                queueSystem.MemberCache.MemberUnPause(munpau.MemberId);
-                actorQueueLog.Tell(new QLMemberUnpause() { MemberId = munpau.MemberId });
+                Member member = queueSystem.MemberCache.GetMemberById(munpau.MemberId);
+                if (member.IsPaused)
+                {
+                    member = queueSystem.MemberCache.MemberUnPause(munpau.MemberId);
+                    actorQueueLog.Tell(new QLMemberUnpause() { Channel = munpau.RequestId, MemberId = munpau.MemberId, PausedTime = member.PauseElapsedTime });
+                }
             });
 
             Receive<MessageQMemberAdd>(memberQueues =>
@@ -96,7 +105,7 @@ namespace AkkaActorSystem
                     {
                         QueueMember qm = new QueueMember(member);
                         queueSystem.QueueCache.GetQueue(queueId).AddQueueMember(qm);
-                        actorQueueLog.Tell(new QLMemberAdd() { QueueId = queueId, MemberId = member.Id });
+                        actorQueueLog.Tell(new QLMemberAdd() { Channel = memberQueues.RequestId, QueueId = queueId, MemberId = member.Id });
                     }
                 }
             });
@@ -113,7 +122,7 @@ namespace AkkaActorSystem
                     {
                         QueueMember qm = new QueueMember(member);
                         queueSystem.QueueCache.GetQueue(queueId).RemoveQueueMember(qm);
-                        actorQueueLog.Tell(new QLMemberRemove() { QueueId = queueId, MemberId = member.Id });
+                        actorQueueLog.Tell(new QLMemberRemove() { Channel = memberQueues.RequestId, QueueId = queueId, MemberId = member.Id });
                     }
                 }
             });

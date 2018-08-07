@@ -9,5 +9,6 @@ namespace ProtocolMessages
     public class MessageQMemberUnpause
     {
         public string MemberId { get; set; }
+        public string RequestId { get; set; }
     }
 }

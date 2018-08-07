@@ -36,8 +36,8 @@ namespace LoginProvider
         {
             //CREO EL CLIENTE
             pbx = new AriClient(new StasisEndpoint(server, port, usu, pass), appName);
-            //USEREVENT para el login
-            pbx.OnChannelUsereventEvent += Pbx_OnChannelUsereventEvent;
+            //USEREVENT para el login -> en desuso
+            //pbx.OnChannelUsereventEvent += Pbx_OnChannelUsereventEvent;
 
             //SUBSCRIBO A EVENTOS
             pbx.OnUnhandledEvent += Pbx_OnUnhandledEvent;
@@ -64,7 +64,7 @@ namespace LoginProvider
 
         private void Pbx_OnStasisEndEvent(IAriClient sender, AsterNET.ARI.Models.StasisEndEvent e)
         {
-            Console.WriteLine("EL canal: "+ e.Channel.Id + "abandonó la app: " + appName);
+            Console.WriteLine("EL canal: " + e.Channel.Id + "abandonó la app: " + appName);
         }
 
         /// <summary>
@@ -79,10 +79,10 @@ namespace LoginProvider
             string memberId = e.Args[1]; //["agent"];
             string password = e.Args[2]; //["password"];
             string contact = e.Args[3]; //["contact"];
-            string pauseReason="";
+            string pauseReason = "";
 
             if (e.Args.Count >= 5) //verifico que tenga 4 o mas argumentos para tratar de recuperar el pause reason
-                pauseReason= e.Args[4];
+                pauseReason = e.Args[4];
 
             string channelId = e.Channel.Id; //Envio el channel ID para trackear la respuesta
             string deviceId = "";
@@ -95,7 +95,7 @@ namespace LoginProvider
             {
                 Console.WriteLine("PbxLoginProvider: Error al obtener deviceId del contacto. " + ex.Message);
             }
-            
+
 
             //Si no me pasan el memberId, trato de recuperarlo del deviceMemberMap
             if (String.IsNullOrEmpty(memberId))
@@ -104,7 +104,7 @@ namespace LoginProvider
                 //Si tampoco lo encuentro en el deviceMemberMap
                 if (String.IsNullOrEmpty(memberId))
                 {
-                    Console.WriteLine("PbxLoginProvider: no se pudo determinar el memeberId para logoff");
+                    Console.WriteLine("PbxLoginProvider: no se pudo determinar el memeberId para el device: " + deviceId);
                 }
             }
 
@@ -128,7 +128,7 @@ namespace LoginProvider
                 if (!String.IsNullOrEmpty(memberId))
                 {
                     deviceMemberMap.UnTrackMemberDeviceId(deviceId);
-                    actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password });
+                    actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 }
                 else
                     Console.WriteLine("LogOff: Error MembderId es nulo o vacio");
@@ -139,7 +139,7 @@ namespace LoginProvider
             else if (eventname == "pause")
             {
                 if (!String.IsNullOrEmpty(memberId))
-                    actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password, PauseReason = pauseReason });
+                    actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password, PauseReason = pauseReason, RequestId = e.Channel.Id });
                 else
                     Console.WriteLine("Pause: Error MembderId es nulo o vacio");
 
@@ -149,7 +149,7 @@ namespace LoginProvider
             else if (eventname == "unpause")
             {
                 if (!String.IsNullOrEmpty(memberId))
-                    actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password });
+                    actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 else
                     Console.WriteLine("UnPause: Error MembderId es nulo o vacio");
 
@@ -176,50 +176,52 @@ namespace LoginProvider
         }
 
 
-        private async void  Pbx_OnChannelUsereventEvent(IAriClient sender, AsterNET.ARI.Models.ChannelUsereventEvent e)
-        {
-            Console.WriteLine("User event from: " + e.Channel.Name);
+        //private async void Pbx_OnChannelUsereventEvent(IAriClient sender, AsterNET.ARI.Models.ChannelUsereventEvent e)
+        //{
+        //    Console.WriteLine("User event from: " + e.Channel.Name);
 
-            //string eventname = ((JObject)e.Userevent).SelectToken("eventname").Value<string>();
-            string eventname = (string)((JObject)e.Userevent)["eventname"];
-            string memberId = (string)((JObject)e.Userevent)["agent"];
-            string password = (string)((JObject)e.Userevent)["password"];
-            string contact = (string)((JObject)e.Userevent)["contact"];
+        //    //string eventname = ((JObject)e.Userevent).SelectToken("eventname").Value<string>();
+        //    string eventname = (string)((JObject)e.Userevent)["eventname"];
+        //    string memberId = (string)((JObject)e.Userevent)["agent"];
+        //    string password = (string)((JObject)e.Userevent)["password"];
+        //    string contact = (string)((JObject)e.Userevent)["contact"];
 
-            if (eventname == "login")
-            {
-                //meter todo este parse en un metodo estático tal vez una clase contact Contact.Parse?
-                contact = contact.Replace(";", ">");
-                string deviceId = Regex.Match(contact, @"\<(.+?)\@").Groups[1].Value.Replace(":", "/").ToUpper();
-                string number = Regex.Match(contact, @"\:(.+?)\@").Groups[1].Value;
-                string address = Regex.Match(contact, @"\@(.+?)\>").Groups[1].Value;
-                string uri = Regex.Match(contact, @"\<(.+?)\>").Groups[1].Value.Replace("<", "").Replace(">", "");
-                string destination = "SIP/" + address + "/" + number;
+        //    if (eventname == "login")
+        //    {
+        //        //meter todo este parse en un metodo estático tal vez una clase contact Contact.Parse?
+        //        contact = contact.Replace(";", ">");
+        //        string deviceId = Regex.Match(contact, @"\<(.+?)\@").Groups[1].Value.Replace(":", "/").ToUpper();
+        //        string number = Regex.Match(contact, @"\:(.+?)\@").Groups[1].Value;
+        //        string address = Regex.Match(contact, @"\@(.+?)\>").Groups[1].Value;
+        //        string uri = Regex.Match(contact, @"\<(.+?)\>").Groups[1].Value.Replace("<", "").Replace(">", "");
+        //        string destination = "SIP/" + address + "/" + number;
 
-                MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId });
+        //        MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId });
 
-                Console.WriteLine("Member " + memberId + "login from:" + contact + " response, " + mlr.Reason);
+        //        Console.WriteLine("Member " + memberId + "login from:" + contact + " response, " + mlr.Reason);
 
-                //En el dialplan espero un segundo para dar tienpo al setvar, esto es para prueba, en prod el login services es un IVR hecho con ari, agi o async agi
-                sender.Channels.SetChannelVar(e.Channel.Id, "logedin", mlr.LoguedIn.ToString());
-                sender.Channels.ContinueInDialplan(e.Channel.Id);
-            } else if ( eventname == "logoff") {
-                actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password });
-            }
-            else if (eventname == "pause")
-            {
-                actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password });
-            }
-            else if (eventname == "unpause")
-            {
-                actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password });
-            }
+        //        //En el dialplan espero un segundo para dar tienpo al setvar, esto es para prueba, en prod el login services es un IVR hecho con ari, agi o async agi
+        //        sender.Channels.SetChannelVar(e.Channel.Id, "logedin", mlr.LoguedIn.ToString());
+        //        sender.Channels.ContinueInDialplan(e.Channel.Id);
+        //    }
+        //    else if (eventname == "logoff")
+        //    {
+        //        actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password });
+        //    }
+        //    else if (eventname == "pause")
+        //    {
+        //        actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password });
+        //    }
+        //    else if (eventname == "unpause")
+        //    {
+        //        actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password });
+        //    }
 
-        }
+        //}
 
         private void Pbx_OnUnhandledEvent(object sender, AsterNET.ARI.Models.Event eventMessage)
         {
-           // Console.WriteLine("PLP: No manejé: " + eventMessage.Type);
+            // Console.WriteLine("PLP: No manejé: " + eventMessage.Type);
         }
 
         public void Disconnect()
