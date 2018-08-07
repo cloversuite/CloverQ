@@ -85,8 +85,12 @@ namespace AkkaActorSystem
 
             Receive<MessageQMemberUnpause>(munpau =>
             {
-                Member member = queueSystem.MemberCache.MemberUnPause(munpau.MemberId);
-                actorQueueLog.Tell(new QLMemberUnpause() { Channel = munpau.RequestId, MemberId = munpau.MemberId, PausedTime = member.PauseElapsedTime  });
+                Member member = queueSystem.MemberCache.GetMemberById(munpau.MemberId);
+                if (member.IsPaused)
+                {
+                    member = queueSystem.MemberCache.MemberUnPause(munpau.MemberId);
+                    actorQueueLog.Tell(new QLMemberUnpause() { Channel = munpau.RequestId, MemberId = munpau.MemberId, PausedTime = member.PauseElapsedTime });
+                }
             });
 
             Receive<MessageQMemberAdd>(memberQueues =>

@@ -100,7 +100,7 @@ namespace QueueSystem
             if (IsLogedIn)
             {
                 elapsed = (int)(DateTime.Now - pauseTime).TotalSeconds;
-                LoginElapsedTime = elapsed;
+                PauseElapsedTime = elapsed;
             }
             else
                 throw new InvalidOperationException("The member is not paused");

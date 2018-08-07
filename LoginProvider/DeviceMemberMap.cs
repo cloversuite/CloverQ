@@ -18,8 +18,10 @@ namespace LoginProvider
             deviceMember = new Dictionary<string, string>();
         }
 
-        public void TrackMemberDeviceId(string deviceId, string memberId) {
-            if (!deviceMember.ContainsKey(deviceId)) {
+        public void TrackMemberDeviceId(string deviceId, string memberId)
+        {
+            if (!deviceMember.ContainsKey(deviceId))
+            {
                 deviceMember.Add(deviceId, memberId);
             }
             else
@@ -28,12 +30,21 @@ namespace LoginProvider
             }
         }
 
-        public string GetMemberIdFromDeviceId(string deviceId) {
-            return deviceMember[deviceId];
+        public string GetMemberIdFromDeviceId(string deviceId)
+        {
+            string memberId = "";
+            if (deviceMember.ContainsKey(deviceId))
+                memberId = deviceMember[deviceId];
+            else
+                Console.WriteLine("DeviceMemberMap: Warning no se pudo determinar el memberid para el device: " + deviceId);
+
+            return memberId;
         }
 
-        public void UnTrackMemberDeviceId(string deviceId) {
-            deviceMember.Remove(deviceId);
+        public void UnTrackMemberDeviceId(string deviceId)
+        {
+            if (deviceMember.ContainsKey(deviceId))
+                deviceMember.Remove(deviceId);
         }
 
     }

@@ -95,10 +95,11 @@ namespace QueueSystem
             if (members.ContainsKey(memberId))
             {
                 m = members[memberId];
+                m.SetUnpauseTime();
                 m.PauseCode = "";
                 m.PauseReason = "";
                 m.IsPaused = false;
-                m.SetUnpauseTime();
+                
             }
             return m;
         }
