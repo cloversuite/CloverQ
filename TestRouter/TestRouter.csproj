@@ -33,10 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="RestSharp, Version=104.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\RestSharp.104.4.0\lib\net4\RestSharp.dll</HintPath>
       <Private>True</Private>
@@ -63,12 +59,9 @@
     <Compile Include="CallManager.cs" />
     <Compile Include="CallTimeOut.cs" />
     <Compile Include="CallTimeoutHandler.cs" />
-    <Compile Include="ConfHost.cs" />
-    <Compile Include="ConfQueueLog.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Router.cs" />
-    <Compile Include="SystemConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -82,6 +75,10 @@
     <ProjectReference Include="..\AsterNET.ARI.SubMod\AsterNET.ARI\AsterNET.ARI.csproj">
       <Project>{f4c8c633-2207-4c25-89a8-4d23d9cfa964}</Project>
       <Name>AsterNET.ARI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ConfigProvider\ConfigProvider.csproj">
+      <Project>{D1C537CA-9A05-499A-8C5C-CC5E52C63CCB}</Project>
+      <Name>ConfigProvider</Name>
     </ProjectReference>
     <ProjectReference Include="..\LoginProvider\LoginProvider.csproj">
       <Project>{551bf722-e00c-48e8-be02-9c8f3748d3af}</Project>

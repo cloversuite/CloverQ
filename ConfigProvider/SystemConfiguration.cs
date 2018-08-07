@@ -5,9 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
-namespace TestRouter
+namespace ConfigProvider
 {
     /// <summary>
     /// Clase que utilizo para almacenar la configuracion del sistema
@@ -54,6 +53,29 @@ namespace TestRouter
             //    JsonSerializer serializer = new JsonSerializer();
             //    SystemConfiguration conf = (SystemConfiguration)serializer.Deserialize(file, typeof(SystemConfiguration));
             //}
+        }
+
+        public ConfHost GetCallManagerFirstHost() {
+            if (callManagers.Count != 0)
+                return callManagers[0];
+            else
+                return null;
+        }
+
+        public ConfHost GetStateProviderFirstHost()
+        {
+            if (stateProviders.Count != 0)
+                return stateProviders[0];
+            else
+                return null;
+        }
+
+        public ConfHost GetLoginProvidersFirstHost()
+        {
+            if (LoginProviders.Count != 0)
+                return LoginProviders[0];
+            else
+                return null;
         }
     }
 }

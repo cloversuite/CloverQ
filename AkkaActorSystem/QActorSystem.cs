@@ -9,11 +9,14 @@ using Akka.Configuration;
 using Serilog;
 using Akka.Logger.Serilog;
 using Akka.Remote;
+using ConfigProvider;
 
 namespace AkkaActorSystem
 {
     public class QActorSystem
     {
+        private readonly SystemConfiguration systemConfig;
+
         private ActorPbxProxy actorPbxProxy;
         private ActorStateProxy actorStateProxy;
         private ActorLoginProxy actorLoginProxy;
@@ -29,8 +32,10 @@ namespace AkkaActorSystem
         /// <summary>
         /// Esta clase inicia el sistema de actores, crea un router de mensajes y una instancia del proxy para la pbx
         /// </summary>
-        public QActorSystem()
+        public QActorSystem(SystemConfiguration systemConfig)
         {
+            this.systemConfig = systemConfig;
+
             //conf sanples
             //https://github.com/akkadotnet/akka.net/blob/v1.3/src/core/Akka/Configuration/Pigeon.conf
             //Conf Dispatcher

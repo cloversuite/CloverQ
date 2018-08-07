@@ -148,6 +148,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ConfigProvider\ConfigProvider.csproj">
+      <Project>{d1c537ca-9a05-499a-8c5c-cc5e52c63ccb}</Project>
+      <Name>ConfigProvider</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DataAccess\DataAccess.csproj">
       <Project>{ea0d8c48-0ef4-47d8-9465-820d37700618}</Project>
       <Name>DataAccess</Name>
