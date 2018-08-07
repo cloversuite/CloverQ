@@ -16,6 +16,10 @@ namespace ConfigProvider
     public class SystemConfiguration
     {
         string fileName = "cloverq-conf.json";
+        string stasisQueueAppName = "cloverq";
+        string stasisLoginAppName = "cloverqLogin";
+        string stasisStateAppName = "cloverqState";
+
         List<ConfHost> callManagers = new List<ConfHost>();
         List<ConfHost> stateProviders = new List<ConfHost>();
         List<ConfHost> loginProviders = new List<ConfHost>();
@@ -30,6 +34,43 @@ namespace ConfigProvider
         public List<ConfHost> CallManagers { get { return callManagers; } set { callManagers = value; } }
         public List<ConfHost> StateProviders { get { return stateProviders; } set { stateProviders = value; } }
         public List<ConfHost> LoginProviders { get { return loginProviders; } set { loginProviders = value; } }
+
+        public string StasisQueueAppName
+        {
+            get
+            {
+                return stasisQueueAppName;
+            }
+
+            set
+            {
+                stasisQueueAppName = value;
+            }
+        }
+        public string StasisLoginAppName
+        {
+            get
+            {
+                return stasisLoginAppName;
+            }
+
+            set
+            {
+                stasisLoginAppName = value;
+            }
+        }
+        public string StasisStateAppName
+        {
+            get
+            {
+                return stasisStateAppName;
+            }
+
+            set
+            {
+                stasisStateAppName = value;
+            }
+        }
 
         public void SaveConf() {
             // serialize JSON to a string and then write string to a file

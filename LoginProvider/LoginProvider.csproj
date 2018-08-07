@@ -65,6 +65,10 @@
       <Project>{f4c8c633-2207-4c25-89a8-4d23d9cfa964}</Project>
       <Name>AsterNET.ARI</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ConfigProvider\ConfigProvider.csproj">
+      <Project>{D1C537CA-9A05-499A-8C5C-CC5E52C63CCB}</Project>
+      <Name>ConfigProvider</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ProtocolMessages\ProtocolMessages.csproj">
       <Project>{0f2c24a8-90ba-418a-8d8d-6fc42aa0605d}</Project>
       <Name>ProtocolMessages</Name>

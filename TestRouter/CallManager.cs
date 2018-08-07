@@ -7,22 +7,28 @@ using AsterNET.ARI.Models;
 using AsterNET.ARI;
 using AkkaActorSystem;
 using ProtocolMessages;
+using ConfigProvider;
 
 namespace TestRouter
 {
     public class CallManager
     {
         object _locker = new object(); //for local sync
+        private readonly SystemConfiguration systemConfig;
+
         AriClient pbx;
 
         ActorPbxProxy actorPbxProxy = null;
         BridgesList bridgesList = new BridgesList();
         CallHandlerCache callHandlerCache = new CallHandlerCache();
         CallTimeoutHandler callTimeOutHandler = new CallTimeoutHandler();
-        private const string appName = "bridge_test";
+        private string appName = "bridge_test";
 
-        public CallManager(ActorPbxProxy actorPbxProxy)
+        public CallManager(ActorPbxProxy actorPbxProxy, SystemConfiguration systemConfig)
         {
+            this.systemConfig = systemConfig;
+            this.appName = systemConfig.StasisQueueAppName;
+
             //Creo el sistema de actores y el actor proxy para la pbx
             this.actorPbxProxy = actorPbxProxy;
             actorPbxProxy.Receive += ActorPbxProxy_Receive;
@@ -154,6 +160,11 @@ namespace TestRouter
 
         #endregion
 
+        public void Connect() {
+            ConfHost callManagerHost = systemConfig.GetCallManagerFirstHost();
+            Connect(callManagerHost.Ip, callManagerHost.Port, callManagerHost.User, callManagerHost.Password);
+        }
+
         /// <summary>
         /// Connecto to Asterisk ARI and WebSocket events
         /// </summary>
@@ -184,6 +195,7 @@ namespace TestRouter
             {
                 lock (_locker)
                 {
+                    Console.WriteLine("Conectando call manager en: " + server);
                     pbx.Connect(true, 5);
                     if (pbx.Connected)
                     {

@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using AsterNET.ARI.Models;
 using System.Collections.Generic;
 using ProtocolMessages;
+using ConfigProvider;
 
 namespace StateProvider
 {
@@ -16,6 +17,8 @@ namespace StateProvider
     //Uso el asternet.ari, solo para monitoreo de eventos, en realidad debería usar el asternet pero no corre sobre mono o .net core
     public class DeviceStateManager
     {
+        private readonly SystemConfiguration systemConfig;
+
         DeviceCache deviceCache = new DeviceCache();
         ActorStateProxy actorStateProxy = null;
         AriClient pbx;
@@ -25,9 +28,18 @@ namespace StateProvider
         //Los mensajes de cambio de estado y de contacto deberían llegarle al callditributor para 
         //saber si el dispositivo de un miembro esta listo para recibir llamadas
         //El dispositivo y uri de contacto lo deberia recibir en el login service al loguearse un miembro
-        public DeviceStateManager(ActorStateProxy actorStateProxy)
+        public DeviceStateManager(ActorStateProxy actorStateProxy, SystemConfiguration systemConfig)
         {
+            this.systemConfig = systemConfig;
+            this.appName = systemConfig.StasisStateAppName;
             this.actorStateProxy = actorStateProxy;
+        }
+
+
+        public void Connect()
+        {
+            ConfHost stateManagerHost = systemConfig.GetStateProviderFirstHost();
+            Connect(stateManagerHost.Ip, stateManagerHost.Port, stateManagerHost.User, stateManagerHost.Password);
         }
 
         /// <summary>
@@ -57,6 +69,7 @@ namespace StateProvider
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
             {
+                Console.WriteLine("Conectando state provider en: " + server);
                 pbx.EventDispatchingStrategy = EventDispatchingStrategy.DedicatedThread;
                 pbx.Connect(true, 5);
                 Thread.Sleep(1000);

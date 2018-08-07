@@ -6,23 +6,35 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ProtocolMessages;
 using System.Text.RegularExpressions;
+using ConfigProvider;
 
 namespace LoginProvider
 {
     //esta clase recibe los login /logoff desde un asterisk y realiza esas funciones contra el actorMemberLoginService
     public class PbxLoginProvider
     {
+        private readonly SystemConfiguration systemConfig;
+
         DeviceMemberMap deviceMemberMap = new DeviceMemberMap();
         ActorLoginProxy actorLoginProxy = null;
         AriClient pbx;
         string appName = "myPbxLoginProvider";
 
-        public PbxLoginProvider(ActorLoginProxy actorLoginProxy)
+        public PbxLoginProvider(ActorLoginProxy actorLoginProxy, SystemConfiguration systemConfig)
         {
+            this.systemConfig = systemConfig;
+            this.appName = systemConfig.StasisLoginAppName;
+
             this.actorLoginProxy = actorLoginProxy;
             actorLoginProxy.LoginResponse += ActorLoginProxy_LoginResponse;
             //Comienzo a recibir eventos
             actorLoginProxy.Start();
+        }
+
+        public void Connect()
+        {
+            ConfHost loginProviderHost = systemConfig.GetLoginProvidersFirstHost();
+            Connect(loginProviderHost.Ip, loginProviderHost.Port, loginProviderHost.User, loginProviderHost.Password);
         }
 
         /// <summary>
@@ -48,6 +60,7 @@ namespace LoginProvider
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
             {
+                Console.WriteLine("Conectando login provider en: " + server);
                 pbx.EventDispatchingStrategy = EventDispatchingStrategy.DedicatedThread;
                 pbx.Connect(true, 5);
                 //Thread.Sleep(1000);
