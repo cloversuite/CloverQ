@@ -22,27 +22,23 @@ namespace QueueSystem
 
         #region Métodos
 
-        public void Add(Member member) {
-            if (!members.ContainsKey(member.Id)) {
-                members.Add(member.Id, member);
-            }else
+        public void Add(Member member)
+        {
+            if (!members.ContainsKey(member.Id))
             {
-                //verifico si se relogueo desde otro endpoint, si es asi actualizo el contacto
-                if (members[member.Id].DeviceId != member.DeviceId)
-                {
-                    members[member.Id].DeviceId = member.DeviceId;
-                    members[member.Id].Contact = member.Contact;
-                }
-                members[member.Id].IsLogedIn = true;
-                members[member.Id].IsAvailable = true;
+                members.Add(member.Id, member);
             }
         }
 
-        public void Remove(string memberId) {
+        public Member Remove(string memberId)
+        {
+            Member member = null;
             if (members.ContainsKey(memberId))
             {
+                member = members[memberId];
                 members.Remove(memberId);
             }
+            return member;
         }
 
         public Member GetMemberById(string memberId)
@@ -57,12 +53,21 @@ namespace QueueSystem
 
         //La info de contacto la puedo obtener si se logea con una llamada desde el tel
         //Habria que ver para poder hacer login desde una aplicacion, como le paso el tel que le pertences?
-        public void MemberLogin(Member member) {
+        public void MemberLogin(Member member)
+        {
             //TODO: Validar credenciales, debería actualizar la info de contacto aca??
-            if (members.ContainsKey(member.Id)) {
+            if (members.ContainsKey(member.Id))
+            {
                 Member m = members[member.Id];
-                m.IsLogedIn = true;
-                m.Contact = member.Contact;
+                //verifico si se relogueo desde otro endpoint, si es asi actualizo el contacto
+                if (members[member.Id].DeviceId != member.DeviceId)
+                {
+                    members[member.Id].DeviceId = member.DeviceId;
+                    members[member.Id].Contact = member.Contact;
+                }
+                member.IsLogedIn = true;
+                members[member.Id].IsAvailable = true;
+                m.SetLoginTime();
             }
         }
         public void MemberLogoff(string memberId)
@@ -70,10 +75,12 @@ namespace QueueSystem
             if (members.ContainsKey(memberId))
             {
                 Member m = members[memberId];
+                m.SetLogoffTime();
                 m.PauseCode = "";
                 m.PauseReason = "";
                 m.IsPaused = false;
                 m.IsLogedIn = false;
+                
 
             }
         }
@@ -82,23 +89,31 @@ namespace QueueSystem
         //public void Add(Member m, Queue q) { }
         //public void Remove(Member m, Queue q) { }
         //public void GetFree(Queue q) { }
-        public void MemberUnPause(string memberId) {
+        public Member MemberUnPause(string memberId)
+        {
+            Member m = null;
             if (members.ContainsKey(memberId))
             {
-                Member m = members[memberId];
+                m = members[memberId];
                 m.PauseCode = "";
                 m.PauseReason = "";
                 m.IsPaused = false;
+                m.SetUnpauseTime();
             }
+            return m;
         }
-        public void MemberPause(string memberId, string pauseCode, string pauseReaon) {
+        public Member MemberPause(string memberId, string pauseCode, string pauseReaon)
+        {
+            Member m = null;
             if (members.ContainsKey(memberId))
             {
-                Member m = members[memberId];
+                m = members[memberId];
                 m.PauseCode = pauseCode;
                 m.PauseReason = pauseReaon;
                 m.IsPaused = true;
+                m.SetPauseTime();
             }
+            return m;
         }
         #endregion
 

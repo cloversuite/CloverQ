@@ -60,15 +60,20 @@ namespace AkkaActorSystem
             {
                 //Mensaje que proviene del ActorMemberLoginService, aca creo un nuevo member, cuando me llegan los QMemberAdd creo los
                 //QueueMember en base a este objeto. El member quue creo aca tambien recibe mensajes del stateprovider
-                queueSystem.MemberCache.Add(new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password, DeviceId = mlin.DeviceId });
+                Member member = new Member() { Id = mlin.MemberId, Name = mlin.Name, Contact = mlin.Contact, Password = mlin.Password, DeviceId = mlin.DeviceId };
+                queueSystem.MemberCache.Add(member);
+                queueSystem.MemberCache.MemberLogin(member);
+                
                 actorQueueLog.Tell(new QLMemberLogin() { Channel = mlin.RequestId, MemberId = mlin.MemberId, Name = mlin.Name, DeviceId = mlin.DeviceId });
             });
 
             Receive<MessageMemberLogoff>(mlof =>
             {
                 //Mensaje que proviene del ActorMemberLoginService 
-                queueSystem.MemberCache.Remove(mlof.MemberId);
-                actorQueueLog.Tell(new QLMemberLogoff() { Channel = mlof.RequestId, MemberId = mlof.MemberId });
+                queueSystem.MemberCache.MemberLogoff(mlof.MemberId);
+                Member member = queueSystem.MemberCache.Remove(mlof.MemberId);
+             
+                actorQueueLog.Tell(new QLMemberLogoff() { Channel = mlof.RequestId, MemberId = mlof.MemberId, LoggedInTime = member.LoginElapsedTime });
             });
 
             Receive<MessageQMemberPause>(mpau =>
@@ -80,8 +85,8 @@ namespace AkkaActorSystem
 
             Receive<MessageQMemberUnpause>(munpau =>
             {
-                queueSystem.MemberCache.MemberUnPause(munpau.MemberId);
-                actorQueueLog.Tell(new QLMemberUnpause() { Channel = munpau.RequestId, MemberId = munpau.MemberId });
+                Member member = queueSystem.MemberCache.MemberUnPause(munpau.MemberId);
+                actorQueueLog.Tell(new QLMemberUnpause() { Channel = munpau.RequestId, MemberId = munpau.MemberId, PausedTime = member.PauseElapsedTime  });
             });
 
             Receive<MessageQMemberAdd>(memberQueues =>
