@@ -121,14 +121,14 @@ namespace LoginProvider
                 //esta llamada la tengo que pasar de ask a tell para poder hacer todo async
                 //MessageMemberLoginResponse mlr = await 
                 Console.WriteLine("Login para: " + memberId);
-                actorLoginProxy.Send(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId, RequestId = channelId });
+                actorLoginProxy.Send(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId, RequestId = channelId});
             }
             else if (eventname == "logoff")
             {
                 if (!String.IsNullOrEmpty(memberId))
                 {
                     deviceMemberMap.UnTrackMemberDeviceId(deviceId);
-                    actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password });
+                    actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 }
                 else
                     Console.WriteLine("LogOff: Error MembderId es nulo o vacio");
@@ -139,7 +139,7 @@ namespace LoginProvider
             else if (eventname == "pause")
             {
                 if (!String.IsNullOrEmpty(memberId))
-                    actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password, PauseReason = pauseReason });
+                    actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password, PauseReason = pauseReason, RequestId = e.Channel.Id });
                 else
                     Console.WriteLine("Pause: Error MembderId es nulo o vacio");
 
@@ -149,7 +149,7 @@ namespace LoginProvider
             else if (eventname == "unpause")
             {
                 if (!String.IsNullOrEmpty(memberId))
-                    actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password });
+                    actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 else
                     Console.WriteLine("UnPause: Error MembderId es nulo o vacio");
 

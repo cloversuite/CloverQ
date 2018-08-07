@@ -13,5 +13,6 @@ namespace ProtocolMessages
 
         //Lista de IDs de las colas a la que quiere loguearse
         public List<string> QueuesId { get; set; }
+        public string RequestId { get; set; }
     }
 }

@@ -12,5 +12,6 @@ namespace ProtocolMessages
         public string MemberId { get; set; }
         //colas de donde lo tengo que remover, si null lo saco de todas
         public List<string> QueuesId { get; set; }
+        public string RequestId { get; set; }
     }
 }
