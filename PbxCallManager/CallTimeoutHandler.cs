@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace CallManager
+namespace PbxCallManager
 {
     //TODO: Refactorizar esta clase, hay que mejorar el tema del diccionario y la lista, mucha vuelta
     public class CallTimeoutHandler

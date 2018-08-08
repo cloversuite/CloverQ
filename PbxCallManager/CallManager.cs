@@ -9,7 +9,7 @@ using AkkaActorSystem;
 using ProtocolMessages;
 using ConfigProvider;
 
-namespace CallManager
+namespace PbxCallManager
 {
     public class CallManager
     {

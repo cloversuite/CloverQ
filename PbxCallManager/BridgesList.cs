@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AsterNET.ARI.Models;
 
-namespace CallManager
+namespace PbxCallManager
 {
     public class BridgesList
     {

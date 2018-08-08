@@ -7,7 +7,7 @@ using AsterNET.ARI.Models;
 using AsterNET.ARI;
 using ProtocolMessages;
 
-namespace CallManager
+namespace PbxCallManager
 {
     public class CallHandler
     {

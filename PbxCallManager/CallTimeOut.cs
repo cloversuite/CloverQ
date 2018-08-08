@@ -1,4 +1,4 @@
-﻿namespace CallManager
+﻿namespace PbxCallManager
 {
     public class CallTimeOut
     {

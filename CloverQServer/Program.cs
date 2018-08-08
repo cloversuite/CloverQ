@@ -1,4 +1,8 @@
-﻿using System;
+﻿using AkkaActorSystem;
+using LoginProvider;
+using PbxCallManager;
+using StateProvider;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +12,7 @@ using AkkaActorSystem;
 using LoginProvider;
 using ConfigProvider;
 
-namespace CallManager
+namespace CloverQServer
 {
     class Program
     {
@@ -34,7 +38,7 @@ namespace CallManager
             Console.WriteLine("CallManager iniciado...");
             callManager.Connect();
             //callManager.Connect("192.168.56.102", 8088, "asterisk", "pelo2dos"); //192.168.56.102
-            
+
 
 
 
@@ -42,13 +46,13 @@ namespace CallManager
             Console.WriteLine("StateManager iniciado...");
             dsm.Connect();
             //dsm.Connect("192.168.56.90", 8088, "asterisk", "pelo2dos"); //192.168.56.90
-            
+
 
             PbxLoginProvider plp = new PbxLoginProvider(qActorSystem.GetActorLoginProxy(), systemConfig);
             Console.WriteLine("PbxLoginProvider iniciado...");
             plp.Connect();
             //plp.Connect("192.168.56.90", 8088, "asterisk", "pelo2dos"); //192.168.56.90
-            
+
 
             Console.WriteLine("Presione una tecla para terminar la aplicación...");
             Console.ReadLine();
@@ -57,6 +61,7 @@ namespace CallManager
             dsm.Disconnect();
             plp.Disconnect();
             qActorSystem.Stop();
+
 
         }
     }
