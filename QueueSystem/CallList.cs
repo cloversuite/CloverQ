@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace QueueSystem
 {
@@ -83,7 +84,7 @@ namespace QueueSystem
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error en SetCallOrderSrtategy: " + ex.Message);
+                Log.Logger.Debug("Error en SetCallOrderSrtategy: " + ex.Message);
             }
         }
 

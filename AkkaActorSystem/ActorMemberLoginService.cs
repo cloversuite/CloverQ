@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Akka.Actor;
 using ProtocolMessages;
+using Serilog;
 
 namespace AkkaActorSystem
 {
@@ -97,7 +98,7 @@ namespace AkkaActorSystem
         protected override void Unhandled(object message)
         {
             base.Unhandled(message);
-            Console.WriteLine("MemberLoginService mensaje no manejado");
+            Log.Logger.Debug("MemberLoginService mensaje no manejado");
         }
     }
 }

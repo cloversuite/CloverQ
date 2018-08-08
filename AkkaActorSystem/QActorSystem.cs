@@ -126,9 +126,9 @@ namespace AkkaActorSystem
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error al detener el sistema de actores: " + ex.Message);
+                    Log.Logger.Debug("Error al detener el sistema de actores: " + ex.Message);
                 }
-                Console.WriteLine("El sistema de actores se detuvo.");
+                Log.Logger.Debug("El sistema de actores se detuvo.");
             }
 
         }

@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using ProtocolMessages;
 using System.Text.RegularExpressions;
 using ConfigProvider;
+using Serilog;
 
 namespace LoginProvider
 {
@@ -60,7 +61,7 @@ namespace LoginProvider
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
             {
-                Console.WriteLine("Conectando login provider en: " + server);
+                Log.Logger.Debug("Conectando login provider en: " + server);
                 pbx.EventDispatchingStrategy = EventDispatchingStrategy.DedicatedThread;
                 pbx.Connect(true, 5);
                 //Thread.Sleep(1000);
@@ -77,7 +78,7 @@ namespace LoginProvider
 
         private void Pbx_OnStasisEndEvent(IAriClient sender, AsterNET.ARI.Models.StasisEndEvent e)
         {
-            Console.WriteLine("EL canal: " + e.Channel.Id + "abandonó la app: " + appName);
+            Log.Logger.Debug("EL canal: " + e.Channel.Id + "abandonó la app: " + appName);
         }
 
         /// <summary>
@@ -106,7 +107,7 @@ namespace LoginProvider
             }
             catch (Exception ex)
             {
-                Console.WriteLine("PbxLoginProvider: Error al obtener deviceId del contacto. " + ex.Message);
+                Log.Logger.Debug("PbxLoginProvider: Error al obtener deviceId del contacto. " + ex.Message);
             }
 
 
@@ -117,7 +118,7 @@ namespace LoginProvider
                 //Si tampoco lo encuentro en el deviceMemberMap
                 if (String.IsNullOrEmpty(memberId))
                 {
-                    Console.WriteLine("PbxLoginProvider: no se pudo determinar el memeberId para el device: " + deviceId);
+                    Log.Logger.Debug("PbxLoginProvider: no se pudo determinar el memeberId para el device: " + deviceId);
                 }
             }
 
@@ -133,7 +134,7 @@ namespace LoginProvider
 
                 //esta llamada la tengo que pasar de ask a tell para poder hacer todo async
                 //MessageMemberLoginResponse mlr = await 
-                Console.WriteLine("Login para: " + memberId);
+                Log.Logger.Debug("Login para: " + memberId);
                 actorLoginProxy.Send(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId, RequestId = channelId });
             }
             else if (eventname == "logoff")
@@ -144,7 +145,7 @@ namespace LoginProvider
                     actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 }
                 else
-                    Console.WriteLine("LogOff: Error MembderId es nulo o vacio");
+                    Log.Logger.Debug("LogOff: Error MembderId es nulo o vacio");
 
                 //como no manejo nada mas sigo adelante en el dialplan
                 pbx.Channels.ContinueInDialplan(e.Channel.Id);
@@ -154,7 +155,7 @@ namespace LoginProvider
                 if (!String.IsNullOrEmpty(memberId))
                     actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password, PauseReason = pauseReason, RequestId = e.Channel.Id });
                 else
-                    Console.WriteLine("Pause: Error MembderId es nulo o vacio");
+                    Log.Logger.Debug("Pause: Error MembderId es nulo o vacio");
 
                 //como no manejo nada mas sigo adelante en el dialplan
                 pbx.Channels.ContinueInDialplan(e.Channel.Id);
@@ -164,7 +165,7 @@ namespace LoginProvider
                 if (!String.IsNullOrEmpty(memberId))
                     actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 else
-                    Console.WriteLine("UnPause: Error MembderId es nulo o vacio");
+                    Log.Logger.Debug("UnPause: Error MembderId es nulo o vacio");
 
                 //como no manejo nada mas sigo adelante en el dialplan
                 pbx.Channels.ContinueInDialplan(e.Channel.Id);
@@ -175,7 +176,7 @@ namespace LoginProvider
         private void ActorLoginProxy_LoginResponse(object sender, MessageMemberLoginResponse message)
         {
             //Manejo la respuesta del login 
-            Console.WriteLine("Member " + message.MemberId + "login from:" + message.Contact + " response, " + message.Reason);
+            Log.Logger.Debug("Member " + message.MemberId + "login from:" + message.Contact + " response, " + message.Reason);
 
             //si el login es satisfactorio lo asicio al device
             if (message.LoguedIn)
@@ -191,7 +192,7 @@ namespace LoginProvider
 
         //private async void Pbx_OnChannelUsereventEvent(IAriClient sender, AsterNET.ARI.Models.ChannelUsereventEvent e)
         //{
-        //    Console.WriteLine("User event from: " + e.Channel.Name);
+        //    Log.Logger.Debug("User event from: " + e.Channel.Name);
 
         //    //string eventname = ((JObject)e.Userevent).SelectToken("eventname").Value<string>();
         //    string eventname = (string)((JObject)e.Userevent)["eventname"];
@@ -211,7 +212,7 @@ namespace LoginProvider
 
         //        MessageMemberLoginResponse mlr = await actorLoginProxy.LogIn(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId });
 
-        //        Console.WriteLine("Member " + memberId + "login from:" + contact + " response, " + mlr.Reason);
+        //        Log.Logger.Debug("Member " + memberId + "login from:" + contact + " response, " + mlr.Reason);
 
         //        //En el dialplan espero un segundo para dar tienpo al setvar, esto es para prueba, en prod el login services es un IVR hecho con ari, agi o async agi
         //        sender.Channels.SetChannelVar(e.Channel.Id, "logedin", mlr.LoguedIn.ToString());
@@ -234,7 +235,7 @@ namespace LoginProvider
 
         private void Pbx_OnUnhandledEvent(object sender, AsterNET.ARI.Models.Event eventMessage)
         {
-            // Console.WriteLine("PLP: No manejé: " + eventMessage.Type);
+            // Log.Logger.Debug("PLP: No manejé: " + eventMessage.Type);
         }
 
         public void Disconnect()

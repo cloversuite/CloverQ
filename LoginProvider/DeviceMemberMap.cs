@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace LoginProvider
 {
@@ -26,7 +27,7 @@ namespace LoginProvider
             }
             else
             {
-                Console.WriteLine("DeviceMemberMap: Error device: " + deviceId + " ya esta asociado a: " + deviceMember[deviceId]);
+                Log.Logger.Debug("DeviceMemberMap: Error device: " + deviceId + " ya esta asociado a: " + deviceMember[deviceId]);
             }
         }
 
@@ -36,7 +37,7 @@ namespace LoginProvider
             if (deviceMember.ContainsKey(deviceId))
                 memberId = deviceMember[deviceId];
             else
-                Console.WriteLine("DeviceMemberMap: Warning no se pudo determinar el memberid para el device: " + deviceId);
+                Log.Logger.Debug("DeviceMemberMap: Warning no se pudo determinar el memberid para el device: " + deviceId);
 
             return memberId;
         }

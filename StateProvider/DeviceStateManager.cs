@@ -8,6 +8,7 @@ using AsterNET.ARI.Models;
 using System.Collections.Generic;
 using ProtocolMessages;
 using ConfigProvider;
+using Serilog;
 
 namespace StateProvider
 {
@@ -69,7 +70,7 @@ namespace StateProvider
             //CONECTO EL CLIENTE, true para habilitar reconexion, e intento cada 5 seg
             try
             {
-                Console.WriteLine("Conectando state provider en: " + server);
+                Log.Logger.Debug("Conectando state provider en: " + server);
                 pbx.EventDispatchingStrategy = EventDispatchingStrategy.DedicatedThread;
                 pbx.Connect(true, 5);
                 Thread.Sleep(1000);
@@ -130,18 +131,18 @@ namespace StateProvider
                 }
 
                 device.EndpointState = e.Peer.Peer_status;
-                Console.WriteLine("ESTADO "+ device.Id+" PEER:" + device.DeviceState + " Endpoint: " + device.EndpointState);
+                Log.Logger.Debug("ESTADO "+ device.Id+" PEER:" + device.DeviceState + " Endpoint: " + device.EndpointState);
             }
         }
 
         private void Pbx_OnUnhandledEvent(object sender, AsterNET.ARI.Models.Event eventMessage)
         {
-            // Console.WriteLine("STP: No manejé: " + eventMessage.Type);
+            // Log.Logger.Debug("STP: No manejé: " + eventMessage.Type);
         }
 
         private void Pbx_OnDeviceStateChangedEvent(IAriClient sender, AsterNET.ARI.Models.DeviceStateChangedEvent e)
         {
-            Console.WriteLine("ESTADO el device:" + e.Device_state.Name + " esta en:" + e.Device_state.State);
+            Log.Logger.Debug("ESTADO el device:" + e.Device_state.Name + " esta en:" + e.Device_state.State);
             Device device = deviceCache.UpdateDeviceState(e.Device_state.Name, e.Device_state.State);
             //solo envio mensaje al calldistributor si el device posee un agente
             if (device != null && !String.IsNullOrEmpty(device.MemberId))
@@ -152,7 +153,7 @@ namespace StateProvider
 
         private void Pbx_OnEndpointStateChangeEvent(IAriClient sender, AsterNET.ARI.Models.EndpointStateChangeEvent e)
         {
-            Console.WriteLine("ESTADO el endpoint: " + e.Endpoint.Technology + "/" + e.Endpoint.Resource + " - tiene el estado: " + e.Endpoint.State + " - canales: " + e.Endpoint.Channel_ids.Count.ToString());
+            Log.Logger.Debug("ESTADO el endpoint: " + e.Endpoint.Technology + "/" + e.Endpoint.Resource + " - tiene el estado: " + e.Endpoint.State + " - canales: " + e.Endpoint.Channel_ids.Count.ToString());
             string endpointId = e.Endpoint.Technology + "/" + e.Endpoint.Resource;
             Device device = deviceCache.UpdateEndpointState(endpointId, e.Endpoint.State);
             //solo envio mensaje al calldistributor si el device posee un agente

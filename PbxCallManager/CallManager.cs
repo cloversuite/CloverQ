@@ -8,6 +8,7 @@ using AsterNET.ARI;
 using AkkaActorSystem;
 using ProtocolMessages;
 using ConfigProvider;
+using Serilog;
 
 namespace PbxCallManager
 {
@@ -66,11 +67,11 @@ namespace PbxCallManager
                         pbx.Channels.ContinueInDialplan(callHandler.Caller.Id);
                     }
                 }
-                Console.WriteLine("La LLamada: " + callTimeOut.CallHandlerId + " Expiro!, remuevo el callhandler");
+                Log.Logger.Debug("La LLamada: " + callTimeOut.CallHandlerId + " Expiro!, remuevo el callhandler");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("CallTimeOut: ERROR! " + callTimeOut.CallHandlerId + ", Mensaje: " + ex.Message);
+                Log.Logger.Debug("CallTimeOut: ERROR! " + callTimeOut.CallHandlerId + ", Mensaje: " + ex.Message);
             }
 
             if (msg != null)
@@ -79,7 +80,7 @@ namespace PbxCallManager
             }
             else
             {
-                Console.WriteLine("CallTimeOut: " + callTimeOut.CallHandlerId + " el callhandler devolvió msg = null");
+                Log.Logger.Debug("CallTimeOut: " + callTimeOut.CallHandlerId + " el callhandler devolvió msg = null");
             }
         }
         #endregion
@@ -113,13 +114,13 @@ namespace PbxCallManager
                                     TimeOut = callTimeOut
                                 });
                         }
-                        Console.WriteLine("El canal: " + callHandler.Caller.Id + " fué atendido correctamente ");
+                        Log.Logger.Debug("El canal: " + callHandler.Caller.Id + " fué atendido correctamente ");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("No se pudo atender el canal: " + callHandler.Caller.Id + " Error: " + ex.Message);
+                Log.Logger.Debug("No se pudo atender el canal: " + callHandler.Caller.Id + " Error: " + ex.Message);
             }
 
         }
@@ -137,7 +138,7 @@ namespace PbxCallManager
                     CallHandler callHandler = callHandlerCache.GetByCallHandlerlId(message.CallHandlerId);
                     Channel ch = null;
                     //No deberia usar esto en vez de hacer el originate aca directamente?
-                    Console.WriteLine("CALL TO: " + message.Destination);
+                    Log.Logger.Debug("CALL TO: " + message.Destination);
                     ch = callHandler.CallTo(message.Destination);
                     channelId = ch.Id;
                     //Origino la llamada al agente. Seguramente hay que hacerlo async
@@ -152,9 +153,9 @@ namespace PbxCallManager
             }
             catch (Exception ex)
             {
-                Console.WriteLine("No se pudo conectar con el agente: " + message.Destination + " Error: " + ex.Message);
+                Log.Logger.Debug("No se pudo conectar con el agente: " + message.Destination + " Error: " + ex.Message);
             }
-            Console.WriteLine("La llamada " + channelId + " al agente: " + message.Destination + " se inició correctamente");
+            Log.Logger.Debug("La llamada " + channelId + " al agente: " + message.Destination + " se inició correctamente");
 
         }
 
@@ -195,7 +196,7 @@ namespace PbxCallManager
             {
                 lock (_locker)
                 {
-                    Console.WriteLine("Conectando call manager en: " + server);
+                    Log.Logger.Debug("Conectando call manager en: " + server);
                     pbx.Connect(true, 5);
                     if (pbx.Connected)
                     {
@@ -228,7 +229,7 @@ namespace PbxCallManager
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error al remover un bridge: " + ex.Message);
+                    Log.Logger.Debug("Error al remover un bridge: " + ex.Message);
                 }
 
             }
@@ -260,7 +261,7 @@ namespace PbxCallManager
             }
             else
             {
-                Console.WriteLine("UnAttTransfer devolvió msg = null");
+                Log.Logger.Debug("UnAttTransfer devolvió msg = null");
             }
         }
 
@@ -288,7 +289,7 @@ namespace PbxCallManager
             }
             else
             {
-                Console.WriteLine("AttTransfer devolvió msg = null");
+                Log.Logger.Debug("AttTransfer devolvió msg = null");
             }
 
         }
@@ -305,7 +306,7 @@ namespace PbxCallManager
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Channel Hold: ERROR " + ex.Message + "\n" + ex.StackTrace);
+                Log.Logger.Debug("Channel Hold: ERROR " + ex.Message + "\n" + ex.StackTrace);
             }
 
             if (msg != null)
@@ -314,9 +315,9 @@ namespace PbxCallManager
             }
             else
             {
-                Console.WriteLine("Channel Hold: " + e.Channel.Id + " el callhandler devolvió msg = null");
+                Log.Logger.Debug("Channel Hold: " + e.Channel.Id + " el callhandler devolvió msg = null");
             }
-            Console.WriteLine("Channel Hold: " + e.Channel.Id);
+            Log.Logger.Debug("Channel Hold: " + e.Channel.Id);
         }
 
         private void Pbx_OnChannelUnholdEvent(IAriClient sender, ChannelUnholdEvent e)
@@ -331,7 +332,7 @@ namespace PbxCallManager
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Channel UnHold: ERROR " + ex.Message + "\n" + ex.StackTrace);
+                Log.Logger.Debug("Channel UnHold: ERROR " + ex.Message + "\n" + ex.StackTrace);
             }
 
             if (msg != null)
@@ -340,9 +341,9 @@ namespace PbxCallManager
             }
             else
             {
-                Console.WriteLine("Channel UnHold: " + e.Channel.Id + " el callhandler devolvió msg = null");
+                Log.Logger.Debug("Channel UnHold: " + e.Channel.Id + " el callhandler devolvió msg = null");
             }
-            Console.WriteLine("Channel UnHold: " + e.Channel.Id);
+            Log.Logger.Debug("Channel UnHold: " + e.Channel.Id);
         }
 
         private void Pbx_OnChannelHangupRequestEvent(IAriClient sender, ChannelHangupRequestEvent e)
@@ -357,7 +358,7 @@ namespace PbxCallManager
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Channel HangUpReques: ERROR " + ex.Message + "\n" + ex.StackTrace);
+                Log.Logger.Debug("Channel HangUpReques: ERROR " + ex.Message + "\n" + ex.StackTrace);
             }
 
             if (msg != null)
@@ -366,7 +367,7 @@ namespace PbxCallManager
             }
             else
             {
-                Console.WriteLine("Channel HangUpReques: " + e.Channel.Id + " el callhandler devolvió msg = null");
+                Log.Logger.Debug("Channel HangUpReques: " + e.Channel.Id + " el callhandler devolvió msg = null");
             }
             //TODO:Revisar este lock, verificar si lo que está adentro lo estoy ejecutando
             lock (_locker)
@@ -375,16 +376,16 @@ namespace PbxCallManager
                 CallHandler callHandler = callHandlerCache.GetByChannelId(e.Channel.Id);
                 if (callHandler != null && callHandler.IsCallTerminated())
                 {
-                    Console.WriteLine("Channel HangUpRequest: " + e.Channel.Id + ", call TERMINATED remuevo todo el callhandler: " + callHandler);
+                    Log.Logger.Debug("Channel HangUpRequest: " + e.Channel.Id + ", call TERMINATED remuevo todo el callhandler: " + callHandler);
                     callHandlerCache.RemoveCallHandler(callHandler.Id);
 
-                    Console.WriteLine("Channel HangUpRequest: el bridge: " + callHandler.Bridge.Id + " lo marco como free");
+                    Log.Logger.Debug("Channel HangUpRequest: el bridge: " + callHandler.Bridge.Id + " lo marco como free");
                     bridgesList.SetFreeBridge(callHandler.Bridge.Id);
                 }
                 else // hago lo mismo que el channel destroy
                 {
                     callHandlerCache.RemoveChannel(e.Channel.Id);
-                    Console.WriteLine("Channel HangUpRequest: " + e.Channel.Id + " remuevo channel del callhandler");
+                    Log.Logger.Debug("Channel HangUpRequest: " + e.Channel.Id + " remuevo channel del callhandler");
                 }
             }
         }
@@ -403,7 +404,7 @@ namespace PbxCallManager
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error en Pbx_OnChannelDestroyedEvent - " + ex.Message);
+                Log.Logger.Debug("Error en Pbx_OnChannelDestroyedEvent - " + ex.Message);
             }
 
             if (msg != null)
@@ -412,13 +413,13 @@ namespace PbxCallManager
             }
             else
             {
-                Console.WriteLine("Channel Destroy: " + e.Channel.Id + " el callhandler devolvió msg = null");
+                Log.Logger.Debug("Channel Destroy: " + e.Channel.Id + " el callhandler devolvió msg = null");
             }
             lock (_locker)
             {
                 callHandlerCache.RemoveChannel(e.Channel.Id);
             }
-            Console.WriteLine("Channel Destroy: " + e.Channel.Id + " remuevo channel del callhandler");
+            Log.Logger.Debug("Channel Destroy: " + e.Channel.Id + " remuevo channel del callhandler");
 
         }
 
@@ -438,21 +439,21 @@ namespace PbxCallManager
                 }
                 else
                 {
-                    Console.WriteLine("Channel State Change: " + e.Channel.Id + " el callhandler devolvió msg = null");
+                    Log.Logger.Debug("Channel State Change: " + e.Channel.Id + " el callhandler devolvió msg = null");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ERROR!!: Pbx_OnChannelStateChangeEvent chan:" + e.Channel.Id + ", error: " + ex.Message);
+                Log.Logger.Debug("ERROR!!: Pbx_OnChannelStateChangeEvent chan:" + e.Channel.Id + ", error: " + ex.Message);
             }
 
             //log to console
-            Console.WriteLine("El canal: " + e.Channel.Id + " cambio su estado a: " + e.Channel.State.ToString());
+            Log.Logger.Debug("El canal: " + e.Channel.Id + " cambio su estado a: " + e.Channel.State.ToString());
         }
 
         private void Pbx_OnStasisEndEvent(IAriClient sender, StasisEndEvent e)
         {
-            Console.WriteLine("El canal: " + e.Channel.Id + " salió de la app: " + e.Application);
+            Log.Logger.Debug("El canal: " + e.Channel.Id + " salió de la app: " + e.Application);
             //uno de los dos cortó o por algun motivo se fue de stasis, transfer?? la cosa es que no estan mas en la app asi que los remuevo
             //aca debería ver el abandono, si sale de la app sin que lo atiendan abandonó?
             //TODO:Verificar el uso de este código, tal vez se pueda quitar 
@@ -462,7 +463,7 @@ namespace PbxCallManager
                 if (callHandler != null) //esto es en caso de que existan llamadas en stasis antes de arrancar la app, debería cargar la info de lo preexistente en la pbx
                 {
                     callHandlerCache.RemoveCallHandler(callHandler.Id);
-                    Console.WriteLine("El canal: " + e.Channel.Id + ", remuevo el callhandler: " + callHandler.Id);
+                    Log.Logger.Debug("El canal: " + e.Channel.Id + ", remuevo el callhandler: " + callHandler.Id);
                 }
             }
         }
@@ -490,22 +491,22 @@ namespace PbxCallManager
                     //Verifico: si el canal es de una llamada que ya existe no creo nada. Esto es para el caso en que hago un originate al agente, ya tengo un callhandler creado por el caller que llamó inicialmente
                     if (callHandlerCache.GetByChannelId(e.Channel.Id) == null)
                     {
-                        Console.WriteLine("El canal: " + e.Channel.Id + " entró a la app: " + e.Application);
+                        Log.Logger.Debug("El canal: " + e.Channel.Id + " entró a la app: " + e.Application);
                         Bridge bridge = bridgesList.GetFreeBridge();
                         if (bridge == null) //si no hay un bridge libre creo uno y lo agrego a la lista
                         {
                             bridge = pbx.Bridges.Create("mixing", Guid.NewGuid().ToString());
                             bridgesList.AddNewBridge(bridge);
-                            Console.WriteLine("Se crea un Bridge: " + bridge.Id);
+                            Log.Logger.Debug("Se crea un Bridge: " + bridge.Id);
                         }
                         else
                         {
-                            Console.WriteLine("Se usa un Bridge existente: " + bridge.Id);
+                            Log.Logger.Debug("Se usa un Bridge existente: " + bridge.Id);
                         }
 
                         CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
                         callHandlerCache.AddCallHandler(callHandler);
-                        Console.WriteLine("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
+                        Log.Logger.Debug("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
 
                         //Agrego el canal al bridge
                         try
@@ -519,7 +520,7 @@ namespace PbxCallManager
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                            Log.Logger.Debug("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
                         }
 
                         //supongo que aca debo avisar a akka que cree el manejador para esta llamada y me mande el mesajito para que atienda
@@ -545,7 +546,7 @@ namespace PbxCallManager
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
+                            Log.Logger.Debug("No se pudo agregar el canal: " + e.Channel.Id + " al bridge: " + callHandler.Bridge.Id + " Error: " + ex.Message);
                         }
                     }
                 }

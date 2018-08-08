@@ -10,6 +10,7 @@ using ProtocolMessages.QueueLog;
 using QueueSystem;
 using Models;
 using ProtocolMessages.Commands;
+using Serilog;
 
 namespace AkkaActorSystem
 {
@@ -139,7 +140,7 @@ namespace AkkaActorSystem
 
                     member.DeviceIsInUse = dsc.IsInUse;
                     member.EndpointIsOfline = dsc.IsOffline;
-                    Console.WriteLine("CALL DIST: member STATE changed, Contact: " + member.Contact + ", IsInUse: " + member.DeviceIsInUse);
+                    Log.Logger.Debug("CALL DIST: member STATE changed, Contact: " + member.Contact + ", IsInUse: " + member.DeviceIsInUse);
                 }
             });
             Receive<MessageNewCall>(nc =>
@@ -199,7 +200,7 @@ namespace AkkaActorSystem
             Receive<MessageCallToFailed>(ctf =>
             {
             //Busco otro member
-            Console.WriteLine("CALL DIST: callto failed with code: " + ctf.Code.ToString() + " Reason: " + ctf.Reason);
+            Log.Logger.Debug("CALL DIST: callto failed with code: " + ctf.Code.ToString() + " Reason: " + ctf.Reason);
             Queue queue = queueSystem.QueueCache.GetQueue(ctf.QueueId);
             if (queue != null)
             {
@@ -231,7 +232,7 @@ namespace AkkaActorSystem
         });
             Receive<MessageCallToSuccess>(cts =>
             {
-                Console.WriteLine("CALL DIST: callto success");
+                Log.Logger.Debug("CALL DIST: callto success");
                 Queue queue = queueSystem.QueueCache.GetQueue(cts.QueueId);
                 Call call;
                 if (queue != null)
@@ -258,7 +259,7 @@ namespace AkkaActorSystem
             Receive<MessageCallerHangup>(chup =>
             {
                 //si caller hangup termino toda la llamada?, tal vez comportamiento configurable?
-                Console.WriteLine("CALL DIST: Caller Hangup");
+                Log.Logger.Debug("CALL DIST: Caller Hangup");
                 Queue queue = queueSystem.QueueCache.GetQueue(chup.QueueId);
                 if (queue != null)
                 {
@@ -296,7 +297,7 @@ namespace AkkaActorSystem
             Receive<MessageAgentHangup>(ahup =>
             {
                 //Si agent hangup hago que la llamada del caller siga en el dialplan?
-                Console.WriteLine("CALL DIST: Agent Hangup");
+                Log.Logger.Debug("CALL DIST: Agent Hangup");
                 Queue queue = queueSystem.QueueCache.GetQueue(ahup.QueueId);
                 if (queue != null)
                 {
@@ -326,7 +327,7 @@ namespace AkkaActorSystem
 
             Receive<MessageCallTransfer>(ctrans =>
             {
-                Console.WriteLine("CALL DIST: Call Trasnfer: dst: " + ctrans.TargetName);
+                Log.Logger.Debug("CALL DIST: Call Trasnfer: dst: " + ctrans.TargetName);
                 Queue queue = queueSystem.QueueCache.GetQueue(ctrans.QueueId);
                 if (queue != null)
                 {
@@ -381,7 +382,7 @@ namespace AkkaActorSystem
 
             Receive<MessageCheckReadyMember>(rdymem =>
             {
-                //Console.WriteLine("CALL DIST: Check Ready Member: ");
+                //Log.Logger.Debug("CALL DIST: Check Ready Member: ");
                 foreach (Queue queue in queueSystem.QueueCache.QueueList)
                     if (queue != null)
                     {
@@ -478,7 +479,7 @@ namespace AkkaActorSystem
         protected override void Unhandled(object message)
         {
             base.Unhandled(message);
-            Console.WriteLine("CallDistributor mensaje no manejado", message.ToString());
+            Log.Logger.Debug("CallDistributor mensaje no manejado", message.ToString());
         }
     }
 }

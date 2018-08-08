@@ -7,6 +7,7 @@ using Akka.Actor;
 using Akka.Configuration;
 using ProtocolMessages;
 using System.Threading;
+using Serilog;
 
 namespace AkkaActorSystem
 {
@@ -43,7 +44,7 @@ namespace AkkaActorSystem
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error al detener el thread receiver del ActorLoginProxy: " + ex.Message);
+                    Log.Logger.Debug("Error al detener el thread receiver del ActorLoginProxy: " + ex.Message);
                 }
             }
         }
@@ -63,14 +64,14 @@ namespace AkkaActorSystem
 
                         if (LoginResponse != null && msg is MessageMemberLoginResponse)
                         {
-                            Console.WriteLine("El ActorPbx recibió MessageMemberLoginResponse");
+                            Log.Logger.Debug("El ActorPbx recibió MessageMemberLoginResponse");
                             this.LoginResponse(this, (MessageMemberLoginResponse)msg);
                         }
 
                         //All Messages
                         if (Receive != null && msg is Message)
                         {
-                            Console.WriteLine("El ActorLoginProxy recibió un mensaje");
+                            Log.Logger.Debug("El ActorLoginProxy recibió un mensaje");
                             this.Receive(this, (Message)msg);
                         }
                         Thread.Sleep(100);
@@ -78,7 +79,7 @@ namespace AkkaActorSystem
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("El thread receiver del ActorLoginProxy se detuvo: " + ex.Message);
+                    Log.Logger.Debug("El thread receiver del ActorLoginProxy se detuvo: " + ex.Message);
                 }
             });
             threadReceiver.Start();
@@ -94,7 +95,7 @@ namespace AkkaActorSystem
         public void Send(Message message)
         {
             inbox.Send(actorMemberLoginService, message);
-            Console.WriteLine("El ActorPbx envió un mensaje al ActorMsgRouter");
+            Log.Logger.Debug("El ActorPbx envió un mensaje al ActorMsgRouter");
         }
         public async Task<MessageMemberLoginResponse> LogIn(MessageMemberLogin message)
         {

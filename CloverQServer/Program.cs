@@ -11,6 +11,7 @@ using StateProvider;
 using AkkaActorSystem;
 using LoginProvider;
 using ConfigProvider;
+using Serilog;
 
 namespace CloverQServer
 {
@@ -29,13 +30,13 @@ namespace CloverQServer
             config.SaveConf();
 
             SystemConfiguration systemConfig = SystemConfiguration.GetConf("cloverq-conf.json");
-
-
+            
             QActorSystem qActorSystem = new QActorSystem(systemConfig);
 
+            Log.Logger.Debug("Serilog test from cloverq server class");
 
             CallManager callManager = new CallManager(qActorSystem.GetActorPbxProxy(), systemConfig);
-            Console.WriteLine("CallManager iniciado...");
+            Log.Logger.Debug("CallManager iniciado...");
             callManager.Connect();
             //callManager.Connect("192.168.56.102", 8088, "asterisk", "pelo2dos"); //192.168.56.102
 
@@ -43,18 +44,18 @@ namespace CloverQServer
 
 
             DeviceStateManager dsm = new DeviceStateManager(qActorSystem.GetActorStateProxy(), systemConfig);
-            Console.WriteLine("StateManager iniciado...");
+            Log.Logger.Debug("StateManager iniciado...");
             dsm.Connect();
             //dsm.Connect("192.168.56.90", 8088, "asterisk", "pelo2dos"); //192.168.56.90
 
 
             PbxLoginProvider plp = new PbxLoginProvider(qActorSystem.GetActorLoginProxy(), systemConfig);
-            Console.WriteLine("PbxLoginProvider iniciado...");
+            Log.Logger.Debug("PbxLoginProvider iniciado...");
             plp.Connect();
             //plp.Connect("192.168.56.90", 8088, "asterisk", "pelo2dos"); //192.168.56.90
 
 
-            Console.WriteLine("Presione una tecla para terminar la aplicación...");
+            Log.Logger.Debug("Presione una tecla para terminar la aplicación...");
             Console.ReadLine();
 
             callManager.Disconnect();

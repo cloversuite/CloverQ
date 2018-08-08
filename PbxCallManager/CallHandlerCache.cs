@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace PbxCallManager
 {
@@ -23,7 +24,7 @@ namespace PbxCallManager
                 bridges.Add(callHandler.Bridge.Id, callHandler);
             }
             catch(Exception ex) {
-                Console.WriteLine("No se pudo agregar al cache el bridge: " + callHandler.Bridge.Id + "Error: " + ex.Message);
+                Log.Logger.Debug("No se pudo agregar al cache el bridge: " + callHandler.Bridge.Id + "Error: " + ex.Message);
             }
             calls.Add(callHandler.Id, callHandler);
             if (callHandler.Agent != null)

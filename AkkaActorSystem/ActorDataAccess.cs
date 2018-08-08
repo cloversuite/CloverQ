@@ -7,6 +7,7 @@ using Akka.Actor;
 using ProtocolMessages;
 using DataAccess;
 using Models;
+using Serilog;
 
 namespace AkkaActorSystem
 {
@@ -49,7 +50,7 @@ namespace AkkaActorSystem
         {
             Sender.ToString();
             base.Unhandled(message);
-            Console.WriteLine("ActorDataAccess mensaje no manejado");
+            Log.Logger.Debug("ActorDataAccess mensaje no manejado");
         }
     }
 }

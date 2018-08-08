@@ -7,6 +7,7 @@ using System.Threading;
 using Akka.Actor;
 using Akka.Configuration;
 using ProtocolMessages;
+using Serilog;
 
 namespace AkkaActorSystem
 {
@@ -43,7 +44,7 @@ namespace AkkaActorSystem
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error al detener el thread receiver del ActorStateProxy: " + ex.Message);
+                    Log.Logger.Debug("Error al detener el thread receiver del ActorStateProxy: " + ex.Message);
                 }
 
             }
@@ -63,18 +64,18 @@ namespace AkkaActorSystem
 
                         if (AttachMember != null && msg is MessageAttachMemberToDevice)
                         {
-                            Console.WriteLine("El ActorStateProxy recibió AttachMember");
+                            Log.Logger.Debug("El ActorStateProxy recibió AttachMember");
                             this.AttachMember(this, (MessageAttachMemberToDevice)msg);
                         }
                         if (DetachMember != null && msg is MessageDetachMemberFromDevice)
                         {
-                            Console.WriteLine("El ActorStateProxy recibió un DetachMember");
+                            Log.Logger.Debug("El ActorStateProxy recibió un DetachMember");
                             this.DetachMember(this, (MessageDetachMemberFromDevice)msg);
                         }
                         //All Messages
                         if (Receive != null && msg is Message)
                         {
-                            Console.WriteLine("El ActorStateProxy recibió un mensaje");
+                            Log.Logger.Debug("El ActorStateProxy recibió un mensaje");
                             this.Receive(this, (Message)msg);
                         }
                         Thread.Sleep(100);
@@ -82,7 +83,7 @@ namespace AkkaActorSystem
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("El thread receiver del ActorStateProxy se detuvo: " + ex.Message);
+                    Log.Logger.Debug("El thread receiver del ActorStateProxy se detuvo: " + ex.Message);
                 }
             });
             threadReceiver.Start();
@@ -98,7 +99,7 @@ namespace AkkaActorSystem
         public void Send(Message message)
         {
             inbox.Send(actorCallDitributor, message);
-            Console.WriteLine("El ActorStateProxy envió un mensaje al callDitributor");
+            Log.Logger.Debug("El ActorStateProxy envió un mensaje al callDitributor");
         }
 
     }

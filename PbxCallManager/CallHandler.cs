@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AsterNET.ARI.Models;
 using AsterNET.ARI;
 using ProtocolMessages;
+using Serilog;
 
 namespace PbxCallManager
 {
@@ -144,7 +145,7 @@ namespace PbxCallManager
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Fallo al realizar StopMoh en el bridge: " + this.Bridge.Id);
+                Log.Logger.Debug("Fallo al realizar StopMoh en el bridge: " + this.Bridge.Id);
                 //puedo continual ya que no es un error fatal
             }
 
@@ -203,7 +204,7 @@ namespace PbxCallManager
             }
             catch (Exception ex)
             {
-                Console.WriteLine("CallHandler: Error continue dialplan action. " + ex.Message);
+                Log.Logger.Debug("CallHandler: Error continue dialplan action. " + ex.Message);
             }
             
             return msg;
@@ -229,7 +230,7 @@ namespace PbxCallManager
             }
             else
             {
-                Console.WriteLine("Callhandler: El canal " + caller.Id + " no está en la llamada: " + this.id);
+                Log.Logger.Debug("Callhandler: El canal " + caller.Id + " no está en la llamada: " + this.id);
             }
 
             return msg;
@@ -266,7 +267,7 @@ namespace PbxCallManager
                 callState = CallState.CONNECT_FAILDED;
             }
             else
-                Console.WriteLine("Callhandler: El canal " + caller.Id + " no está en la llamada: " + this.id);
+                Log.Logger.Debug("Callhandler: El canal " + caller.Id + " no está en la llamada: " + this.id);
 
             return msg;
         }
@@ -323,7 +324,7 @@ namespace PbxCallManager
                 //}
             }
             else
-                Console.WriteLine("Callhandler: El canal " + caller.Id + " no está en la llamada: " + this.id);
+                Log.Logger.Debug("Callhandler: El canal " + caller.Id + " no está en la llamada: " + this.id);
 
             return msg;
         }
@@ -346,7 +347,7 @@ namespace PbxCallManager
             }
             catch (Exception ex)
             {
-                Console.WriteLine("CallHandler: " + this.id + " request hangup failed on channel: " + channelId + "Error: " + ex.Message);
+                Log.Logger.Debug("CallHandler: " + this.id + " request hangup failed on channel: " + channelId + "Error: " + ex.Message);
             }
 
         }
@@ -439,7 +440,7 @@ namespace PbxCallManager
                 agent = newChannel;
             }
             else
-                Console.WriteLine("Callhandler: ChannelReplace: El canal " + caller.Id + " no está en la llamada: " + this.id);
+                Log.Logger.Debug("Callhandler: ChannelReplace: El canal " + caller.Id + " no está en la llamada: " + this.id);
 
         }
 
@@ -447,7 +448,7 @@ namespace PbxCallManager
         {
             if (!Int32.TryParse(timeOut, out this.timeOut))
             {
-                Console.WriteLine("CallHandler: fallo convercion timeOut de string a int");
+                Log.Logger.Debug("CallHandler: fallo convercion timeOut de string a int");
             }
         }
     }
