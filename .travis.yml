@@ -1,7 +1,7 @@
 language: csharp
 install:
-  - nuget restore TestBridge.sln
-  - nuget restore AsterNET.ARI.SubMod/AsterNET.ARI.sln 
+  - nuget restore CloverQ.sln
+#  - nuget restore AsterNET.ARI.SubMod/AsterNET.ARI.sln 
 script:
-  - msbuild /p:Configuration=Release AsterNET.ARI.SubMod/AsterNET.ARI/AsterNET.ARI.csproj
+#  - msbuild /p:Configuration=Release AsterNET.ARI.SubMod/AsterNET.ARI/AsterNET.ARI.csproj
   - msbuild /p:Configuration=Release TestBridge.sln
