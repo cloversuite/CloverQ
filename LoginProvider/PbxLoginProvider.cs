@@ -14,6 +14,7 @@ namespace LoginProvider
     //esta clase recibe los login /logoff desde un asterisk y realiza esas funciones contra el actorMemberLoginService
     public class PbxLoginProvider
     {
+        object _locker = new object();
         private readonly SystemConfiguration systemConfig;
 
         DeviceMemberMap deviceMemberMap = new DeviceMemberMap();
@@ -116,7 +117,10 @@ namespace LoginProvider
             //Si no me pasan el memberId, trato de recuperarlo del deviceMemberMap
             if (String.IsNullOrEmpty(memberId))
             {
-                memberId = deviceMemberMap.GetMemberIdFromDeviceId(deviceId);
+                lock (_locker)
+                {
+                    memberId = deviceMemberMap.GetMemberIdFromDeviceId(deviceId);
+                }
                 //Si tampoco lo encuentro en el deviceMemberMap
                 if (String.IsNullOrEmpty(memberId))
                 {
@@ -143,14 +147,20 @@ namespace LoginProvider
             {
                 if (!String.IsNullOrEmpty(memberId))
                 {
-                    deviceMemberMap.UnTrackMemberDeviceId(deviceId);
+                    lock (_locker)
+                    {
+                        deviceMemberMap.UnTrackMemberDeviceId(deviceId);
+                    }
                     actorLoginProxy.Send(new MessageMemberLogoff() { From = source, MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 }
                 else
                     Log.Logger.Debug("LogOff: Error MembderId es nulo o vacio");
 
                 //como no manejo nada mas sigo adelante en el dialplan
-                pbx.Channels.ContinueInDialplan(e.Channel.Id);
+                lock (_locker)
+                {
+                    pbx.Channels.ContinueInDialplan(e.Channel.Id);
+                }
             }
             else if (eventname == "pause")
             {
@@ -160,7 +170,10 @@ namespace LoginProvider
                     Log.Logger.Debug("Pause: Error MembderId es nulo o vacio");
 
                 //como no manejo nada mas sigo adelante en el dialplan
-                pbx.Channels.ContinueInDialplan(e.Channel.Id);
+                lock (_locker)
+                {
+                    pbx.Channels.ContinueInDialplan(e.Channel.Id);
+                }
             }
             else if (eventname == "unpause")
             {
@@ -168,9 +181,11 @@ namespace LoginProvider
                     actorLoginProxy.Send(new MessageMemberUnPause() { From = source, MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 else
                     Log.Logger.Debug("UnPause: Error MembderId es nulo o vacio");
-
-                //como no manejo nada mas sigo adelante en el dialplan
-                pbx.Channels.ContinueInDialplan(e.Channel.Id);
+                lock (_locker)
+                {
+                    //como no manejo nada mas sigo adelante en el dialplan
+                    pbx.Channels.ContinueInDialplan(e.Channel.Id);
+                }
             }
 
         }
@@ -179,16 +194,18 @@ namespace LoginProvider
         {
             //Manejo la respuesta del login 
             Log.Logger.Debug("Member " + message.MemberId + "login from:" + message.Contact + " response, " + message.Reason);
-
-            //si el login es satisfactorio lo asicio al device
-            if (message.LoguedIn)
+            lock (_locker)
             {
-                deviceMemberMap.TrackMemberDeviceId(message.DeviceId, message.MemberId);
-            }
+                //si el login es satisfactorio lo asicio al device
+                if (message.LoguedIn)
+                {
+                    deviceMemberMap.TrackMemberDeviceId(message.DeviceId, message.MemberId);
+                }
 
-            //En el RequestId me viene el canal que originó el mesaje de login
-            pbx.Channels.SetChannelVar(message.ResquestId, "logedin", message.LoguedIn.ToString());
-            pbx.Channels.ContinueInDialplan(message.ResquestId);
+                //En el RequestId me viene el canal que originó el mesaje de login
+                pbx.Channels.SetChannelVar(message.ResquestId, "logedin", message.LoguedIn.ToString());
+                pbx.Channels.ContinueInDialplan(message.ResquestId);
+            }
         }
 
 

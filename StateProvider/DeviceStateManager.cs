@@ -18,6 +18,7 @@ namespace StateProvider
     //Uso el asternet.ari, solo para monitoreo de eventos, en realidad debería usar el asternet pero no corre sobre mono o .net core
     public class DeviceStateManager
     {
+        object _locker = new object();
         private readonly SystemConfiguration systemConfig;
 
         DeviceCache deviceCache = new DeviceCache();
@@ -112,28 +113,31 @@ namespace StateProvider
         #region ARI event handler
         private void Pbx_OnPeerStatusChangeEvent(IAriClient sender, AsterNET.ARI.Models.PeerStatusChangeEvent e)
         {
-            Device device =  deviceCache.GetDeviceById(e.Endpoint.Technology + "/" + e.Endpoint.Resource);
-            string destination = "SIP/";
-            if (device != null)
+            lock (_locker)
             {
-                if (!String.IsNullOrEmpty(e.Peer.Address))
+                Device device = deviceCache.GetDeviceById(e.Endpoint.Technology + "/" + e.Endpoint.Resource);
+                string destination = "SIP/";
+                if (device != null)
                 {
-                    destination += e.Peer.Address + "/" + e.Endpoint.Resource;
-                    //Solo actualizo si cambió el contact
-                    if (device.Contact != destination)
+                    if (!String.IsNullOrEmpty(e.Peer.Address))
                     {
-                        device.Contact = destination;
-                        //solo envio mensaje al calldistributor si el device posee un agente
-                        if (!String.IsNullOrEmpty(device.MemberId))
+                        destination += e.Peer.Address + "/" + e.Endpoint.Resource;
+                        //Solo actualizo si cambió el contact
+                        if (device.Contact != destination)
                         {
-                            this.actorStateProxy.Send(new MessageDeviceStateChanged() { From = source, DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                            device.Contact = destination;
+                            //solo envio mensaje al calldistributor si el device posee un agente
+                            if (!String.IsNullOrEmpty(device.MemberId))
+                            {
+                                this.actorStateProxy.Send(new MessageDeviceStateChanged() { From = source, DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                            }
                         }
+
                     }
 
+                    device.EndpointState = e.Peer.Peer_status;
+                    Log.Logger.Debug("ESTADO " + device.Id + " PEER:" + device.DeviceState + " Endpoint: " + device.EndpointState);
                 }
-
-                device.EndpointState = e.Peer.Peer_status;
-                Log.Logger.Debug("ESTADO "+ device.Id+" PEER:" + device.DeviceState + " Endpoint: " + device.EndpointState);
             }
         }
 
@@ -145,11 +149,14 @@ namespace StateProvider
         private void Pbx_OnDeviceStateChangedEvent(IAriClient sender, AsterNET.ARI.Models.DeviceStateChangedEvent e)
         {
             Log.Logger.Debug("ESTADO el device:" + e.Device_state.Name + " esta en:" + e.Device_state.State);
-            Device device = deviceCache.UpdateDeviceState(e.Device_state.Name, e.Device_state.State);
-            //solo envio mensaje al calldistributor si el device posee un agente
-            if (device != null && !String.IsNullOrEmpty(device.MemberId))
+            lock (_locker)
             {
-                this.actorStateProxy.Send(new MessageDeviceStateChanged() { From = source, DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                Device device = deviceCache.UpdateDeviceState(e.Device_state.Name, e.Device_state.State);
+                //solo envio mensaje al calldistributor si el device posee un agente
+                if (device != null && !String.IsNullOrEmpty(device.MemberId))
+                {
+                    this.actorStateProxy.Send(new MessageDeviceStateChanged() { From = source, DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                }
             }
         }
 
@@ -157,12 +164,15 @@ namespace StateProvider
         {
             Log.Logger.Debug("ESTADO el endpoint: " + e.Endpoint.Technology + "/" + e.Endpoint.Resource + " - tiene el estado: " + e.Endpoint.State + " - canales: " + e.Endpoint.Channel_ids.Count.ToString());
             string endpointId = e.Endpoint.Technology + "/" + e.Endpoint.Resource;
-            Device device = deviceCache.UpdateEndpointState(endpointId, e.Endpoint.State);
-            //solo envio mensaje al calldistributor si el device posee un agente
-            if (!String.IsNullOrEmpty(device.MemberId))
+            lock (_locker)
             {
-                //TODO: verificar si enviar este mensaje es totalemente necesario
-                this.actorStateProxy.Send(new MessageDeviceStateChanged() { From = source, DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                Device device = deviceCache.UpdateEndpointState(endpointId, e.Endpoint.State);
+                //solo envio mensaje al calldistributor si el device posee un agente
+                if (!String.IsNullOrEmpty(device.MemberId))
+                {
+                    //TODO: verificar si enviar este mensaje es totalemente necesario
+                    this.actorStateProxy.Send(new MessageDeviceStateChanged() { From = source, DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                }
             }
         }
 
@@ -173,12 +183,18 @@ namespace StateProvider
         #region ActorProxyState event handlers
         private void ActorStateProxy_DetachMember(object sender, ProtocolMessages.MessageDetachMemberFromDevice message)
         {
-            deviceCache.DetachMemberFromDevice(message.DeviceId, message.MemberId);
+            lock (_locker)
+            {
+                deviceCache.DetachMemberFromDevice(message.DeviceId, message.MemberId);
+            }
         }
 
         private void ActorStateProxy_AttachMember(object sender, ProtocolMessages.MessageAttachMemberToDevice message)
         {
-            deviceCache.AttachMemberToDevice(message.DeviceId, message.MemberId);
+            lock (_locker)
+            {
+                deviceCache.AttachMemberToDevice(message.DeviceId, message.MemberId);
+            }
         }
         #endregion
 
