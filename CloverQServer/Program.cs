@@ -35,19 +35,25 @@ namespace CloverQServer
 
             Log.Logger.Debug("Serilog test from cloverq server class");
 
-            CallManager callManager = new CallManager(qActorSystem.GetActorPbxProxy(), systemConfig);
-            Log.Logger.Debug("CallManager iniciado...");
-            callManager.Connect();
-            //callManager.Connect("192.168.56.102", 8088, "asterisk", "pelo2dos"); //192.168.56.102
+            List<CallManager> cmanagers = new List<CallManager>();
 
+            
+            Log.Logger.Debug("CallManagers iniciado...");
+            //callManager.Connect("192.168.56.102", 8088, "asterisk", "pelo2dos"); //192.168.56.102
+            foreach (ConfHost cf in systemConfig.CallManagers)
+            {
+                
+                CallManager callManager = new CallManager(qActorSystem.GetNewActorPbxProxy(), systemConfig);
+                callManager.Connect(cf.Ip, cf.Port, cf.User, cf.Password); //192.168.56.90
+                cmanagers.Add(callManager);
+            }
 
 
 
             DeviceStateManager dsm = new DeviceStateManager(qActorSystem.GetActorStateProxy(), systemConfig);
             Log.Logger.Debug("StateManager iniciado...");
             dsm.Connect();
-            //dsm.Connect("192.168.56.90", 8088, "asterisk", "pelo2dos"); //192.168.56.90
-
+            
 
             PbxLoginProvider plp = new PbxLoginProvider(qActorSystem.GetActorLoginProxy(), systemConfig);
             Log.Logger.Debug("PbxLoginProvider iniciado...");
@@ -58,7 +64,9 @@ namespace CloverQServer
             Log.Logger.Debug("Presione una tecla para terminar la aplicación...");
             Console.ReadLine();
 
-            callManager.Disconnect();
+            foreach(CallManager cm in cmanagers)
+                cm.Disconnect();
+
             dsm.Disconnect();
             plp.Disconnect();
             qActorSystem.Stop();

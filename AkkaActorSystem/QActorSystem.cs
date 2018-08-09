@@ -137,6 +137,17 @@ namespace AkkaActorSystem
         {
             return this.actorPbxProxy;
         }
+        /// <summary>
+        /// Create new instance of pbx proxy
+        /// </summary>
+        /// <returns>ActorPbxProxy</returns>
+        public ActorPbxProxy GetNewActorPbxProxy() {
+            //Esto lo hago para reemplazar el método GetActorPbxProxy() 
+            //que antes llamaba desde el program.cs para inciar solo un callmanager
+            Inbox inboxPbxProxy = Inbox.Create(systemq);
+            actorPbxProxy = new ActorPbxProxy(inboxPbxProxy, actorMsgRouter);
+            return actorPbxProxy;
+        }
 
         public ActorStateProxy GetActorStateProxy()
         {

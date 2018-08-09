@@ -114,7 +114,7 @@ namespace ConfigProvider
         public ConfHost GetLoginProvidersFirstHost()
         {
             if (LoginProviders.Count != 0)
-                return LoginProviders[0];
+                return loginProviders[0];
             else
                 return null;
         }
