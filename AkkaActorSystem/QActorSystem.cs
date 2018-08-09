@@ -159,4 +159,18 @@ namespace AkkaActorSystem
             return this.actorLoginProxy;
         }
     }
+
+    //Esta clase solo la coloco para que vs copie los assembly 
+    //TODO: ver como solucionar el tema
+    public class DummyClass
+    {
+        private static void Dummy()
+        {
+            Action<Type> noop = _ => { };
+            var dummy = typeof(Akka.Remote.RemoteActorRef);
+            dummy = typeof(Akka.Logger.Serilog.SerilogLogger);
+            noop(dummy);
+        }
+    }
+
 }
