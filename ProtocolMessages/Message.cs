@@ -14,6 +14,8 @@ namespace ProtocolMessages
         }
 
         public DateTime EventTime { get; set; }
+        public string From { get; set; }
+        public string To { get; set; }
         public string CallHandlerId { get; set; }
         public string QueueId { get; set; }
     }

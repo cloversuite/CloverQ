@@ -10,5 +10,6 @@ namespace ProtocolMessages
     {
         public string MemberId { get; set; }
         public string RequestId { get; set; }
+        public string From { get; set; }
     }
 }

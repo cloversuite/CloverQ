@@ -21,13 +21,13 @@ namespace CloverQServer
         {
             //TODO: mover la configuracion al sistema de actores
 
-            SystemConfiguration config = new SystemConfiguration("cloverq-conf.json");
-            config.QueueLog = new ConfQueueLog() { LogFilePrefix = "logcito" };
-            config.CallManagers.Add(new ConfHost() { Ip = "192.168.56.102", Port = 8088, User = "asterisk", Password = "pelo2dos" });
-            config.StateProviders.Add(new ConfHost() { Ip = "192.168.56.90", Port = 8088, User = "asterisk", Password = "pelo2dos" });
-            config.LoginProviders.Add(new ConfHost() { Ip = "192.168.56.90", Port = 8088, User = "asterisk", Password = "pelo2dos" });
+            //SystemConfiguration config = new SystemConfiguration("cloverq-conf.json");
+            //config.QueueLog = new ConfQueueLog() { LogFilePrefix = "logcito" };
+            //config.CallManagers.Add(new ConfHost() { Ip = "192.168.56.102", Port = 8088, User = "asterisk", Password = "pelo2dos" });
+            //config.StateProviders.Add(new ConfHost() { Ip = "192.168.56.90", Port = 8088, User = "asterisk", Password = "pelo2dos" });
+            //config.LoginProviders.Add(new ConfHost() { Ip = "192.168.56.90", Port = 8088, User = "asterisk", Password = "pelo2dos" });
 
-            config.SaveConf();
+            //config.SaveConf();
 
             SystemConfiguration systemConfig = SystemConfiguration.GetConf("cloverq-conf.json");
             

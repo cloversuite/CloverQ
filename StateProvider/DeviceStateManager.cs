@@ -24,6 +24,7 @@ namespace StateProvider
         ActorStateProxy actorStateProxy = null;
         AriClient pbx;
         string appName = "myStateManager";
+        string source = "";
 
         //Esta clase escucha eventos mediante asternet.ari websocket y los pasa al actor system
         //Los mensajes de cambio de estado y de contacto deberían llegarle al callditributor para 
@@ -52,6 +53,7 @@ namespace StateProvider
         /// <param name="pass">ARI password</param>
         public void Connect(string server, int port, string usu, string pass)
         {
+            source = server;
             //CREO EL CLIENTE
             pbx = new AriClient(new StasisEndpoint(server, port, usu, pass), appName);
 
@@ -124,7 +126,7 @@ namespace StateProvider
                         //solo envio mensaje al calldistributor si el device posee un agente
                         if (!String.IsNullOrEmpty(device.MemberId))
                         {
-                            this.actorStateProxy.Send(new MessageDeviceStateChanged() { DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                            this.actorStateProxy.Send(new MessageDeviceStateChanged() { From = source, DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
                         }
                     }
 
@@ -147,7 +149,7 @@ namespace StateProvider
             //solo envio mensaje al calldistributor si el device posee un agente
             if (device != null && !String.IsNullOrEmpty(device.MemberId))
             {
-                this.actorStateProxy.Send(new MessageDeviceStateChanged() { DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                this.actorStateProxy.Send(new MessageDeviceStateChanged() { From = source, DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
             }
         }
 
@@ -160,7 +162,7 @@ namespace StateProvider
             if (!String.IsNullOrEmpty(device.MemberId))
             {
                 //TODO: verificar si enviar este mensaje es totalemente necesario
-                this.actorStateProxy.Send(new MessageDeviceStateChanged() { DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
+                this.actorStateProxy.Send(new MessageDeviceStateChanged() { From = source, DeviceId = device.Id, MemberId = device.MemberId, IsInUse = device.IsInUse, IsOffline = device.IsOffline, Contact = device.Contact });
             }
         }
 

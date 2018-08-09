@@ -45,7 +45,7 @@ namespace AkkaActorSystem
                     callDistributor.Tell(mlin);
 
                     //Solicito de manera asincrónica las colas del miembro
-                    actorDataAccess.Tell(new DAGetMemberQueues() { MemberId = mlin.MemberId, RequestId = mlin.RequestId }, Self);
+                    actorDataAccess.Tell(new DAGetMemberQueues() { From = mlin.From, MemberId = mlin.MemberId, RequestId = mlin.RequestId }, Self);
 
                     actorStateProxy.Tell(new MessageAttachMemberToDevice() { DeviceId = mlin.DeviceId, MemberId = mlin.MemberId });
                 }
@@ -69,7 +69,7 @@ namespace AkkaActorSystem
                 
                 actorStateProxy.Tell(new MessageDetachMemberFromDevice() { MemberId = mlof.MemberId });
                 //le paso el queuesid list en null para desloguearlo de todas las colas
-                callDistributor.Tell(new MessageQMemberRemove() { MemberId = mlof.MemberId, QueuesId = memberQueues.MemberQueues, RequestId = mlof.RequestId });
+                callDistributor.Tell(new MessageQMemberRemove() { From = mlof.From, MemberId = mlof.MemberId, QueuesId = memberQueues.MemberQueues, RequestId = mlof.RequestId });
 
                 callDistributor.Tell(mlof);
                 
@@ -78,19 +78,19 @@ namespace AkkaActorSystem
             Receive<MessageMemberPause>(mpau =>
             {
                 //le paso el queuesid list en null para desloguearlo de todas las colas
-                callDistributor.Tell(new MessageQMemberPause() { MemberId = mpau.MemberId, PauseReason = mpau.PauseReason, RequestId = mpau.RequestId });
+                callDistributor.Tell(new MessageQMemberPause() { From = mpau.From, MemberId = mpau.MemberId, PauseReason = mpau.PauseReason, RequestId = mpau.RequestId });
             });
             Receive<MessageMemberUnPause>(mupau =>
             {
                 //le paso el queuesid list en null para desloguearlo de todas las colas
-                callDistributor.Tell(new MessageQMemberUnpause() { MemberId = mupau.MemberId, RequestId = mupau.RequestId });
+                callDistributor.Tell(new MessageQMemberUnpause() { From = mupau.From, MemberId = mupau.MemberId, RequestId = mupau.RequestId });
             });
 
 
             Receive<DAMemberQueues>(mqs =>
             {
                 //Cuando el actor access service me responde le indico al call distrbutor que agregue el miembro a las colas
-                callDistributor.Tell(new MessageQMemberAdd() { MemberId = mqs.MemberId, QueuesId = mqs.MemberQueues, RequestId = mqs.RequestId });
+                callDistributor.Tell(new MessageQMemberAdd() { From = mqs.From, MemberId = mqs.MemberId, QueuesId = mqs.MemberQueues, RequestId = mqs.RequestId });
             });
 
         }

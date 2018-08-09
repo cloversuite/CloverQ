@@ -24,6 +24,7 @@ namespace PbxCallManager
         CallHandlerCache callHandlerCache = new CallHandlerCache();
         CallTimeoutHandler callTimeOutHandler = new CallTimeoutHandler();
         private string appName = "bridge_test";
+        private string source = "";
 
         public CallManager(ActorPbxProxy actorPbxProxy, SystemConfiguration systemConfig)
         {
@@ -175,7 +176,7 @@ namespace PbxCallManager
         /// <param name="pass">ARI password</param>
         public void Connect(string server, int port, string usu, string pass)
         {
-
+            source = server;
             //CREO EL CLIENTE
             pbx = new AriClient(new StasisEndpoint(server, port, usu, pass), appName);
             pbx.EventDispatchingStrategy = EventDispatchingStrategy.DedicatedThread;
@@ -504,7 +505,7 @@ namespace PbxCallManager
                             Log.Logger.Debug("Se usa un Bridge existente: " + bridge.Id);
                         }
 
-                        CallHandler callHandler = new CallHandler(appName, pbx, bridge, e.Channel);
+                        CallHandler callHandler = new CallHandler(source, appName, pbx, bridge, e.Channel);
                         callHandlerCache.AddCallHandler(callHandler);
                         Log.Logger.Debug("Se crea un callhandler: " + callHandler.Id + " para el canal: " + e.Channel.Id);
 

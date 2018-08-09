@@ -15,6 +15,7 @@ namespace PbxCallManager
         enum CallState { NEW, ANSWERED, CONNECTIING, CONNECT_FAILDED, CONNECTED, AGENT_ANSWERED, TRANSFERRED, TERMINATED };
 
         string id;
+        string source;
         string appName;
         string currentQueue;
         int timeOut = 0; //queue timeout
@@ -90,8 +91,9 @@ namespace PbxCallManager
         }
 
         //Constructor
-        public CallHandler(string appName, AriClient pbx, Bridge bridge, Channel caller)
+        public CallHandler(string source, string appName, AriClient pbx, Bridge bridge, Channel caller)
         {
+            this.source = source;
             callState = CallState.NEW;
             this.id = Guid.NewGuid().ToString();
             this.appName = appName;
@@ -109,7 +111,7 @@ namespace PbxCallManager
         {
             currentQueue = queueId;
             chronometer.CallStart();
-            return new MessageNewCall() { CallHandlerId = id, QueueId = queueId, ChannelId = caller.Id };
+            return new MessageNewCall() { From = source, CallHandlerId = id, QueueId = queueId, ChannelId = caller.Id };
 
         }
 
@@ -194,6 +196,7 @@ namespace PbxCallManager
             callState = CallState.TERMINATED;
 
             msg = new MessageCallerExitWithTimeOut {
+                From = source,
                 CallHandlerId = this.id,
                 QueueId = currentQueue,
                 TimeOut = timeOut
@@ -224,7 +227,7 @@ namespace PbxCallManager
                 if (newState == "Up") //Esto indica que el canal es de un agente y atendió la llamada
                 {
                     int holdTime = chronometer.CallToSuccess();
-                    msg = new MessageCallToSuccess() { CallHandlerId = this.id, QueueId = currentQueue, HoldTime = holdTime };
+                    msg = new MessageCallToSuccess() { From = source, CallHandlerId = this.id, QueueId = currentQueue, HoldTime = holdTime };
                     callState = CallState.AGENT_ANSWERED;
                 }
             }
@@ -249,6 +252,7 @@ namespace PbxCallManager
                 int x = chronometer.CallEnd();
                 msg = new MessageCallerHangup()
                 {
+                    From = source,
                     CallHandlerId = this.id,
                     QueueId = currentQueue,
                     HangUpCode = cause.ToString(),
@@ -263,7 +267,7 @@ namespace PbxCallManager
             else if (channelId == agent.Id)
             {
                 int ringingTime = chronometer.CallToEndFailed();
-                msg = new MessageCallToFailed() { CallHandlerId = this.id, QueueId = currentQueue, Code = cause, Reason = causeText, RingingTime = ringingTime };
+                msg = new MessageCallToFailed() { From = source, CallHandlerId = this.id, QueueId = currentQueue, Code = cause, Reason = causeText, RingingTime = ringingTime };
                 callState = CallState.CONNECT_FAILDED;
             }
             else
@@ -285,6 +289,7 @@ namespace PbxCallManager
                 int x = chronometer.CallEnd();
                 msg = new MessageCallerHangup()
                 {
+                    From = source,
                     CallHandlerId = this.id,
                     QueueId = currentQueue,
                     HangUpCode = cause.ToString(),
@@ -306,6 +311,7 @@ namespace PbxCallManager
                     int x = chronometer.CallEnd();
                     msg = new MessageAgentHangup()
                     {
+                        From = source,
                         CallHandlerId = this.id,
                         QueueId = currentQueue,
                         HangUpCode = cause.ToString(),
@@ -361,6 +367,7 @@ namespace PbxCallManager
 
             msg = new MessageCallHold()
             {
+                From = source,
                 CallHandlerId = this.id,
                 QueueId = currentQueue
             };
@@ -376,6 +383,7 @@ namespace PbxCallManager
 
             msg = new MessageCallUnHold()
             {
+                From = source,
                 CallHandlerId = this.id,
                 QueueId = currentQueue,
                 HoldTime = holdTime
@@ -416,6 +424,7 @@ namespace PbxCallManager
             callState = CallState.TRANSFERRED;
             msg = new MessageCallTransfer()
             {
+                From = source,
                 CallHandlerId = this.id,
                 QueueId = currentQueue,
                 TargetId = transferTarget.Id,

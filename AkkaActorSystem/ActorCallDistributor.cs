@@ -65,7 +65,7 @@ namespace AkkaActorSystem
                 queueSystem.MemberCache.Add(member);
                 queueSystem.MemberCache.MemberLogin(member);
                 
-                actorQueueLog.Tell(new QLMemberLogin() { Channel = mlin.RequestId, MemberId = mlin.MemberId, Name = mlin.Name, DeviceId = mlin.DeviceId });
+                actorQueueLog.Tell(new QLMemberLogin() { Source = mlin.From, Channel = mlin.RequestId, MemberId = mlin.MemberId, Name = mlin.Name, DeviceId = mlin.DeviceId });
             });
 
             Receive<MessageMemberLogoff>(mlof =>
@@ -74,13 +74,13 @@ namespace AkkaActorSystem
                 queueSystem.MemberCache.MemberLogoff(mlof.MemberId);
                 Member member = queueSystem.MemberCache.Remove(mlof.MemberId);
              
-                actorQueueLog.Tell(new QLMemberLogoff() { Channel = mlof.RequestId, MemberId = mlof.MemberId, LoggedInTime = member.LoginElapsedTime });
+                actorQueueLog.Tell(new QLMemberLogoff() { Source = mlof.From, Channel = mlof.RequestId, MemberId = mlof.MemberId, LoggedInTime = member.LoginElapsedTime });
             });
 
             Receive<MessageQMemberPause>(mpau =>
             {
                 queueSystem.MemberCache.MemberPause(mpau.MemberId, mpau.PauseReason, mpau.PauseReason);
-                actorQueueLog.Tell(new QLMemberPause() { Channel = mpau.RequestId, MemberId = mpau.MemberId, Reason = mpau.PauseReason });
+                actorQueueLog.Tell(new QLMemberPause() { Source = mpau.From, Channel = mpau.RequestId, MemberId = mpau.MemberId, Reason = mpau.PauseReason });
 
             });
 
@@ -90,7 +90,7 @@ namespace AkkaActorSystem
                 if (member.IsPaused)
                 {
                     member = queueSystem.MemberCache.MemberUnPause(munpau.MemberId);
-                    actorQueueLog.Tell(new QLMemberUnpause() { Channel = munpau.RequestId, MemberId = munpau.MemberId, PausedTime = member.PauseElapsedTime });
+                    actorQueueLog.Tell(new QLMemberUnpause() { Source = munpau.From, Channel = munpau.RequestId, MemberId = munpau.MemberId, PausedTime = member.PauseElapsedTime });
                 }
             });
 
@@ -106,7 +106,7 @@ namespace AkkaActorSystem
                     {
                         QueueMember qm = new QueueMember(member);
                         queueSystem.QueueCache.GetQueue(queueId).AddQueueMember(qm);
-                        actorQueueLog.Tell(new QLMemberAdd() { Channel = memberQueues.RequestId, QueueId = queueId, MemberId = member.Id });
+                        actorQueueLog.Tell(new QLMemberAdd() { Source = memberQueues.From, Channel = memberQueues.RequestId, QueueId = queueId, MemberId = member.Id });
                     }
                 }
             });
@@ -123,7 +123,7 @@ namespace AkkaActorSystem
                     {
                         QueueMember qm = new QueueMember(member);
                         queueSystem.QueueCache.GetQueue(queueId).RemoveQueueMember(qm);
-                        actorQueueLog.Tell(new QLMemberRemove() { Channel = memberQueues.RequestId, QueueId = queueId, MemberId = member.Id });
+                        actorQueueLog.Tell(new QLMemberRemove() { Source = memberQueues.From, Channel = memberQueues.RequestId, QueueId = queueId, MemberId = member.Id });
                     }
                 }
             });
@@ -151,7 +151,7 @@ namespace AkkaActorSystem
                 if (queue != null)
                 {
                     queueMember = queue.AddCall(call); //agrega la llamada y si hay un qm para atenderla lo devuelve
-                    actorQueueLog.Tell(new QLEnterQueue() { QueueId = queue.Id, Channel = call.ChannelId });
+                    actorQueueLog.Tell(new QLEnterQueue() { Source = nc.From, QueueId = queue.Id, Channel = call.ChannelId });
                 }
                 Sender.Tell(new MessageAnswerCall() { CallHandlerId = nc.CallHandlerId, MediaType = queue.MediaType, Media = queue.Media });
                 if (queueMember == null)
@@ -189,6 +189,7 @@ namespace AkkaActorSystem
                         }
                         queue.calls.RemoveCall(call);
                         actorQueueLog.Tell(new QLCallExitWithTimeOut(){
+                                Source = cewto.From,
                                 QueueId = queue.Id,
                                 Channel = call.ChannelId,
                                 TimeOut = cewto.TimeOut
@@ -215,15 +216,12 @@ namespace AkkaActorSystem
                         Sender.Tell(new MessageCallTo() { CallHandlerId = ctf.CallHandlerId, Destination = queueMember.Member.Contact });
                         actorQueueLog.Tell(new QLRingNoAnswer()
                         {
-                            QueueId = queue.Id
-                            ,
-                            Channel = call.ChannelId
-                            ,
-                            MemberId = call.QueueMember.Id
-                            ,
+                            Source = ctf.From,
+                            QueueId = queue.Id,
+                            Channel = call.ChannelId,
+                            MemberId = call.QueueMember.Id,
                             Code = ctf.Code,
-                            Reason = ctf.Reason
-                            ,
+                            Reason = ctf.Reason,
                             RingingTime = ctf.RingingTime
                         });
                     }
@@ -244,12 +242,10 @@ namespace AkkaActorSystem
                         call.Connected = true;
                         actorQueueLog.Tell(new QLConnect()
                         {
-                            QueueId = queue.Id
-                            ,
-                            Channel = call.ChannelId
-                            ,
-                            MemberId = call.QueueMember.Id
-                            ,
+                            Source = cts.From,
+                            QueueId = queue.Id,
+                            Channel = call.ChannelId,
+                            MemberId = call.QueueMember.Id,
                             HoldTime = cts.HoldTime
                         });
                     }
@@ -274,6 +270,7 @@ namespace AkkaActorSystem
                     {
                         actorQueueLog.Tell(new QLAbandon()
                         {
+                            Source = chup.From,
                             QueueId = queue.Id,
                             Channel = call.ChannelId,
                             WaitingTime = chup.WatingTime
@@ -283,6 +280,7 @@ namespace AkkaActorSystem
                     {
                         actorQueueLog.Tell(new QLCallerHangUp()
                         {
+                            Source = chup.From,
                             QueueId = queue.Id,
                             Channel = call.ChannelId,
                             MemberId = call.QueueMember.Id,
@@ -313,6 +311,7 @@ namespace AkkaActorSystem
                             queueMember.Member.IsAvailable = true;
                             actorQueueLog.Tell(new QLAgentHangUp()
                             {
+                                Source = ahup.From,
                                 QueueId = queue.Id,
                                 Channel = call.ChannelId,
                                 MemberId = call.QueueMember.Id,
@@ -339,6 +338,7 @@ namespace AkkaActorSystem
                         queueMember.Member.IsAvailable = true;
                         actorQueueLog.Tell(new QLTransfer()
                         {
+                            Source = ctrans.From,
                             QueueId = queue.Id,
                             Channel = call.ChannelId,
                             MemberId = call.QueueMember.Id,
@@ -361,7 +361,11 @@ namespace AkkaActorSystem
                     QueueMember queueMember = call.QueueMember;
                     if (queueMember != null)
                     {
-                        actorQueueLog.Tell(new QLCallHoldStart() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id });
+                        actorQueueLog.Tell(new QLCallHoldStart() {
+                            Source = cho.From,
+                            QueueId = queue.Id,
+                            Channel = call.ChannelId,
+                            MemberId = call.QueueMember.Id });
                     }
                 }
             });
@@ -375,7 +379,13 @@ namespace AkkaActorSystem
                     QueueMember queueMember = call.QueueMember;
                     if (queueMember != null)
                     {
-                        actorQueueLog.Tell(new QLCallHoldStop() { QueueId = queue.Id, Channel = call.ChannelId, MemberId = call.QueueMember.Id, HoldTime = cuho.HoldTime });
+                        actorQueueLog.Tell(new QLCallHoldStop() {
+                            Source = cuho.From,
+                            QueueId = queue.Id,
+                            Channel = call.ChannelId,
+                            MemberId = call.QueueMember.Id,
+                            HoldTime = cuho.HoldTime
+                        });
                     }
                 }
             });

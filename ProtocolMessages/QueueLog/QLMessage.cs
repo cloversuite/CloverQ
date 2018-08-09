@@ -14,6 +14,7 @@ namespace ProtocolMessages.QueueLog
         }
         public DateTime EventDate { get; protected set; }
         public string EventName { get; protected set; }
+        public string Source { get; set; }
         public string Channel { get; set; }
         public string QueueId { get; set; }
         public string MemberId { get; set; }
@@ -24,7 +25,7 @@ namespace ProtocolMessages.QueueLog
         public string data5 { get; protected set; }
         public override string ToString()
         {
-            return $"{EventDate.ToString("s")}|{Channel}|{QueueId}|{MemberId}|{EventName}|{data1}|{data2}|{data3}|{data4}|{data5}";
+            return $"{EventDate.ToString("s")}|{Source}|{Channel}|{QueueId}|{MemberId}|{EventName}|{data1}|{data2}|{data3}|{data4}|{data5}";
         }
     }
 }

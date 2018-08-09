@@ -20,6 +20,7 @@ namespace LoginProvider
         ActorLoginProxy actorLoginProxy = null;
         AriClient pbx;
         string appName = "myPbxLoginProvider";
+        string source = "";
 
         public PbxLoginProvider(ActorLoginProxy actorLoginProxy, SystemConfiguration systemConfig)
         {
@@ -47,6 +48,7 @@ namespace LoginProvider
         /// <param name="pass">ARI password</param>
         public void Connect(string server, int port, string usu, string pass)
         {
+            source = server;
             //CREO EL CLIENTE
             pbx = new AriClient(new StasisEndpoint(server, port, usu, pass), appName);
             //USEREVENT para el login -> en desuso
@@ -135,14 +137,14 @@ namespace LoginProvider
                 //esta llamada la tengo que pasar de ask a tell para poder hacer todo async
                 //MessageMemberLoginResponse mlr = await 
                 Log.Logger.Debug("Login para: " + memberId);
-                actorLoginProxy.Send(new MessageMemberLogin() { MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId, RequestId = channelId });
+                actorLoginProxy.Send(new MessageMemberLogin() { From = source, MemberId = memberId, Password = password, Contact = destination, DeviceId = deviceId, RequestId = channelId });
             }
             else if (eventname == "logoff")
             {
                 if (!String.IsNullOrEmpty(memberId))
                 {
                     deviceMemberMap.UnTrackMemberDeviceId(deviceId);
-                    actorLoginProxy.Send(new MessageMemberLogoff() { MemberId = memberId, Password = password, RequestId = e.Channel.Id });
+                    actorLoginProxy.Send(new MessageMemberLogoff() { From = source, MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 }
                 else
                     Log.Logger.Debug("LogOff: Error MembderId es nulo o vacio");
@@ -153,7 +155,7 @@ namespace LoginProvider
             else if (eventname == "pause")
             {
                 if (!String.IsNullOrEmpty(memberId))
-                    actorLoginProxy.Send(new MessageMemberPause() { MemberId = memberId, Password = password, PauseReason = pauseReason, RequestId = e.Channel.Id });
+                    actorLoginProxy.Send(new MessageMemberPause() { From = source, MemberId = memberId, Password = password, PauseReason = pauseReason, RequestId = e.Channel.Id });
                 else
                     Log.Logger.Debug("Pause: Error MembderId es nulo o vacio");
 
@@ -163,7 +165,7 @@ namespace LoginProvider
             else if (eventname == "unpause")
             {
                 if (!String.IsNullOrEmpty(memberId))
-                    actorLoginProxy.Send(new MessageMemberUnPause() { MemberId = memberId, Password = password, RequestId = e.Channel.Id });
+                    actorLoginProxy.Send(new MessageMemberUnPause() { From = source, MemberId = memberId, Password = password, RequestId = e.Channel.Id });
                 else
                     Log.Logger.Debug("UnPause: Error MembderId es nulo o vacio");
 
@@ -235,7 +237,7 @@ namespace LoginProvider
 
         private void Pbx_OnUnhandledEvent(object sender, AsterNET.ARI.Models.Event eventMessage)
         {
-            // Log.Logger.Debug("PLP: No manejé: " + eventMessage.Type);
+            Log.Logger.Debug("PbxLoginProvider: Unhandled message: " + eventMessage.Type);
         }
 
         public void Disconnect()

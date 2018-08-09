@@ -11,5 +11,6 @@ namespace ProtocolMessages
         public string MemberId { get; set; }
         public List<string> MemberQueues { get; set; }
         public string RequestId { get; set; }
+        public string From { get; set; }
     }
 }

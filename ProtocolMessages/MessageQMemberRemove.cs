@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProtocolMessages
 {
-    public class MessageQMemberRemove
+    public class MessageQMemberRemove : Message
     {
         //Member ID
         public string MemberId { get; set; }
