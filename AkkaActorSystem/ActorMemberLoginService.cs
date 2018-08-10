@@ -51,7 +51,7 @@ namespace AkkaActorSystem
                 }
                 else
                 {
-                    Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = false, Reason = "MemberId or Pass wrong." });
+                    Sender.Tell(new MessageMemberLoginResponse() { LoguedIn = false, Reason = "MemberId or Pass wrong.", MemberId = mlin.MemberId, ResquestId = mlin.RequestId, DeviceId = mlin.DeviceId });
                 }
 
             });
