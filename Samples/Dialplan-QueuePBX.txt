@@ -1,0 +1,12 @@
+[stasisapp]
+exten => 9999,1,NoOp()
+ same =>      n,Answer()
+ same =>      n,Stasis(cloverq,5000,15)
+ same =>      n,Stasis(cloverq,6000,0)
+ same =>      n,Hangup()
+
+
+exten => 9000,1,NoOp()
+ same =>      n,Answer()
+ same =>      n,Stasis(cloverq,6000,0)
+ same =>      n,Hangup()
