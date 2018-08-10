@@ -4,4 +4,4 @@ install:
 #  - nuget restore AsterNET.ARI.SubMod/AsterNET.ARI.sln 
 script:
 #  - msbuild /p:Configuration=Release AsterNET.ARI.SubMod/AsterNET.ARI/AsterNET.ARI.csproj
-  - msbuild /p:Configuration=Release TestBridge.sln
+  - msbuild /p:Configuration=Release CloverQ.sln
