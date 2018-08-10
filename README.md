@@ -2,6 +2,12 @@
 
 CloverQ is an ACD (Automatic Call Distributor) written in C# with VS2015. The main features are that can queue calls form multiple Asterisk servers, and can handle endpoints on different Asterisk server. The idea behind that is offload the registration and outbound traffic from the Astersiks working as queue servers. At the moment only works over chan_sip.
 
+## Build status
+
+||Windows|Linux (Mono)|
+|:--:|:--:|:--:|
+|Build|OK|[![Build Status](https://travis-ci.org/cloversuite/CloverQ.svg?branch=master)](https://travis-ci.org/cloversuite/CloverQ)
+
 ## Dependencies
 
 * Akka.Net 1.2.0
