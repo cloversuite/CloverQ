@@ -7,13 +7,13 @@
       "Ip": "192.168.1.19",
       "Port": 8088,
       "User": "asterisk",
-      "Password": "pelo2dos"
+      "Password": "123456"
     },
     {
       "Ip": "192.168.1.20",
       "Port": 8088,
       "User": "asterisk",
-      "Password": "pelo2dos"
+      "Password": "123456"
     }
   ],
   "StateProviders": [
@@ -21,7 +21,7 @@
       "Ip": "192.168.1.21",
       "Port": 8088,
       "User": "asterisk",
-      "Password": "pelo2dos"
+      "Password": "123456"
     }
   ],
   "LoginProviders": [
@@ -29,7 +29,7 @@
       "Ip": "192.168.1.21",
       "Port": 8088,
       "User": "asterisk",
-      "Password": "pelo2dos"
+      "Password": "123456"
     }
   ],
   "StasisQueueAppName": "cloverq",

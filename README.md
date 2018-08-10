@@ -38,7 +38,7 @@ CloverQ is an ACD (Automatic Call Distributor) written in C# with VS2015. The ma
       "Ip": "192.168.1.21", //Ip of the asterisk server
       "Port": 8088, //Port of the ARI on asterisk server
       "User": "asterisk", //User name for ARI
-      "Password": "pelo2dos" //Pass for ARI
+      "Password": "123456" //Pass for ARI
     }
 	```
    * **CallManagers**: Array of Asterisk hosts for queue server
