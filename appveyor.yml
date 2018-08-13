@@ -3,6 +3,10 @@ branches:
   # whitelist
   only:
     - master
+
+# Start builds on tags only (GitHub and BitBucket)
+skip_non_tags: true
+
 image:
 - Visual Studio 2015
 - Visual Studio 2017

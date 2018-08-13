@@ -6,7 +6,7 @@ CloverQ is an ACD (Automatic Call Distributor) written in C# with VS2015. The ma
 
 ||Windows|Linux (Mono)|
 |:--:|:--:|:--:|
-|Build|OK|[![Build Status](https://travis-ci.org/cloversuite/CloverQ.svg?branch=master)](https://travis-ci.org/cloversuite/CloverQ)
+|Build|[![Build status](https://ci.appveyor.com/api/projects/status/github/cloversuite/cloverq?svg=true)](https://ci.appveyor.com/api/projects/status/github/cloversuite/)|[![Build Status](https://travis-ci.org/cloversuite/CloverQ.svg?branch=master)](https://travis-ci.org/cloversuite/CloverQ)
 
 ## Dependencies
 
